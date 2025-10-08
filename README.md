@@ -1,10 +1,11 @@
 # Remember Window Positions
 
-<img align="left" style="margin-right: 20px" width="100" height="100" src="./assets/icon.png">
+<pre><img align="left" style="margin-right: 20px" width="100" height="100" src="./assets/icon.png">
+KDE KWin Script for remembering application window properties. Especially useful for multi-window applications such as browsers. Remembers and restores the windows position, size, screen and virtual desktop.</pre>
 
-KDE KWin Script for remembering application window properties. Especially useful for multi-window applications such as browsers. Remembers and restores the windows position, size, screen and virtual desktop.
+* Compatible with KDE Plasma 6+.
 
-Compatible with KDE Plasma 6+. Tested on Fedora 42 KDE running Wayland with Plasma version 6.4.5.
+* Tested on Fedora 42 KDE running Wayland with Plasma version 6.4.5.
 
 ## Features
 
