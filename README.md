@@ -139,4 +139,4 @@ The system user settings data is stored in `~/.config/kwinrc` under `[Script-kre
 ## Compatibility ##
 
 Compatible with:
-* Session Restore - (user reported)
+* Session Restore - (reported by Equivalent-Cut-9253)
