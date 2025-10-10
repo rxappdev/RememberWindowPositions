@@ -47,6 +47,26 @@ There are lots of other settings that let you control exactly how and when to re
 
 ## Installation
 
+### From KDE Store (Recommended)
+
+1) Open `Settings` > `Window Management` > `KWin Scripts`.
+2) Click the `Get New...` in upper right corner.<br>
+![](./assets/get.png)<br>
+3) Search for `Remember Window Positions` and click on it (step `1` applies only with small window size)<br>
+![](./assets/search.png)<br>
+4) Click `Install`<br>
+![](./assets/download.png)<br>
+5) Enable `Remember Window Positions`<br>
+![](./assets/tick.png)<br>
+6) Click `Apply`<br>
+![](./assets/apply.png)<br>
+7) Click the configure icon to change the settings to your liking<br>
+![](./assets/configure.png)<br>
+
+Please note that changing settings requires some additional steps to apply due to a KDE limitation - see `Changing settings` below for more information.
+
+### From File
+
 You can download the `rememberwindowpositions.kwinscript` file and install it through **System Settings**.
 1) Download the .kwinscript file.
 2) Open `Settings` > `Window Management` > `KWin Scripts`.
@@ -59,6 +79,8 @@ You can download the `rememberwindowpositions.kwinscript` file and install it th
 ![](./assets/apply.png)<br>
 7) Click the configure icon to change the settings to your liking<br>
 ![](./assets/configure.png)<br>
+
+Please note that changing settings requires some additional steps to apply due to a KDE limitation - see `Changing settings` below for more information.
 
 ## Recommended setup
 
