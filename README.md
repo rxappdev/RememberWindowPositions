@@ -135,3 +135,8 @@ If there is ever need to manually erase user data (do not do this unless you are
 The application/window data is stored in `~/.config/kde.org/kwin.conf` under the key `rememberwindowpositions_windows`.
 
 The system user settings data is stored in `~/.config/kwinrc` under `[Script-krestorewindowpositions]`.
+
+## Compatibility ##
+
+Compatible with:
+* Session Restore - (user reported)
