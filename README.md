@@ -53,7 +53,9 @@ You can download the `rememberwindowpositions.kwinscript` file and install it th
 4) Select the downloaded file and click `Open`
 5) Enable `Remember Window Positions`<br>
 ![](./assets/tick.png)<br>
-6) Click the configure icon to change the settings to your liking<br>
+6) Click `Apply`<br>
+![](./assets/apply.png)<br>
+7) Click the configure icon to change the settings to your liking<br>
 ![](./assets/configure.png)<br>
 
 ## Recommended setup
@@ -62,7 +64,7 @@ Since there are probably tens of thousands of different applications, it is simp
 
 By default, all applications except those that are blacklisted will be remembered. The blacklisted applications are known to use many windows with the same name that are expected to have different sizes. This will obviously cause issues since they would be resized to last known size.
 
-Recommended usage would be to either use a whitelist (safer) or blacklist (less work).
+Recommended usage would be to either use a whitelist or a blacklist. It's also possible to simply adjust other settings and get perfect results. The default configuration should not cause many issues, but it all depends on which applications you use - so some tweaking might be required. Enable logs to find application names to add to the blacklist or the whitelist if you go that route.
 
 ### Using Blacklist
 
@@ -72,18 +74,22 @@ Recommended usage would be to either use a whitelist (safer) or blacklist (less 
 
 ### Using Whitelist
 
-* Check the application name to add in the log (see "**Find application names**" below).
+* Check the application names to add in the log (see "**Find application names**" below).
 * Add applications you would like to remember to the list, one per line.
 
 ### Find application names
 
-To find application names to add to the Blacklist, Whitelist or Perfect Multi-Window Restore List, enable the "Print Application Name To Log" in the settings, and in a terminal (Konsole) run:
+To find application names to add to the Blacklist, Whitelist or Perfect Multi-Window Restore List, enable the "**Print Application Name To Log**" in the "**General**" tab of the settings.
+
+Then in a terminal (Konsole) run:
 
     journalctl -f | grep RememberWindowPositions
 
+![](./assets/print.png)<br>
+
 ## Changing settings
 
-### **!!! IMPORTANT !!!**
+### **`IMPORTANT`**
 
 Due to a bug in KDE, changing user configuration requires reloading the script. (A reboot works too.)
 

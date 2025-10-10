@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<kcfg xmlns="http://www.kde.org/standards/kcfg/1.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.kde.org/standards/kcfg/1.0 http://www.kde.org/standards/kcfg/1.0/kcfg.xsd">
+    <kcfgfile name=""/>
+    <group name="">
+        <entry name="restoreType" type="Int">
+            <default>2</default>
+        </entry>
+        <entry name="restoreVirtualDesktop" type="Bool">
+            <default>true</default>
+        </entry>
+        <entry name="restoreWindowsWithoutCaption" type="Bool">
+            <default>true</default>
+        </entry>
+        <entry name="minimumCaptionMatch" type="Int">
+            <default>0</default>
+            <min>0</min>
+            <max>100</max>
+        </entry>
+        <entry name="printType" type="Int">
+            <default>0</default>
+        </entry>
+        <entry name="multiWindowRestoreAttempts" type="Int">
+            <default>5</default>
+            <min>1</min>
+            <max>60</max>
+        </entry>
+        <entry name="usePerfectMultiWindowRestore" type="Bool">
+            <default>true</default>
+        </entry>
+        <entry name="perfectMultiWindowRestoreAttempts" type="Int">
+            <default>10</default>
+            <min>1</min>
+            <max>60</max>
+        </entry>
+        <entry name="perfectMultiWindowRestoreList" type="String">
+            <default>brave-browser
+org.mozilla.firefox
+vivaldi-stable
+librewolf
+chromium-browser
+Chromium-browser
+google-chrome
+microsoft-edge
+Mullvad Browser
+Opera
+io.github.ungoogled_software.ungoogled_chromium
+app.zen_browser.zen
+waterfox-default</default>
+        </entry>
+        <entry name="printApplicationNameToLog" type="Bool">
+            <default>true</default>
+        </entry>
+        <entry name="blacklist" type="String">
+            <default>org.kde.spectacle
+org.kde.polkit-kde-authentication-agent-1
+steam_proton
+steam</default>
+        </entry>
+        <entry name="whitelist" type="String">
+            <default>brave-browser
+org.mozilla.firefox
+vivaldi-stable
+librewolf
+chromium-browser
+Chromium-browser
+google-chrome
+microsoft-edge
+Mullvad Browser
+Opera
+io.github.ungoogled_software.ungoogled_chromium
+app.zen_browser.zen
+waterfox-default</default>
+        </entry>
+    </group>
+</kcfg>
