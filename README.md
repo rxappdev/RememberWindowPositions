@@ -1,6 +1,6 @@
 # Remember Window Positions
 
-<img align="left" style="margin-right: 20px" width="100" height="100" src="./assets/icon.png">
+<img align="left" style="margin-right: 20px" width="90" height="90" src="./assets/icon.png">
 
 <pre>KDE KWin Script for remembering application window properties.
 Especially useful for multi-window applications such as browsers.
@@ -31,6 +31,8 @@ Can operate in one of four modes where it remembers:
 - All except blacklisted applications (Default)
 - Only whitelisted applications (Recommended)
 
+There are lots of other settings that let you control exactly how and when to restore windows to their previous state.
+
 ## How it works
 
 1. When the last window of an application is closed, the properties of all windows that were closed within the past second are saved. To save all windows for a browser, simply "Quit" it from the application menu so that all windows are closed at once.
@@ -46,10 +48,13 @@ Can operate in one of four modes where it remembers:
 You can download the `rememberwindowpositions.kwinscript` file and install it through **System Settings**.
 1) Download the .kwinscript file.
 2) Open `Settings` > `Window Management` > `KWin Scripts`.
-3) Click the `Install from File...` in upper right corner.
+3) Click the `Install from File...` in upper right corner.<br>
+![](./assets/install.png)<br>
 4) Select the downloaded file and click `Open`
-5) Enable `Remember Window Positions`
-6) Click the configure icon to change the settings to your liking
+5) Enable `Remember Window Positions`<br>
+![](./assets/tick.png)<br>
+6) Click the configure icon to change the settings to your liking<br>
+![](./assets/configure.png)<br>
 
 ## Recommended setup
 
@@ -62,12 +67,12 @@ Recommended usage would be to either use a whitelist (safer) or blacklist (less 
 ### Using Blacklist
 
 * Identify problematic applications.
-* Check the application names to add in the log (see "Find application names" below).
+* Check the application names to add in the log (see "**Find application names**" below).
 * Add them to the Blacklist, one per line.
 
 ### Using Whitelist
 
-* Check the application name to add in the log (see "Find application names" below).
+* Check the application name to add in the log (see "**Find application names**" below).
 * Add applications you would like to remember to the list, one per line.
 
 ### Find application names
@@ -80,11 +85,23 @@ To find application names to add to the Blacklist, Whitelist or Perfect Multi-Wi
 
 ### **!!! IMPORTANT !!!**
 
-Due to a bug in KDE, changing user configuration requires reloading the script.
+Due to a bug in KDE, changing user configuration requires reloading the script. (A reboot works too.)
 
 To make setting changes effective, **reload the script as follows**:
 
-1) In `Settings` > `Window Management` > `KWin Scripts`, untick `Remember Window Positions`
-2) Click `Apply`
-3) Tick `Remember Window Positions`
-4) Click `Apply`
+1) In `Settings` > `Window Management` > `KWin Scripts`, untick `Remember Window Positions`<br>
+![](./assets/untick.png)<br>
+2) Click `Apply`<br>
+![](./assets/apply.png)<br>
+3) Tick `Remember Window Positions`<br>
+![](./assets/tick.png)<br>
+4) Click `Apply`<br>
+![](./assets/apply.png)<br>
+
+### Manually erasing settings ###
+
+If there is ever need to manually erase user data (do not do this unless you are a developer or really need it).
+
+The application/window data is stored in `~/.config/kde.org/kwin.conf` under the key `rememberwindowpositions_windows`.
+
+The system user settings data is stored in `~/.config/kwinrc` under `[Script-krestorewindowpositions]`.
