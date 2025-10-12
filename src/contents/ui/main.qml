@@ -27,6 +27,10 @@ Item {
         console.error('RememberWindowPositions: ' + string);
     }
 
+    function logDev(string) {
+        console.error('RememberWindowPositions: ' + string);
+    }
+
     function logAppInfo(name) {
         let isFirstWindow = !config.windows[name] || (config.windows[name] && config.windows[name].windowCount == 0);
         if (isFirstWindow || config.printAllWindows) {
@@ -59,7 +63,7 @@ Item {
         else if (config.appsMultiWindowOnly) mode = 'Multi-window apps only';
         else if (config.appsNotBlacklisted) mode = 'All except blacklisted apps';
         else if (config.appsWhitelistedOnly) mode = 'Only whitelisted apps';
-        log('Restoring: ' + mode + ' - minimumCaptionMatch: ' + config.minimumCaptionMatch + ' restoreWindowsWithoutCaption: ' + config.restoreWindowsWithoutCaption);
+        log('Restoring: ' + mode + ' - minimumCaptionMatch: ' + config.minimumCaptionMatch + ' restoreWindowsWithoutCaption: ' + config.restoreWindowsWithoutCaption + ' restoreSize: ' + config.restoreSize + ' restoreMinimized: ' + config.restoreMinimized);
     }
 
     function stringListToArray(list) {
@@ -80,7 +84,10 @@ Item {
         config = {
             // user settings
             restoreType: KWin.readConfig("restoreType", 2),
+            restoreSize: KWin.readConfig("restoreSize", true),
             restoreVirtualDesktop: KWin.readConfig("restoreVirtualDesktop", true),
+            restoreActivities: KWin.readConfig("restoreActivities", true),
+            restoreMinimized: KWin.readConfig("restoreMinimized", true),
             restoreWindowsWithoutCaption: KWin.readConfig("restoreWindowsWithoutCaption", true),
             minimumCaptionMatch: KWin.readConfig("minimumCaptionMatch", 0),
             printType: KWin.readConfig("printType", 0),
@@ -178,13 +185,34 @@ Item {
         let minimizeRestored = false;
 
         // Restore frame geometry
-        if (client.x != saveData.x || client.y != saveData.y || client.width != saveData.width || client.height != saveData.height) {
-            client.frameGeometry = Qt.rect(saveData.x, saveData.y, saveData.width, saveData.height);
+        if (config.restoreSize) {
+            if (client.x != saveData.x || client.y != saveData.y || client.width != saveData.width || client.height != saveData.height) {
+                client.frameGeometry = Qt.rect(saveData.x, saveData.y, saveData.width, saveData.height);
+                positionRestored = true;
+            }
+        } else if (client.x != saveData.x || client.y != saveData.y) {
+            client.frameGeometry = Qt.rect(saveData.x, saveData.y, client.width, client.height);
             positionRestored = true;
         }
 
         // Restore z-index
         Workspace.raiseWindow(client);
+
+        // Restore activities
+        if (config.restoreActivities) {
+            if (saveData.activities) {
+                let activities = [];
+                let activitiesLength = saveData.activities.length;
+                if (activitiesLength > 0) {
+                    for (let i = 0; i < activitiesLength; i++) {
+                        if (Workspace.activities.includes(saveData.activities[i])) {
+                            activities.push(saveData.activities[i]);
+                        }
+                    }
+                }
+                client.activities = activities;
+            }
+        }
 
         // Restore virtual desktop
         if (config.restoreVirtualDesktop) {
@@ -204,7 +232,7 @@ Item {
         // - this seems to be handled by restoring frame geometry as it spans all screens - if anything changes will have to implement this. The screen is saved just in case.
 
         // Restore minimized
-        if (saveData.minimized) {
+        if (saveData.minimized && config.restoreMinimized) {
             client.minimized = true;
             minimizeRestored = true;
         }
@@ -410,8 +438,11 @@ Item {
                     // TODO: Match captions and if mismatch do:
                     // client.onCaptionChanged.connect(onCaptionChanged);
 
+                    // TODO: Might cause issues with Firefox - revert to "slower" restore for now
                     // Trigger first restore ASAP to make it appear smooth in case all captions match right away
-                    restoreTimer.setTimeout(1, client.resourceClass, 85, repeats + 1);
+                    //restoreTimer.setTimeout(1, client.resourceClass, 85, repeats + 1);
+
+                    restoreTimer.setTimeout(1000, client.resourceClass, 85, repeats);
                 }
             }
         }
@@ -453,6 +484,7 @@ Item {
                 outputName    : client.output.name,
                 stackingOrder : currentWindowOrder == -1 ? client.stackingOrder : currentWindowOrder,
                 desktopNumber : client.onAllDesktops ? -1 : client.desktops[0].x11DesktopNumber,
+                activities    : [...client.activities],
                 closeTime     : Date.now()
             });
 
@@ -592,7 +624,8 @@ Item {
                     minimized     : save.m == 1, // minimized
                     outputName    : save.o,      // outputName
                     stackingOrder : save.s,      // stackingOrder
-                    desktopNumber : save.d       // desktopNumber
+                    desktopNumber : save.d,      // desktopNumber
+                    activities    : save.a       // activities
                     // --- Ommited fields ---
                     // closeTime  : save.t       // closeTime
                 });
@@ -631,7 +664,8 @@ Item {
                         m: save.minimized ? 1 : 0, // minimized
                         o: save.outputName,        // outputName
                         s: save.stackingOrder,     // stackingOrder
-                        d: save.desktopNumber      // desktopNumber
+                        d: save.desktopNumber,     // desktopNumber
+                        a: save.activities         // activities
                         // --- Ommited fields ---
                         // t: save.closeTime       // closeTime
                     });

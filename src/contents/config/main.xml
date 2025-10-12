@@ -5,7 +5,16 @@
         <entry name="restoreType" type="Int">
             <default>2</default>
         </entry>
+        <entry name="restoreSize" type="Bool">
+            <default>true</default>
+        </entry>
         <entry name="restoreVirtualDesktop" type="Bool">
+            <default>true</default>
+        </entry>
+        <entry name="restoreActivities" type="Bool">
+            <default>true</default>
+        </entry>
+        <entry name="restoreMinimized" type="Bool">
             <default>true</default>
         </entry>
         <entry name="restoreWindowsWithoutCaption" type="Bool">

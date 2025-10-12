@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>1190</width>
-    <height>513</height>
+    <height>611</height>
    </rect>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
@@ -40,7 +40,7 @@
           <item>
            <widget class="QLabel" name="label_restoreTypeExplanation">
             <property name="text">
-             <string>Configure which applications to remember windows for. The position, size, screen and stacking order will be remembered.</string>
+             <string>Configure which applications to remember windows for. Window position, screen and stacking order will be remembered. Window size, virtual desktop, activities and minimized state will be remembered unless disabled.</string>
             </property>
             <property name="wordWrap">
              <bool>true</bool>
@@ -95,12 +95,39 @@
            </layout>
           </item>
           <item>
+           <widget class="QCheckBox" name="kcfg_restoreSize">
+            <property name="text">
+             <string>Restore window size - window size is not always restored by default, so it is recommended to restore it</string>
+            </property>
+            <property name="checked">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item>
            <widget class="QCheckBox" name="kcfg_restoreVirtualDesktop">
             <property name="text">
              <string>Restore virtual desktop - windows will open on the virtual desktop they were closed on - disable to open all windows on current desktop</string>
             </property>
             <property name="checked">
              <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QCheckBox" name="kcfg_restoreActivities">
+            <property name="text">
+             <string>Restore activities - windows will remember which activity/activities they belong to</string>
+            </property>
+            <property name="checked">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QCheckBox" name="kcfg_restoreMinimized">
+            <property name="text">
+             <string>Restore minimized state - some windows might be minimized when the application is closed (such as browser windows) - use this setting to keep the window minimized</string>
             </property>
            </widget>
           </item>
@@ -213,6 +240,12 @@
             </item>
             <item row="0" column="1">
              <widget class="QComboBox" name="kcfg_printType">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
               <item>
                <property name="text">
                 <string>First window for the application is opened</string>
