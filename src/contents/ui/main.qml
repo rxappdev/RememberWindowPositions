@@ -105,14 +105,14 @@ Item {
                 { caption: 100, matchingDimentions: 1, allowHeightShrinking: false }, // Caption match and width or height match
                 { caption: 100, matchingDimentions: 0, allowHeightShrinking: false }, // Caption match
                 { caption:  85, matchingDimentions: 2, allowHeightShrinking: false }, // Partial caption match and size match
-                { caption:  85, matchingDimentions: 2, allowHeightShrinking: true  }, // Partial caption match and with and shrinked height match
+                { caption:  85, matchingDimentions: 2, allowHeightShrinking: true  }, // Partial caption match and width and shrinked height match
                 { caption:  85, matchingDimentions: 1, allowHeightShrinking: false }, // Partial caption match and width or height match
                 { caption:  85, matchingDimentions: 0, allowHeightShrinking: false }, // Partial caption match
                 { caption:  50, matchingDimentions: 0, allowHeightShrinking: false }, // Half caption match
                 { caption:   0, matchingDimentions: 2, allowHeightShrinking: false }, // Size match
                 { caption:   0, matchingDimentions: 2, allowHeightShrinking: true  }, // With and partial height match
                 { caption:   0, matchingDimentions: 1, allowHeightShrinking: false }, // Width or height match
-                { caption:   0, matchingDimentions: 0, allowHeightShrinking: true }  // Pick anything - this is a fallback and must always be the last option
+                { caption:   0, matchingDimentions: 0, allowHeightShrinking: true  }  // Pick anything - this is a fallback and must always be the last option
             ],
             // window list
             windows: {}
