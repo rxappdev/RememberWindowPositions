@@ -265,14 +265,7 @@ Item {
                     if (captionScore < confidence.caption) continue;
 
                     if (captionScore >= highestSaveCaptionScore) {
-                        if (matchingDimentions >= highestSaveMatchingDimentions || captionScore / highestSaveCaptionScore > 1.2) {
-                            highestSaveCaptionScore = captionScore;
-                            highestSaveMatchingDimentions = matchingDimentions;
-                            highestSaveIndex = saveIndex;
-                            saveFound = true;
-                        }
-                    } else if (matchingDimentions > highestSaveMatchingDimentions) {
-                        if (captionScore / highestSaveCaptionScore > 0.95) {
+                        if (matchingDimentions > highestSaveMatchingDimentions || captionScore > highestSaveCaptionScore) {
                             highestSaveCaptionScore = captionScore;
                             highestSaveMatchingDimentions = matchingDimentions;
                             highestSaveIndex = saveIndex;
@@ -294,16 +287,8 @@ Item {
                     let captionScore = matchCaption(saved.caption, loading.caption);
                     if (captionScore < confidence.caption) continue;
 
-
                     if (captionScore >= highestLoadingCaptionScore) {
-                        if (matchingDimentions >= highestLoadingMatchingDimentions || captionScore / highestLoadingCaptionScore > 1.2) {
-                            highestLoadingCaptionScore = captionScore;
-                            highestLoadingMatchingDimentions = matchingDimentions;
-                            highestLoadingIndex = loadingReverseMatchIndex;
-                            loadingFound = true;
-                        }
-                    } else if (matchingDimentions > highestLoadingMatchingDimentions) {
-                        if (captionScore / highestLoadingCaptionScore > 0.95) {
+                        if (matchingDimentions > highestLoadingMatchingDimentions || captionScore > highestLoadingCaptionScore) {
                             highestLoadingCaptionScore = captionScore;
                             highestLoadingMatchingDimentions = matchingDimentions;
                             highestLoadingIndex = loadingReverseMatchIndex;
