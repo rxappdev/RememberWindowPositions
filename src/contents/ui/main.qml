@@ -93,7 +93,7 @@ Item {
             printType: KWin.readConfig("printType", 0),
             multiWindowRestoreAttempts: KWin.readConfig("multiWindowRestoreAttempts", 5),
             usePerfectMultiWindowRestore: KWin.readConfig("usePerfectMultiWindowRestore", true),
-            perfectMultiWindowRestoreAttempts: KWin.readConfig("perfectMultiWindowRestoreAttempts", 10),
+            perfectMultiWindowRestoreAttempts: KWin.readConfig("perfectMultiWindowRestoreAttempts", 12),
             perfectMultiWindowRestoreList: stringListToArray(KWin.readConfig("perfectMultiWindowRestoreList", browserList)),
             printApplicationNameToLog: KWin.readConfig("printApplicationNameToLog", true),
             blacklist: stringListToArray(KWin.readConfig("blacklist", "org.kde.spectacle\norg.kde.polkit-kde-authentication-agent-1\nsteam_proton\nsteam")),
@@ -187,20 +187,24 @@ Item {
         // Restore frame geometry
         if (config.restoreSize) {
             if (client.x != saveData.x || client.y != saveData.y || client.width != saveData.width || client.height != saveData.height) {
+                log('Attempting to restore window size and position');
                 client.frameGeometry = Qt.rect(saveData.x, saveData.y, saveData.width, saveData.height);
                 positionRestored = true;
             }
         } else if (client.x != saveData.x || client.y != saveData.y) {
+            log('Attempting to restore window position');
             client.frameGeometry = Qt.rect(saveData.x, saveData.y, client.width, client.height);
             positionRestored = true;
         }
 
         // Restore z-index
+        log('Attempting to restore window z-index');
         Workspace.raiseWindow(client);
 
         // Restore activities
         if (config.restoreActivities) {
-            if (saveData.activities) {
+            if (saveData.activities && client.activities) {
+                log('Attempting to restore window activities');
                 let activities = [];
                 let activitiesLength = saveData.activities.length;
                 if (activitiesLength > 0) {
@@ -219,8 +223,10 @@ Item {
             let desktopNumber = client.onAllDesktops ? -1 : client.desktops[0].x11DesktopNumber;
             if (saveData.desktopNumber != desktopNumber) {
                 if (saveData.desktopNumber == -1) {
+                    log('Attempting to restore window on all virtual desktops');
                     client.onAllDesktops = true;
                 } else {
+                    log('Attempting to restore window virtual desktop');
                     let desktop = Workspace.desktops.find((d) => d.x11DesktopNumber == saveData.desktopNumber);
                     client.desktops = [desktop];
                 }
@@ -233,10 +239,13 @@ Item {
 
         // Restore minimized
         if (saveData.minimized && config.restoreMinimized) {
+            log('Attempting to restore window minimized');
             client.minimized = true;
             minimizeRestored = true;
         }
-        logE(client.resourceClass + ' restored - positon: ' + positionRestored + ' desktop: ' + virtualDesktopRestored + ' minimized: ' + minimizeRestored + ' caption: ' + saveData.caption + ' caption score: ' + captionScore);
+        logE(client.resourceClass + ' restored - positon: ' + positionRestored + ' desktop: ' + virtualDesktopRestored + ' minimized: ' + minimizeRestored + ' caption score: ' + captionScore + ' internalId: ' + client.internalId);
+        log('- caption   save: ' + saveData.caption);
+        log('- caption window: ' + client.caption);
     }
 
     function twoWayMatch(windowData, confidence) {
@@ -248,12 +257,10 @@ Item {
             var highestSaveMatchingDimentions = 0;
             var highestSaveIndex = -1;
             var saveFound = false;
-            var highestLoadingCaptionScore = -1;
-            var highestLoadingMatchingDimentions = 0;
-            var highestLoadingIndex = -1;
             var loadingFound = false;
 
             if (loadingIndex < windowData.loading.length) {
+                // Find highest matching save for current loading window
                 let loading = windowData.loading[loadingIndex];
                 for (let saveIndex = 0; saveIndex < windowData.saved.length; saveIndex++) {
                     let saved = windowData.saved[saveIndex];
@@ -276,6 +283,10 @@ Item {
             }
 
             if (saveFound) {
+                // Make sure the save does not have a better matching loading window
+                var highestLoadingCaptionScore = highestSaveCaptionScore;
+                var highestLoadingMatchingDimentions = highestSaveMatchingDimentions;
+                var highestLoadingIndex = loadingIndex;
                 let saved = windowData.saved[highestSaveIndex];
 
                 for (let loadingReverseMatchIndex = 0; loadingReverseMatchIndex < windowData.loading.length; loadingReverseMatchIndex++) {
@@ -297,13 +308,9 @@ Item {
                     }
                 }
 
-                if (highestLoadingIndex == loadingIndex) {
-                    results.push({ loading: windowData.loading.splice(highestLoadingIndex, 1)[0], saved: windowData.saved.splice(highestSaveIndex, 1)[0], captionScore: highestLoadingCaptionScore });
-                    loadingIndex++;
-                } else if (loadingFound) {
-                    results.push({ loading: windowData.loading.splice(highestLoadingIndex, 1)[0], saved: windowData.saved.splice(highestSaveIndex, 1)[0], captionScore: highestLoadingCaptionScore });
-                    // Do not increase loadingIndex since we need to match first item again
-                }
+                log('Highest caption score: ' + highestLoadingCaptionScore + ' matching dimentions: ' + highestLoadingMatchingDimentions + ' best match for: ' + (loadingFound ? 'saved' : 'loading') + ' saved caption: ' + saved.caption);
+                results.push({ loading: windowData.loading.splice(highestLoadingIndex, 1)[0], saved: windowData.saved.splice(highestSaveIndex, 1)[0], captionScore: highestLoadingCaptionScore });
+                // Do not increase loadingIndex since we need to match first item again
             } else {
                 // No save for given confidence level found
                 loadingIndex++;
@@ -323,7 +330,9 @@ Item {
 
         if (minConfidence > 0 && repeats > 0) {
             if (windowData.lastNonMatchingIndex != undefined && getHighestCaptionScore(windowData, windowData.loading[windowData.lastNonMatchingIndex]) < minConfidence) {
+                logE('Still could not find a match for caption: ' + windowData.loading[windowData.lastNonMatchingIndex].caption);
                 restoreTimer.setTimeout(1000, clientName, minConfidence, repeats - 1);
+                return;
             } else {
                 for (let i = 0; i < windowData.loading.length; i++) {
                     if (getHighestCaptionScore(windowData, windowData.loading[i]) < minConfidence) {
@@ -586,6 +595,8 @@ Item {
         let savedWindows = JSON.parse(settings.rememberwindowpositions_windows);
         let convertedWindows = {};
 
+        logE('Loading application windows from settings');
+
         for (let key in savedWindows) {
             let window = savedWindows[key];
             convertedWindows[key] = {
@@ -596,11 +607,11 @@ Item {
                 loading                : [],       // loading
                 closed                 : []        // closed
             }
+            logE('Saved windows for: ' + key + ' windowCountLastSession: ' + window.w + ' lastAccessTime: ' + window.l);
 
             for (let i = 0; i < window.s.length; i++) {
                 let save = window.s[i];
                 convertedWindows[key].saved.push({
-                    internalId    : save.i,      // internalId
                     caption       : save.c,      // caption
                     x             : save.x,      // x
                     y             : save.y,      // y
@@ -613,11 +624,15 @@ Item {
                     activities    : save.a       // activities
                     // --- Ommited fields ---
                     // closeTime  : save.t       // closeTime
+                    // internalId : save.i       // internalId
                 });
+                log('Window ' + i + ' - x: ' + save.x + ' y: ' + save.y + ' width: ' + save.w + ' height: ' + save.h + ' minimized: ' + (save.m == 1) + ' outputName: ' + save.o + ' stackingNumber: ' + save.s + ' desktopNumber: ' + save.d);
+                log('- activities: ' + JSON.stringify(save.a));
+                log('- caption: ' + save.c + '\n');
             }
         }
 
-        log('Load - converted windows: ' + JSON.stringify(convertedWindows));
+        //log('Load - converted windows: ' + JSON.stringify(convertedWindows));
         config.windows = convertedWindows;
     }
 
@@ -640,7 +655,6 @@ Item {
                 for (let i = 0; i < window.saved.length; i++) {
                     let save = window.saved[i];
                     convertedWindows[key].s.push({
-                        i: save.internalId,        // internalId
                         c: save.caption,           // caption
                         x: save.x,                 // x
                         y: save.y,                 // y
@@ -653,13 +667,16 @@ Item {
                         a: save.activities         // activities
                         // --- Ommited fields ---
                         // t: save.closeTime       // closeTime
+                        // i: save.internalId      // internalId
                     });
                 }
             }
         }
 
-        log('Save - converted windows: ' + JSON.stringify(convertedWindows));
+        // log('Save - converted windows: ' + JSON.stringify(convertedWindows));
+        log('Attempting to save windows...');
         settings.rememberwindowpositions_windows = JSON.stringify(convertedWindows);
+        log('Windows saved!');
     }
 
     Settings {
@@ -686,6 +703,7 @@ Item {
     }
 
     Component.onCompleted: {
+        debugLogs = KWin.readConfig("debugLogs", false);
         // Script is loaded - init config
         log('Loaded...');
         cacheWindowOrder();
@@ -701,7 +719,7 @@ Item {
         // Clear expired apps to reduce used save-file space
         clearExpiredApps();
 
-        logE('config:\n' + JSON.stringify(config));
+        // logE('config:\n' + JSON.stringify(config));
     }
 
     Component.onDestruction: {
