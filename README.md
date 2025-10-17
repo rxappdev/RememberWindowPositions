@@ -136,7 +136,24 @@ The application/window data is stored in `~/.config/kde.org/kwin.conf` under the
 
 The system user settings data is stored in `~/.config/kwinrc` under `[Script-krestorewindowpositions]`.
 
+## Troubleshooting
+
+### Command line
+
+In case there are any issues (such as a crash - which should never happen but just in case), this is how to disable the script from command line (open a console with `Ctrl+Alt+F5`):
+
+```
+kwriteconfig6 --file kwinrc --group Plugins --key rememberwindowpositionsEnabled false
+qdbus org.kde.KWin /KWin reconfigure
+```
+
+If the window configuration contains corrupted data, it can be manually deleted in the file: `~/.config/kde.org/kwin.conf` under key `rememberwindowpositions_windows`.
+
 ## Compatibility ##
 
 Compatible with:
-* Session Restore - some users report success, however this is not officially supported (reported by Equivalent-Cut-9253)
+* Session Restore - some users report success, however this is not officially supported and one user reported crash loop when restoring a saved session (reported by Equivalent-Cut-9253)
+
+## Get in touch ##
+
+Join the official discord channel https://discord.gg/Js6AYsnQQj to discuss, report bugs or find guides.

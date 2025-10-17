@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1190</width>
+    <width>1176</width>
     <height>640</height>
    </rect>
   </property>
@@ -248,12 +248,12 @@
               </property>
               <item>
                <property name="text">
-                <string>First window for the application is opened</string>
+                <string>First window for the application is opened or last window is closed</string>
                </property>
               </item>
               <item>
                <property name="text">
-                <string>Any window is opened</string>
+                <string>Any window is opened or last window is closed</string>
                </property>
               </item>
              </widget>
@@ -310,6 +310,28 @@
        <string>Multi-Window Restore</string>
       </attribute>
       <layout class="QVBoxLayout" name="verticalLayout_2">
+       <item>
+        <widget class="QGroupBox" name="kcfg_instantRestore">
+         <property name="title">
+          <string>Instantly Restore 100% Matching Windows</string>
+         </property>
+         <property name="checkable">
+          <bool>true</bool>
+         </property>
+         <layout class="QVBoxLayout" name="verticalLayout_5">
+          <item>
+           <widget class="QLabel" name="label_instantRestoreDescription">
+            <property name="text">
+             <string>Will instantly restore the window properties for saved windows that 100% match caption and window size even before all windows are loaded. All properties except for stacking order (z-index) will be restored. Once all windows are loaded, stacking order will also be restored.</string>
+            </property>
+            <property name="wordWrap">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
        <item>
         <widget class="QGroupBox" name="groupBox_multiWindowRestoreAttempts">
          <property name="title">
@@ -501,19 +523,6 @@
          </layout>
         </widget>
        </item>
-       <item>
-        <spacer name="verticalSpacer_multiWindowRestore">
-         <property name="orientation">
-          <enum>Qt::Orientation::Vertical</enum>
-         </property>
-         <property name="sizeHint" stdset="0">
-          <size>
-           <width>20</width>
-           <height>40</height>
-          </size>
-         </property>
-        </spacer>
-       </item>
       </layout>
      </widget>
      <widget class="QWidget" name="tab_blacklist">
@@ -612,7 +621,7 @@
        <item>
         <widget class="QGroupBox" name="groupBox_debug">
          <property name="title">
-          <string>GroupBox</string>
+          <string>Debug Settings</string>
          </property>
          <layout class="QVBoxLayout" name="verticalLayout_4">
           <item>
@@ -629,21 +638,21 @@
             </property>
            </widget>
           </item>
-          <item>
-           <spacer name="verticalSpacer_debug">
-            <property name="orientation">
-             <enum>Qt::Orientation::Vertical</enum>
-            </property>
-            <property name="sizeHint" stdset="0">
-             <size>
-              <width>20</width>
-              <height>40</height>
-             </size>
-            </property>
-           </spacer>
-          </item>
          </layout>
         </widget>
+       </item>
+       <item>
+        <spacer name="verticalSpacer_debug">
+         <property name="orientation">
+          <enum>Qt::Orientation::Vertical</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>20</width>
+           <height>40</height>
+          </size>
+         </property>
+        </spacer>
        </item>
       </layout>
      </widget>

@@ -28,6 +28,9 @@
         <entry name="printType" type="Int">
             <default>0</default>
         </entry>
+        <entry name="instantRestore" type="Bool">
+            <default>true</default>
+        </entry>
         <entry name="multiWindowRestoreAttempts" type="Int">
             <default>5</default>
             <min>1</min>

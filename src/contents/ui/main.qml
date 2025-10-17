@@ -35,25 +35,30 @@ Item {
         let isFirstWindow = !config.windows[name] || (config.windows[name] && config.windows[name].windowCount == 0);
         if (isFirstWindow || config.printAllWindows) {
             console.warn('RememberWindowPositions - application name to add to settings: ' + name);
-            var info = "";
+            var info = '';
 
             if (config.windows[name] && config.windows[name].saved.length > 0) {
                 let len = config.windows[name].saved.length;
-                info += " - " + len + " saved window" + (len > 1 ? "s" : "");
+                info += ' - ' + len + ' saved window' + (len > 1 ? 's' : '');
             }
             if (config.whitelist.includes(name)) {
-                info += " - on whitelist";
+                info += ' - on whitelist';
             }
             if (config.blacklist.includes(name)) {
-                info += " - on blacklist";
+                info += ' - on blacklist';
             }
             if (config.perfectMultiWindowRestoreList.includes(name)) {
-                info += " - on perfect list";
+                info += ' - on perfect list';
             }
             if (info.length > 0) {
-                console.warn('RememberWindowPositions current status' + info);
+                console.warn('RememberWindowPositions - current status' + info);
             }
         }
+    }
+
+    function logAppInfoOnClose(name, count) {
+        console.warn('RememberWindowPositions - application name to add to settings: ' + name);
+        console.warn('RememberWindowPositions - application closed - saved ' + count + ' window' + (count != 1 ? 's' : ''));
     }
 
     function logMode() {
@@ -91,6 +96,7 @@ Item {
             restoreWindowsWithoutCaption: KWin.readConfig("restoreWindowsWithoutCaption", true),
             minimumCaptionMatch: KWin.readConfig("minimumCaptionMatch", 0),
             printType: KWin.readConfig("printType", 0),
+            instantRestore: KWin.readConfig("instantRestore", true),
             multiWindowRestoreAttempts: KWin.readConfig("multiWindowRestoreAttempts", 5),
             usePerfectMultiWindowRestore: KWin.readConfig("usePerfectMultiWindowRestore", true),
             perfectMultiWindowRestoreAttempts: KWin.readConfig("perfectMultiWindowRestoreAttempts", 12),
@@ -176,66 +182,79 @@ Item {
         return highestScore;
     }
 
-    function restoreWindowPlacement(saveData, client, captionScore) {
+    function restoreWindowPlacement(saveData, client, captionScore, restoreZ = true) {
+        if (!client) return;
         if (!saveData) return;
         if (captionScore < config.minimumCaptionMatch) return;
         if (!config.restoreWindowsWithoutCaption && (!client.caption || client.caption.trim().length == 0)) return;
         let positionRestored = false;
         let virtualDesktopRestored = false;
         let minimizeRestored = false;
+        let zRestored = false;
 
-        // Restore frame geometry
-        if (config.restoreSize) {
-            if (client.x != saveData.x || client.y != saveData.y || client.width != saveData.width || client.height != saveData.height) {
-                log('Attempting to restore window size and position');
-                client.frameGeometry = Qt.rect(saveData.x, saveData.y, saveData.width, saveData.height);
+        if (!client.rwp_partiallyRestored) {
+            client.rwp_partiallyRestored = true;
+
+            // Restore frame geometry
+            if (config.restoreSize) {
+                if (client.x != saveData.x || client.y != saveData.y || client.width != saveData.width || client.height != saveData.height) {
+                    log('Attempting to restore window size and position');
+                    client.frameGeometry = Qt.rect(saveData.x, saveData.y, saveData.width, saveData.height);
+                    positionRestored = true;
+                }
+            } else if (client.x != saveData.x || client.y != saveData.y) {
+                log('Attempting to restore window position');
+                client.frameGeometry = Qt.rect(saveData.x, saveData.y, client.width, client.height);
                 positionRestored = true;
             }
-        } else if (client.x != saveData.x || client.y != saveData.y) {
-            log('Attempting to restore window position');
-            client.frameGeometry = Qt.rect(saveData.x, saveData.y, client.width, client.height);
-            positionRestored = true;
+
+            // Restore activities
+            if (config.restoreActivities) {
+                if (saveData.activities && client.activities) {
+                    log('Attempting to restore window activities');
+                    let activities = [];
+                    let activitiesLength = saveData.activities.length;
+                    if (activitiesLength > 0) {
+                        for (let i = 0; i < activitiesLength; i++) {
+                            if (Workspace.activities.includes(saveData.activities[i])) {
+                                activities.push(saveData.activities[i]);
+                            }
+                        }
+                    }
+                    client.activities = activities;
+                }
+            }
+
+            // Restore virtual desktop
+            if (config.restoreVirtualDesktop) {
+                let desktopNumber = client.onAllDesktops ? -1 : client.desktops[0].x11DesktopNumber;
+                if (saveData.desktopNumber != desktopNumber) {
+                    if (saveData.desktopNumber == -1) {
+                        log('Attempting to restore window on all virtual desktops');
+                        client.onAllDesktops = true;
+                    } else {
+                        log('Attempting to restore window virtual desktop');
+                        let desktop = Workspace.desktops.find((d) => d.x11DesktopNumber == saveData.desktopNumber);
+                        if (desktop) {
+                            client.desktops = [desktop];
+                        } else {
+                            logE('Failed to restore window virtual desktop');
+                        }
+                    }
+                    virtualDesktopRestored = true;
+                }
+            }
+
+            // Restore screen
+            // - this seems to be handled by restoring frame geometry as it spans all screens - if anything changes will have to implement this. The screen is saved just in case.
         }
 
         // Restore z-index
-        log('Attempting to restore window z-index');
-        Workspace.raiseWindow(client);
-
-        // Restore activities
-        if (config.restoreActivities) {
-            if (saveData.activities && client.activities) {
-                log('Attempting to restore window activities');
-                let activities = [];
-                let activitiesLength = saveData.activities.length;
-                if (activitiesLength > 0) {
-                    for (let i = 0; i < activitiesLength; i++) {
-                        if (Workspace.activities.includes(saveData.activities[i])) {
-                            activities.push(saveData.activities[i]);
-                        }
-                    }
-                }
-                client.activities = activities;
-            }
+        if (restoreZ) {
+            log('Attempting to restore window z-index');
+            Workspace.raiseWindow(client);
+            zRestored = true;
         }
-
-        // Restore virtual desktop
-        if (config.restoreVirtualDesktop) {
-            let desktopNumber = client.onAllDesktops ? -1 : client.desktops[0].x11DesktopNumber;
-            if (saveData.desktopNumber != desktopNumber) {
-                if (saveData.desktopNumber == -1) {
-                    log('Attempting to restore window on all virtual desktops');
-                    client.onAllDesktops = true;
-                } else {
-                    log('Attempting to restore window virtual desktop');
-                    let desktop = Workspace.desktops.find((d) => d.x11DesktopNumber == saveData.desktopNumber);
-                    client.desktops = [desktop];
-                }
-                virtualDesktopRestored = true;
-            }
-        }
-
-        // Restore screen
-        // - this seems to be handled by restoring frame geometry as it spans all screens - if anything changes will have to implement this. The screen is saved just in case.
 
         // Restore minimized
         if (saveData.minimized && config.restoreMinimized) {
@@ -243,7 +262,8 @@ Item {
             client.minimized = true;
             minimizeRestored = true;
         }
-        logE(client.resourceClass + ' restored - positon: ' + positionRestored + ' desktop: ' + virtualDesktopRestored + ' minimized: ' + minimizeRestored + ' caption score: ' + captionScore + ' internalId: ' + client.internalId);
+
+        logE(client.resourceClass + ' restored - z: ' + zRestored + ' positon: ' + positionRestored + ' desktop: ' + virtualDesktopRestored + ' minimized: ' + minimizeRestored + ' caption score: ' + captionScore + ' internalId: ' + client.internalId);
         log('- caption   save: ' + saveData.caption);
         log('- caption window: ' + client.caption);
     }
@@ -392,6 +412,7 @@ Item {
                 lastAccessTime: Date.now(),
                 windowCount: 0,
                 windowCountLastSession: 0,
+                instantMatchRestored: 0,
                 loading: [],
                 closed: [],
                 saved: []
@@ -421,6 +442,18 @@ Item {
                     repeats = config.perfectMultiWindowRestoreAttempts;
                 }
 
+                if (config.instantRestore) {
+                    let instantMatchSaveIndex = windowData.saved.findIndex((s) => client.caption === s.caption && client.width === s.width && client.height === s.height);
+                    if (instantMatchSaveIndex != -1) {
+                        // Instantly found a 100% match, restore everything except z-index
+                        logE('Found multi-window perfect match, instant restoring window - z index will be restored later');
+                        restoreWindowPlacement(windowData.saved[instantMatchSaveIndex], client, 100, false);
+                        client.rwp_saveIndex = instantMatchSaveIndex;
+                        client.rwp_stackingOrder = windowData.saved[instantMatchSaveIndex].stackingOrder;
+                        windowData.instantMatchRestored++;
+                    }
+                }
+
                 windowData.loading.push(client);
 
                 // Backup timer - if captions do not match enough by the timeout, this makes sure windows are restored to best ability
@@ -436,7 +469,21 @@ Item {
                     // Trigger first restore ASAP to make it appear smooth in case all captions match right away
                     //restoreTimer.setTimeout(1, client.resourceClass, 85, repeats + 1);
 
-                    restoreTimer.setTimeout(1000, client.resourceClass, 85, repeats);
+                    log('All windows for ' + client.resourceClass + ' loaded - windowCountLastSession: ' + windowData.windowCountLastSession + ' instantMatchRestored: ' + windowData.instantMatchRestored);
+
+                    if (config.instantRestore && windowData.instantMatchRestored == windowData.windowCountLastSession) {
+                        // All windows restored - restore z-positions
+                        restoreTimer.removeTimeoutsFor(client.resourceClass);
+                        windowData.loading.sort((a, b) => a.rwp_stackingOrder - b.rwp_stackingOrder);
+                        for (let i = 0; i < windowData.loading.length; i++) {
+                            restoreWindowPlacement(windowData.saved[windowData.loading[i].rwp_saveIndex], windowData.loading[i], 100);
+                        }
+                        windowData.saved = [];
+                        windowData.loading = [];
+                    } else {
+                        restoreTimer.setTimeout(1000, client.resourceClass, 85, repeats);
+                    }
+                    windowData.instantMatchRestored = 0;
                 }
             }
         }
@@ -514,6 +561,8 @@ Item {
 
                 // Save to settings
                 saveWindowsToSettings();
+
+                if (config.printApplicationNameToLog) logAppInfoOnClose(client.resourceClass, windowData.saved.length);
             }
         }
     }
@@ -562,9 +611,9 @@ Item {
         property var timeoutIsRunning: false
         property var timeoutData: []
 
-        function setTimeout(delay, arg, minConfidence, repeats) {
+        function setTimeout(delay, name, minConfidence, repeats) {
             logE('Setting timout for ' + delay + ' isRunning: ' + timeoutIsRunning + ' timer count: ' + timeoutData.length);
-            timeoutData.push({time: Date.now() + delay, argument: arg, minConfidence: minConfidence, repeats: repeats});
+            timeoutData.push({time: Date.now() + delay, name: name, minConfidence: minConfidence, repeats: repeats});
             timeoutData.sort((a, b) => a.time - b.time);
 
             if (!timeoutIsRunning) {
@@ -577,10 +626,23 @@ Item {
             }
         }
 
+        function removeTimeoutsFor(name) {
+            for (var i = timeoutData.length - 1; i >= 0; i--) {
+                if (timeoutData[i].name == name) {
+                    timeoutData.splice(i, 1);
+                }
+            }
+            if (timeoutData.length == 0 && timeoutIsRunning) {
+                restoreTimer.triggered.disconnect(onTimeoutTriggered);
+                timeoutIsRunning = false;
+                restoreTimer.stop();
+            }
+        }
+
         function onTimeoutTriggered() {
             while (timeoutData.length > 0 && timeoutData[0].time <= Date.now()) {
                 let data = timeoutData.shift();
-                restoreWindowsBasedOnConfidence(data.argument, data.minConfidence, data.repeats);
+                restoreWindowsBasedOnConfidence(data.name, data.minConfidence, data.repeats);
             }
 
             if (timeoutData.length == 0) {
@@ -604,6 +666,7 @@ Item {
                 lastAccessTime         : window.l, // lastAccessTime
                 windowCountLastSession : window.w, // windowCountLastSession
                 windowCount            : 0,        // windowCount
+                instantMatchRestored   : 0,        // instantMatchRestored
                 loading                : [],       // loading
                 closed                 : []        // closed
             }
@@ -644,13 +707,14 @@ Item {
             let window = config.windows[key];
             if (window.saved.length > 0) {
                 convertedWindows[key] = {
-                    s: [],                           // saved
-                    l: window.lastAccessTime,        // lastAccessTime
-                    w: window.windowCountLastSession // windowCountLastSession
+                    s: [],                            // saved
+                    l: window.lastAccessTime,         // lastAccessTime
+                    w: window.windowCountLastSession  // windowCountLastSession
                     // --- Ommited fields ---
-                    // c: window.windowCount         // windowCount
-                    // o: window.loading             // loading
-                    // e: window.closed              // closed
+                    // c: window.windowCount          // windowCount
+                    // i: window.instantMatchRestored // instantMatchRestored
+                    // o: window.loading              // loading
+                    // e: window.closed               // closed
                 };
                 for (let i = 0; i < window.saved.length; i++) {
                     let save = window.saved[i];
