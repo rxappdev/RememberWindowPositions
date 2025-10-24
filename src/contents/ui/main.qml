@@ -16,6 +16,10 @@ Item {
     property var debugLogs: false
     property var config: ({})
     property var windowOrder: []
+    property var mainMenuWindow: undefined
+    property bool identifyWindow: false
+
+    property var defaultConfig: {}
 
     function log(string) {
         if (!debugLogs) return;
@@ -121,7 +125,8 @@ Item {
                 { caption:   0, matchingDimentions: 0, allowHeightShrinking: true  }  // Pick anything - this is a fallback and must always be the last option
             ],
             // window list
-            windows: {}
+            windows: {},
+            overrides: {}
         }
         // convert user setting to simple booleans
         config.appsAll = config.restoreType == 0;
@@ -131,6 +136,16 @@ Item {
         config.printAllWindows = config.printType == 1;
         log('Whitelist: ' + JSON.stringify(config.whitelist));
         logMode();
+
+        defaultConfig = {
+            override: false,
+            onClose: true,
+            position: true,
+            size: config.restoreSize,
+            desktop: config.restoreVirtualDesktop,
+            activity: config.restoreActivities,
+            minimized: config.restoreMinimized
+        };
     }
 
     function isValidWindow(client) {
@@ -184,6 +199,7 @@ Item {
 
     function restoreWindowPlacement(saveData, client, captionScore, restoreZ = true) {
         if (!client) return;
+        if (client.deleted) return;
         if (!saveData) return;
         if (captionScore < config.minimumCaptionMatch) return;
         if (!config.restoreWindowsWithoutCaption && (!client.caption || client.caption.trim().length == 0)) return;
@@ -597,6 +613,9 @@ Item {
     }
 
     function onActivateWindow(client) {
+        if (client && identifyWindow) {
+            windowIdentified(client);
+        }
         if (!isValidWindow(client)) return;
         let index = windowOrder.indexOf(client.internalId);
         if (index != -1) {
@@ -783,11 +802,41 @@ Item {
         // Clear expired apps to reduce used save-file space
         clearExpiredApps();
 
-        // logE('config:\n' + JSON.stringify(config));
+        showMainMenu();
     }
 
     Component.onDestruction: {
         log('Closing...');
         saveWindowsToSettings();
+    }
+
+    function showMainMenu() {
+        mainMenuWindow = mainmenu.createObject(root);
+        mainMenuWindow.show();
+        mainMenuWindow.initMainMenu();
+    }
+
+    function closeMainMenu() {
+        if (mainMenuWindow.visible) {
+            mainMenuWindow.close();
+        }
+    }
+
+    function selectWindow() {
+        identifyWindow = true;
+    }
+
+    function windowIdentified(client) {
+        identifyWindow = false;
+        mainMenuWindow.windowSelected(client);
+    }
+
+    Component {
+        id: mainmenu
+
+        MainMenu {
+            defaultConfig: root.defaultConfig
+            overrides: root.config.overrides
+        }
     }
 }
