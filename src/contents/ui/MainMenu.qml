@@ -1,7 +1,6 @@
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
-import QtQuick.Particles
 import org.kde.kwin
 
 ApplicationWindow {
@@ -12,6 +11,7 @@ ApplicationWindow {
     property var defaultConfig: {}
     property var currentApplicationIndex: -1
     property var currentWindowIndex: -1
+    // property var showFirstTimeHint: false
 
     id: mainMenuRoot
     width: 1000
@@ -22,6 +22,9 @@ ApplicationWindow {
         currentOverrides = JSON.parse(JSON.stringify(overrides));
         currentApplicationIndex = -1;
         currentWindowIndex = -1;
+        // firstTimeHint.visible = showFirstTimeHint;
+        mainChoice.visible = true;
+        editSaved.visible = false;
         initApplications();
         initWindows();
         updateCurrentData();
@@ -50,13 +53,17 @@ ApplicationWindow {
     function addApplication(application, override) {
         if (!currentOverrides[application]) {
             currentOverrides[application] = {
-                override: override,
-                onClose: defaultConfig.onClose,
-                position: defaultConfig.position,
-                size: defaultConfig.size,
-                desktop: defaultConfig.desktop,
-                activity: defaultConfig.activity,
-                minimized: defaultConfig.minimized,
+                config: {
+                    override: override,
+                    rememberOnClose: defaultConfig.rememberOnClose,
+                    rememberNever: defaultConfig.rememberNever,
+                    rememberAlways: defaultConfig.rememberAlways,
+                    position: defaultConfig.position,
+                    size: defaultConfig.size,
+                    desktop: defaultConfig.desktop,
+                    activity: defaultConfig.activity,
+                    minimized: defaultConfig.minimized
+                },
                 windows: {}
             };
         }
@@ -66,7 +73,9 @@ ApplicationWindow {
         if (!currentOverrides[application].windows[window]) {
             currentOverrides[application].windows[window] = {
                 override: false,
-                onClose: defaultConfig.onClose,
+                rememberOnClose: false,
+                rememberNever: false,
+                rememberAlways: true,
                 position: defaultConfig.position,
                 size: defaultConfig.size,
                 desktop: defaultConfig.desktop,
@@ -109,10 +118,7 @@ ApplicationWindow {
 
         updateCurrentData();
 
-        root.logDev('Applications: ' + currentApplications);
-        root.logDev('Windows: ' + currentWindows);
-
-        choiceGroupBox.visible = false;
+        mainChoice.visible = false;
         editSaved.visible = true;
     }
 
@@ -122,20 +128,22 @@ ApplicationWindow {
 
         if (currentApplicationIndex >= 0) {
             let application = currentOverrides[currentApplications[currentApplicationIndex]];
-            root.logDev('Application override: ' + JSON.stringify(application));
             if (application) {
                 blacklisted.checked = root.config.blacklist.includes(applicationName.text);
                 whitelisted.checked = root.config.whitelist.includes(applicationName.text);
                 perfectMatch.checked = root.config.perfectMultiWindowRestoreList.includes(applicationName.text);
+
+                let config = application.config;
                 aOverride.enabled = true;
-                aOverride.checked = application.override;
-                aOnClose.checked = application.onClose;
-                aAlways.checked = !application.onClose;
-                aPosition.checked = application.position;
-                aSize.checked = application.size;
-                aDesktop.checked = application.desktop;
-                aActivity.checked = application.activity;
-                aMinimized.checked = application.minimized;
+                aOverride.checked = config.override;
+                aOnClose.checked = config.rememberOnClose;
+                aAlways.checked = config.rememberAlways;
+                aNever.checked = config.rememberNever
+                aPosition.checked = config.position;
+                aSize.checked = config.size;
+                aDesktop.checked = config.desktop;
+                aActivity.checked = config.activity;
+                aMinimized.checked = config.minimized;
                 applicationUpdated = true;
 
                 if (currentWindowIndex >= 0) {
@@ -144,8 +152,9 @@ ApplicationWindow {
                     if (window) {
                         wOverride.enabled = true;
                         wOverride.checked = window.override;
-                        wOnClose.checked = window.onClose;
-                        wAlways.checked = !window.onClose;
+                        wOnClose.checked = window.rememberOnClose;
+                        wAlways.checked = window.rememberAlways;
+                        wNever.checked = window.rememberNever;
                         wPosition.checked = window.position;
                         wSize.checked = window.size;
                         wDesktop.checked = window.desktop;
@@ -163,8 +172,9 @@ ApplicationWindow {
             perfectMatch.checked = false;
             aOverride.enabled = false;
             aOverride.checked = defaultConfig.override;
-            aOnClose.checked = defaultConfig.onClose;
-            aAlways.checked = !defaultConfig.onClose;
+            aOnClose.checked = defaultConfig.rememberOnClose;
+            aAlways.checked = defaultConfig.rememberAlways;
+            aNever.checked = defaultConfig.rememberNever;
             aPosition.checked = defaultConfig.position;
             aSize.checked = defaultConfig.size;
             aDesktop.checked = defaultConfig.desktop;
@@ -174,9 +184,10 @@ ApplicationWindow {
 
         if (!windowUpdated) {
             wOverride.enabled = false;
-            wOverride.checked = defaultConfig.override;
-            wOnClose.checked = defaultConfig.onClose;
-            wAlways.checked = !defaultConfig.onClose;
+            wOverride.checked = false;
+            wOnClose.checked = false;
+            wAlways.checked = true;
+            wNever.checked = defaultConfig.rememberNever;
             wPosition.checked = defaultConfig.position;
             wSize.checked = defaultConfig.size;
             wDesktop.checked = defaultConfig.desktop;
@@ -186,7 +197,6 @@ ApplicationWindow {
     }
 
     function saveCurrentData() {
-        root.logDev('Save before: ' + JSON.stringify(currentOverrides));
         if (currentApplicationIndex >= 0) {
             let application = currentOverrides[currentApplications[currentApplicationIndex]];
             if (application) {
@@ -195,7 +205,9 @@ ApplicationWindow {
                     if (window) {
                         let overrideWindow = wOverride.checked;
                         window.override = overrideWindow;
-                        window.onClose = overrideWindow ? wOnClose.checked : defaultConfig.onClose;
+                        window.rememberOnClose = overrideWindow ? wOnClose.checked : defaultConfig.rememberOnClose;
+                        window.rememberNever = overrideWindow ? wNever.checked : defaultConfig.rememberNever;
+                        window.rememberAlways = overrideWindow ? wAlways.checked : defaultConfig.rememberAlways;
                         window.position = overrideWindow ? wPosition.checked : defaultConfig.position;
                         window.size = overrideWindow ? wSize.checked : defaultConfig.size;
                         window.desktop = overrideWindow ? wDesktop.checked : defaultConfig.desktop;
@@ -205,26 +217,25 @@ ApplicationWindow {
                 }
 
                 let overrideApplication = aOverride.checked;
-                application.override = overrideApplication;
-                application.onClose = overrideApplication ? aOnClose.checked : defaultConfig.onClose;
-                application.position = overrideApplication ? aPosition.checked : defaultConfig.position;
-                application.size = overrideApplication ? aSize.checked : defaultConfig.size;
-                application.desktop = overrideApplication ? aDesktop.checked : defaultConfig.desktop;
-                application.activity = overrideApplication ? aActivity.checked : defaultConfig.activity;
-                application.minimized = overrideApplication ? aMinimized.checked : defaultConfig.minimized;
+                application.config.override = overrideApplication;
+                application.config.rememberOnClose = overrideApplication ? aOnClose.checked : defaultConfig.rememberOnClose;
+                application.config.rememberNever = overrideApplication ? aNever.checked : defaultConfig.rememberNever;
+                application.config.rememberAlways = overrideApplication ? aAlways.checked : defaultConfig.rememberAlways;
+                application.config.position = overrideApplication ? aPosition.checked : defaultConfig.position;
+                application.config.size = overrideApplication ? aSize.checked : defaultConfig.size;
+                application.config.desktop = overrideApplication ? aDesktop.checked : defaultConfig.desktop;
+                application.config.activity = overrideApplication ? aActivity.checked : defaultConfig.activity;
+                application.config.minimized = overrideApplication ? aMinimized.checked : defaultConfig.minimized;
             }
         }
-        root.logDev('Save after: ' + JSON.stringify(currentOverrides));
     }
 
     function deleteCurrentApplication() {
         if (currentApplicationIndex >= 0) {
-            root.logDev('before: ' + JSON.stringify(currentOverrides));
             let application = currentApplications.splice(currentApplicationIndex, 1)[0];
             delete currentOverrides[application];
             applicationList.model = currentApplications;
             applicationIndexChanged(-1);
-            root.logDev('after: ' + JSON.stringify(currentOverrides));
         }
     }
 
@@ -254,12 +265,10 @@ ApplicationWindow {
 
     function deleteCurrentWindow() {
         if (currentApplicationIndex >= 0 && currentWindowIndex >= 0) {
-            root.logDev('before: ' + JSON.stringify(currentOverrides));
             let window = currentWindows.splice(currentWindowIndex, 1)[0];
             delete currentOverrides[currentApplications[currentApplicationIndex]].windows[window];
             windowList.model = currentWindows;
             windowIndexChanged(-1);
-            root.logDev('after: ' + JSON.stringify(currentOverrides));
         }
     }
 
@@ -278,84 +287,158 @@ ApplicationWindow {
         updateCurrentData();
     }
 
+    // function closeHint() {
+    //     firstTimeHint.visible = false;
+    //     mainChoice.visible = true;
+    // }
+
     function editSavedAppOrWindow() {
-        choiceGroupBox.visible = false;
+        mainChoice.visible = false;
         editSaved.visible = true;
         applicationIndexChanged(applicationList.currentIndex);
         windowIndexChanged(windowList.currentIndex);
     }
 
     function cancelEdit() {
-        choiceGroupBox.visible = true;
+        mainChoice.visible = true;
         editSaved.visible = false;
         initMainMenu();
     }
 
     function saveForReal() {
-        root.logDev('Save for real before: ' + JSON.stringify(currentOverrides));
         for (let applicationKey in currentOverrides) {
             let application = currentOverrides[applicationKey];
             for (let windowKey in application.windows) {
                 let window = application.windows[windowKey];
                 if (!window.override) {
-                    root.logDev('Deleting window: ' + JSON.stringify(window));
                     delete application.windows[windowKey];
                 }
             }
-            if (!application.override && Object.keys(application.windows).length == 0) {
-                root.logDev('Deleting application: ' + JSON.stringify(application));
+            if (!application.config.override && Object.keys(application.windows).length == 0) {
                 delete currentOverrides[applicationKey];
             }
         }
-        root.logDev('Save for real after: ' + JSON.stringify(currentOverrides));
 
         overrides = JSON.parse(JSON.stringify(currentOverrides));
+        root.saveOverridesToSettings(overrides);
     }
 
     function saveEdit() {
-        choiceGroupBox.visible = true;
+        mainChoice.visible = true;
         editSaved.visible = false;
         saveCurrentData();
         saveForReal();
         initMainMenu();
     }
 
+    function deleteSavedApplicationWindowsForSelected() {
+        if (currentApplicationIndex >= 0) {
+            root.clearSaves(currentApplications[currentApplicationIndex], true);
+        }
+    }
+
+    function deleteSavedWindowsForSelected() {
+        if (currentApplicationIndex >= 0 && currentWindowIndex >= 0) {
+            root.clearSaves(currentApplications[currentApplicationIndex], false, currentWindows[currentWindowIndex]);
+        }
+    }
+
     GroupBox {
         id: mainGroupBox
         anchors.fill: parent
 
-        GroupBox {
-            id: choiceGroupBox
-            visible: true
 
-            spacing: 5
+        // GroupBox {
+        //     id: firstTimeHint
+        //     spacing: 5
+        //     anchors.left: parent.left
+        //     anchors.right: parent.right
+        //     anchors.verticalCenter: parent.verticalCenter
+        //     visible: showFirstTimeHint
+
+        //     ColumnLayout {
+        //         anchors.fill: parent
+
+        //         Label {
+        //             Layout.fillWidth: true
+        //             horizontalAlignment: Text.AlignHCenter
+        //             text: "Welcome to Remember Window Positions"
+        //             wrapMode: Text.WordWrap
+        //         }
+
+        //         Label {
+        //             Layout.fillWidth: true
+        //             text: "This window is only shown once after installation. To view it again, you need to use the \"<b>Remember Window Positions: Show Config</b>\" keyboard shortcut - \"<b>Meta+Ctrl+W</b>\" by default. If this keyboard shortcut does not work, please manually asign it (or any shortcut you like) in \"<b>System Settings > Keyboard > Shortcuts > Window Management > Remember Window Positions: Show Config</b>\"."
+        //             wrapMode: Text.WordWrap
+        //         }
+
+        //         Button {
+        //             text: "I Understand"
+        //             Layout.fillWidth: true
+        //             Layout.topMargin: 20
+
+        //             onClicked: closeHint()
+        //         }
+        //     }
+        // }
+
+        ColumnLayout {
+            id: mainChoice
+            visible: true
             anchors.left: parent.left
             anchors.right: parent.right
             anchors.verticalCenter: parent.verticalCenter
 
-            ColumnLayout {
-                anchors.fill: parent
+            GroupBox {
+                spacing: 5
+                Layout.fillWidth: true
 
-                Label {
-                    Layout.fillWidth: true
-                    horizontalAlignment: Text.AlignHCenter
-                    text: "Click the \"Select Application/Window\" button then click on an open window to edit its properties."
-                    wrapMode: Text.WordWrap
+                ColumnLayout {
+                    anchors.fill: parent
+
+                    Label {
+                        Layout.fillWidth: true
+                        horizontalAlignment: Text.AlignHCenter
+                        text: "Instructions"
+                        wrapMode: Text.WordWrap
+                    }
+
+                    Label {
+                        Layout.fillWidth: true
+                        text: "It is highly recommended to create a good default configuration in the \"<b>System Settings > Window Management > KWin Scripts > Remember Window Positions</b>\" configuration dialog intead of relying on application/window specifiy overrides."
+                        wrapMode: Text.WordWrap
+                    }
                 }
+            }
 
-                Button {
-                    id: selectWindowButton
-                    text: "Select Application/Window"
-                    Layout.fillWidth: true
+            GroupBox {
+                spacing: 5
+                Layout.fillWidth: true
 
-                    onClicked: selectWindow()
-                }
+                ColumnLayout {
+                    anchors.fill: parent
 
-                Button {
-                    text: "Edit Saved Applications and Windows"
-                    Layout.fillWidth: true
+                    Label {
+                        Layout.fillWidth: true
+                        horizontalAlignment: Text.AlignHCenter
+                        text: "Click the \"Select Application/Window\" button then click on an open window to edit its properties."
+                        wrapMode: Text.WordWrap
+                    }
 
-                    onClicked: editSavedAppOrWindow()
+                    Button {
+                        id: selectWindowButton
+                        text: "Select Application/Window"
+                        Layout.fillWidth: true
+
+                        onClicked: selectWindow()
+                    }
+
+                    Button {
+                        text: "Edit Saved Applications and Windows"
+                        Layout.fillWidth: true
+
+                        onClicked: editSavedAppOrWindow()
+                    }
                 }
             }
         }
@@ -411,6 +494,14 @@ ApplicationWindow {
                         }
 
                         Button {
+                            id: deleteSavedApplicationWindows
+                            text: "Remove All Windows From Savefile (Cannot Be Undone)"
+                            Layout.fillWidth: true
+
+                            onClicked: deleteSavedApplicationWindowsForSelected()
+                        }
+
+                        Button {
                             id: deleteApplication
                             Layout.fillWidth: true
 
@@ -457,6 +548,14 @@ ApplicationWindow {
                                     required property string modelData
                                 }
                             }
+                        }
+
+                        Button {
+                            id: deleteSavedWindows
+                            text: "Remove All Window Instances From Savefile (Cannot Be Undone)"
+                            Layout.fillWidth: true
+
+                            onClicked: deleteSavedWindowsForSelected()
                         }
 
                         Button {
@@ -538,6 +637,13 @@ ApplicationWindow {
                             Layout.fillWidth: true
                             enabled: false
                         }
+
+                        Label {
+                            Layout.fillWidth: true
+                            horizontalAlignment: Text.AlignHCenter
+                            text: "Windows with same caption might get mixed up during restoration."
+                            wrapMode: Text.WordWrap
+                        }
                     }
                 }
 
@@ -556,7 +662,7 @@ ApplicationWindow {
 
                         Label {
                             Layout.fillWidth: true
-                            text: "You can change the defaults in System Settings > Window Management > KWin Scripts > Remember Window Positions. Any overriden application or window will ignore blacklist and whitelist settings."
+                            text: "You can change the defaults in System Settings > Window Management > KWin Scripts > Remember Window Positions. Any overriden application or window will ignore blacklist, whitelist and multi-window only settings."
                             wrapMode: Text.WordWrap
                         }
 
@@ -572,23 +678,28 @@ ApplicationWindow {
                                     anchors.fill: parent
                                     enabled: false
 
-                                    Label {
-                                        Layout.fillWidth: true
-                                        horizontalAlignment: Text.AlignHCenter
+                                    CheckBox {
+                                        Layout.alignment: Qt.AlignHCenter
+                                        rightPadding: indicator.width
                                         text: "Default"
                                         font.bold: true
+                                        tristate: true
+                                        checkState: Qt.PartiallyChecked
                                     }
                                     Label {
                                         Layout.fillWidth: true
                                         horizontalAlignment: Text.AlignHCenter
-                                        text: "Remember"
+                                        text: "Remember On"
                                     }
                                     RadioButton {
-                                        text: "On Close Last"
+                                        text: "Close Last Window"
                                         checked: true
                                     }
                                     RadioButton {
-                                        text: "Always"
+                                        text: "Close Any Window"
+                                    }
+                                    RadioButton {
+                                        text: "Never"
                                     }
                                     Label {
                                         Layout.fillWidth: true
@@ -640,18 +751,23 @@ ApplicationWindow {
                                     Label {
                                         Layout.fillWidth: true
                                         horizontalAlignment: Text.AlignHCenter
-                                        text: "Remember"
+                                        text: "Remember On"
                                         enabled: aOverride.checked
                                     }
                                     RadioButton {
                                         id: aOnClose
-                                        text: "On Close Last"
+                                        text: "Close Last Window"
                                         checked: true
                                         enabled: aOverride.checked
                                     }
                                     RadioButton {
                                         id: aAlways
-                                        text: "Always"
+                                        text: "Close Any Window"
+                                        enabled: aOverride.checked
+                                    }
+                                    RadioButton {
+                                        id: aNever
+                                        text: "Never"
                                         enabled: aOverride.checked
                                     }
                                     Label {
@@ -706,18 +822,23 @@ ApplicationWindow {
                                     Label {
                                         Layout.fillWidth: true
                                         horizontalAlignment: Text.AlignHCenter
-                                        text: "Remember"
+                                        text: "Remember On"
                                         enabled: wOverride.checked
                                     }
                                     RadioButton {
                                         id: wOnClose
-                                        text: "On Close Last"
+                                        text: "Close Last Window"
                                         checked: true
                                         enabled: wOverride.checked
                                     }
                                     RadioButton {
                                         id: wAlways
-                                        text: "Always"
+                                        text: "Close This Window"
+                                        enabled: wOverride.checked
+                                    }
+                                    RadioButton {
+                                        id: wNever
+                                        text: "Never"
                                         enabled: wOverride.checked
                                     }
                                     Label {
@@ -774,10 +895,11 @@ ApplicationWindow {
 
                         RowLayout {
                             Layout.fillWidth: true
+                            uniformCellSizes: true
 
                             Button {
                                 id: saveSettings
-                                text: "Save Settings"
+                                text: "Save Override Settings"
                                 Layout.fillWidth: true
 
                                 onClicked: saveEdit()

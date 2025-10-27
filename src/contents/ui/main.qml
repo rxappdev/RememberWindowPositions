@@ -35,7 +35,7 @@ Item {
         console.error('RememberWindowPositions: ' + string);
     }
 
-    function logAppInfo(name) {
+    function logAppInfo(name, override) {
         let isFirstWindow = !config.windows[name] || (config.windows[name] && config.windows[name].windowCount == 0);
         if (isFirstWindow || config.printAllWindows) {
             console.warn('RememberWindowPositions - application name to add to settings: ' + name);
@@ -53,6 +53,9 @@ Item {
             }
             if (config.perfectMultiWindowRestoreList.includes(name)) {
                 info += ' - on perfect list';
+            }
+            if (override) {
+                info += ' - has override';
             }
             if (info.length > 0) {
                 console.warn('RememberWindowPositions - current status' + info);
@@ -139,7 +142,9 @@ Item {
 
         defaultConfig = {
             override: false,
-            onClose: true,
+            rememberOnClose: true,
+            rememberNever: false,
+            rememberAlways: false,
             position: true,
             size: config.restoreSize,
             desktop: config.restoreVirtualDesktop,
@@ -197,73 +202,83 @@ Item {
         return highestScore;
     }
 
-    function restoreWindowPlacement(saveData, client, captionScore, restoreZ = true) {
+    function restoreWindowPlacement(saveData, client, captionScore, windowConfig, restoreZ = true) {
         if (!client) return;
         if (client.deleted) return;
         if (!saveData) return;
         if (captionScore < config.minimumCaptionMatch) return;
         if (!config.restoreWindowsWithoutCaption && (!client.caption || client.caption.trim().length == 0)) return;
         let positionRestored = false;
+        let sizeRestored = false;
         let virtualDesktopRestored = false;
         let minimizeRestored = false;
         let zRestored = false;
 
-        if (!client.rwp_partiallyRestored) {
-            client.rwp_partiallyRestored = true;
-
-            // Restore frame geometry
-            if (config.restoreSize) {
-                if (client.x != saveData.x || client.y != saveData.y || client.width != saveData.width || client.height != saveData.height) {
-                    log('Attempting to restore window size and position');
-                    client.frameGeometry = Qt.rect(saveData.x, saveData.y, saveData.width, saveData.height);
-                    positionRestored = true;
-                }
-            } else if (client.x != saveData.x || client.y != saveData.y) {
-                log('Attempting to restore window position');
-                client.frameGeometry = Qt.rect(saveData.x, saveData.y, client.width, client.height);
-                positionRestored = true;
+        // Restore frame geometry
+        if (windowConfig.position && windowConfig.size) {
+            if (client.x != saveData.x || client.y != saveData.y || client.width != saveData.width || client.height != saveData.height) {
+                log('Attempting to restore window size and position');
+                positionRestored = client.x != saveData.x || client.y != saveData.y;
+                sizeRestored = client.width != saveData.width || client.height != saveData.height;
+                client.frameGeometry = Qt.rect(saveData.x, saveData.y, saveData.width, saveData.height);
             }
+        } else if (windowConfig.size) {
+            if (client.width != saveData.width || client.height != saveData.height) {
+                log('Attempting to restore window size');
+                client.frameGeometry = Qt.rect(client.x, client.y, saveData.width, saveData.height);
+                sizeRestored = true;
+            }
+        } else if (windowConfig.position && (client.x != saveData.x || client.y != saveData.y)) {
+            log('Attempting to restore window position');
+            client.frameGeometry = Qt.rect(saveData.x, saveData.y, client.width, client.height);
+            positionRestored = true;
+        }
 
-            // Restore activities
-            if (config.restoreActivities) {
-                if (saveData.activities && client.activities) {
-                    log('Attempting to restore window activities');
-                    let activities = [];
-                    let activitiesLength = saveData.activities.length;
-                    if (activitiesLength > 0) {
-                        for (let i = 0; i < activitiesLength; i++) {
-                            if (Workspace.activities.includes(saveData.activities[i])) {
-                                activities.push(saveData.activities[i]);
-                            }
+        // Restore activities
+        if (windowConfig.activity) {
+            if (saveData.activities && client.activities) {
+                log('Attempting to restore window activities');
+                let activities = [];
+                let activitiesLength = saveData.activities.length;
+                if (activitiesLength > 0) {
+                    for (let i = 0; i < activitiesLength; i++) {
+                        if (Workspace.activities.includes(saveData.activities[i])) {
+                            activities.push(saveData.activities[i]);
                         }
                     }
+                }
+                if (JSON.stringify(client.activities) != JSON.stringify(activities)) {
                     client.activities = activities;
                 }
             }
+        }
 
-            // Restore virtual desktop
-            if (config.restoreVirtualDesktop) {
-                let desktopNumber = client.onAllDesktops ? -1 : client.desktops[0].x11DesktopNumber;
-                if (saveData.desktopNumber != desktopNumber) {
-                    if (saveData.desktopNumber == -1) {
-                        log('Attempting to restore window on all virtual desktops');
-                        client.onAllDesktops = true;
-                    } else {
-                        log('Attempting to restore window virtual desktop');
-                        let desktop = Workspace.desktops.find((d) => d.x11DesktopNumber == saveData.desktopNumber);
-                        if (desktop) {
-                            client.desktops = [desktop];
-                        } else {
-                            logE('Failed to restore window virtual desktop');
-                        }
-                    }
+        // Restore virtual desktop
+        if (windowConfig.desktop) {
+            let desktopNumber = client.onAllDesktops ? -1 : client.desktops[0].x11DesktopNumber;
+            if (saveData.desktopNumber != desktopNumber) {
+                if (saveData.desktopNumber == -1) {
+                    log('Attempting to restore window on all virtual desktops');
+                    client.onAllDesktops = true;
                     virtualDesktopRestored = true;
+                } else {
+                    log('Attempting to restore window virtual desktop');
+                    let desktop = Workspace.desktops.find((d) => d.x11DesktopNumber == saveData.desktopNumber);
+                    if (desktop) {
+                        let desktops = [desktop];
+                        if (JSON.stringify(desktops) != JSON.stringify(client.desktops)) {
+                            client.desktops = desktops;
+                            virtualDesktopRestored = true;
+                        }
+                    } else {
+                        logE('Failed to restore window virtual desktop');
+                    }
                 }
             }
-
-            // Restore screen
-            // - this seems to be handled by restoring frame geometry as it spans all screens - if anything changes will have to implement this. The screen is saved just in case.
         }
+
+        // Restore screen
+        // - this seems to be handled by restoring frame geometry as it spans all screens - if anything changes will have to implement this
 
         // Restore z-index
         if (restoreZ) {
@@ -273,18 +288,18 @@ Item {
         }
 
         // Restore minimized
-        if (saveData.minimized && config.restoreMinimized) {
+        if (saveData.minimized && windowConfig.minimized) {
             log('Attempting to restore window minimized');
             client.minimized = true;
             minimizeRestored = true;
         }
 
-        logE(client.resourceClass + ' restored - z: ' + zRestored + ' positon: ' + positionRestored + ' desktop: ' + virtualDesktopRestored + ' minimized: ' + minimizeRestored + ' caption score: ' + captionScore + ' internalId: ' + client.internalId);
+        logE(client.resourceClass + ' restored - z: ' + zRestored + ' positon: ' + positionRestored + ' size: ' + sizeRestored + ' desktop: ' + virtualDesktopRestored + ' minimized: ' + minimizeRestored + ' caption score: ' + captionScore + ' internalId: ' + client.internalId);
         log('- caption   save: ' + saveData.caption);
         log('- caption window: ' + client.caption);
     }
 
-    function twoWayMatch(windowData, confidence) {
+    function twoWayMatch(windowData, confidence, minConfidence) {
         let results = [];
         let loadingIndex = 0;
 
@@ -295,25 +310,31 @@ Item {
             var saveFound = false;
             var loadingFound = false;
 
-            if (loadingIndex < windowData.loading.length) {
-                // Find highest matching save for current loading window
-                let loading = windowData.loading[loadingIndex];
-                for (let saveIndex = 0; saveIndex < windowData.saved.length; saveIndex++) {
-                    let saved = windowData.saved[saveIndex];
-                    let matchingDimentions = 0;
-                    if (saved.width == loading.width) matchingDimentions++;
-                    if (saved.height == loading.height || confidence.allowHeightShrinking && Math.abs(saved.height - loading.height) < 60) matchingDimentions++;
-                    if (matchingDimentions < confidence.matchingDimentions) continue;
-                    let captionScore = matchCaption(saved.caption, loading.caption);
-                    if (captionScore < confidence.caption) continue;
+            // Find highest matching save for current loading window
+            let loading = windowData.loading[loadingIndex];
+            if (loading.rwp_save) {
+                highestSaveIndex = windowData.saved.indexOf(loading.rwp_save);
+                if (highestSaveIndex >= 0) {
+                    results.push({ loading: windowData.loading.splice(0, 1)[0], saved: windowData.saved.splice(highestSaveIndex, 1)[0], captionScore: 100 });
+                    delete loading.rwp_save;
+                    continue;
+                }
+            }
+            for (let saveIndex = 0; saveIndex < windowData.saved.length; saveIndex++) {
+                let saved = windowData.saved[saveIndex];
+                let matchingDimentions = 0;
+                if (saved.width == loading.width) matchingDimentions++;
+                if (saved.height == loading.height || confidence.allowHeightShrinking && Math.abs(saved.height - loading.height) < 60) matchingDimentions++;
+                if (matchingDimentions < confidence.matchingDimentions) continue;
+                let captionScore = matchCaption(saved.caption, loading.caption);
+                if (captionScore < confidence.caption) continue;
 
-                    if (captionScore >= highestSaveCaptionScore) {
-                        if (matchingDimentions > highestSaveMatchingDimentions || captionScore > highestSaveCaptionScore) {
-                            highestSaveCaptionScore = captionScore;
-                            highestSaveMatchingDimentions = matchingDimentions;
-                            highestSaveIndex = saveIndex;
-                            saveFound = true;
-                        }
+                if (captionScore >= highestSaveCaptionScore) {
+                    if (matchingDimentions > highestSaveMatchingDimentions || captionScore > highestSaveCaptionScore) {
+                        highestSaveCaptionScore = captionScore;
+                        highestSaveMatchingDimentions = matchingDimentions;
+                        highestSaveIndex = saveIndex;
+                        saveFound = true;
                     }
                 }
             }
@@ -345,8 +366,12 @@ Item {
                 }
 
                 log('Highest caption score: ' + highestLoadingCaptionScore + ' matching dimentions: ' + highestLoadingMatchingDimentions + ' best match for: ' + (loadingFound ? 'saved' : 'loading') + ' saved caption: ' + saved.caption);
-                results.push({ loading: windowData.loading.splice(highestLoadingIndex, 1)[0], saved: windowData.saved.splice(highestSaveIndex, 1)[0], captionScore: highestLoadingCaptionScore });
-                // Do not increase loadingIndex since we need to match first item again
+                if (highestLoadingCaptionScore >= minConfidence) {
+                    results.push({ loading: windowData.loading.splice(highestLoadingIndex, 1)[0], saved: windowData.saved.splice(highestSaveIndex, 1)[0], captionScore: highestLoadingCaptionScore });
+                    // Do not increase loadingIndex since we need to match first item again
+                } else {
+                    loadingIndex++;
+                }
             } else {
                 // No save for given confidence level found
                 loadingIndex++;
@@ -360,21 +385,21 @@ Item {
         return results;
     }
 
-    function restoreWindowsBasedOnConfidence(clientName, minConfidence, repeats) {
+    function restoreWindowsBasedOnConfidence(clientName, expectedConfidence, minConfidence, repeats) {
         let windowData = config.windows[clientName];
-        logE('Timeout restore for client: ' + clientName + ' loading count: ' + windowData.loading.length + ' minConfidence: ' + minConfidence + ' repeats: ' + repeats);
+        logE('Timeout restore for client: ' + clientName + ' loading count: ' + windowData.loading.length + ' expectedConfidence: ' + expectedConfidence + ' minConfidence: ' + minConfidence + ' repeats: ' + repeats);
 
-        if (minConfidence > 0 && repeats > 0) {
-            if (windowData.lastNonMatchingIndex != undefined && getHighestCaptionScore(windowData, windowData.loading[windowData.lastNonMatchingIndex]) < minConfidence) {
+        if (expectedConfidence > 0 && repeats > 0) {
+            if (windowData.lastNonMatchingIndex != undefined && getHighestCaptionScore(windowData, windowData.loading[windowData.lastNonMatchingIndex]) < expectedConfidence) {
                 logE('Still could not find a match for caption: ' + windowData.loading[windowData.lastNonMatchingIndex].caption);
-                restoreTimer.setTimeout(1000, clientName, minConfidence, repeats - 1);
+                restoreTimer.setTimeout(1000, clientName, expectedConfidence, minConfidence, repeats - 1);
                 return;
             } else {
                 for (let i = 0; i < windowData.loading.length; i++) {
-                    if (getHighestCaptionScore(windowData, windowData.loading[i]) < minConfidence) {
+                    if (getHighestCaptionScore(windowData, windowData.loading[i]) < expectedConfidence) {
                         logE('Could not find a match for caption: ' + windowData.loading[i].caption);
                         windowData.lastNonMatchingIndex = i;
-                        restoreTimer.setTimeout(1000, clientName, minConfidence, repeats - 1);
+                        restoreTimer.setTimeout(1000, clientName, expectedConfidence, minConfidence, repeats - 1);
                         return;
                     }
                 }
@@ -390,26 +415,69 @@ Item {
             let confidenceIndex = 0;
 
             while (windowData.loading.length > 0 && confidenceIndex < config.confidence.length) {
-                results.push(...twoWayMatch(windowData, config.confidence[confidenceIndex]));
+                results.push(...twoWayMatch(windowData, config.confidence[confidenceIndex], minConfidence));
                 confidenceIndex++;
             }
 
             results.sort((a, b) => a.saved.stackingOrder - b.saved.stackingOrder);
 
             for (let i = 0; i < results.length; i++) {
-                restoreWindowPlacement(results[i].saved, results[i].loading, results[i].captionScore);
+                restoreWindowPlacement(results[i].saved, results[i].loading, results[i].captionScore, getCurrentConfig(results[i].loading));
             }
 
-            windowData.saved = [];
-            windowData.loading = [];
+            clearSavesExceptRememberAlways(clientName);
+            clearLoadingExceptRememberAlways(clientName);
         }
+    }
+
+    function getCurrentConfig(client) {
+        let application = config.overrides[client.resourceClass];
+        let currentConfig;
+        if (application) {
+            let window = application.windows[client.caption];
+            if (window) {
+                log('getCurrentConfig window match found ' + JSON.stringify(window));
+                currentConfig = window;
+                currentConfig.blocked = false;
+                currentConfig.window = true;
+            } else if (application.config.override) {
+                log('getCurrentConfig application match found ' + JSON.stringify(application));
+                currentConfig = application.config;
+                currentConfig.blocked = false;
+                currentConfig.window = false;
+            } else {
+                log('getCurrentConfig use default - no window match found');
+                currentConfig = defaultConfig;
+                currentConfig.blocked = config.appsWhitelistedOnly && !config.whitelist.includes(client.resourceClass) || config.appsNotBlacklisted && config.blacklist.includes(client.resourceClass);
+                currentConfig.window = false;
+                if (currentConfig.blocked) {
+                    currentConfig.listenToCaptionChange = true;
+                }
+            }
+        } else {
+            log('getCurrentConfig use default - no application or window match found');
+            currentConfig = defaultConfig;
+            currentConfig.blocked = config.appsWhitelistedOnly && !config.whitelist.includes(client.resourceClass) || config.appsNotBlacklisted && config.blacklist.includes(client.resourceClass);
+            currentConfig.window = false;
+        }
+
+        log('getCurrentConfig currentConfig: ' + JSON.stringify(currentConfig));
+
+        return currentConfig;
     }
 
     function addWindow(client) {
         if (!isValidWindow(client)) return;
-        if (config.printApplicationNameToLog) logAppInfo(client.resourceClass);
-        if (config.appsWhitelistedOnly && !config.whitelist.includes(client.resourceClass)) return;
-        if (config.appsNotBlacklisted && config.blacklist.includes(client.resourceClass)) return;
+        let currentConfig = getCurrentConfig(client);
+        if (config.printApplicationNameToLog) logAppInfo(client.resourceClass, currentConfig.override);
+        if (currentConfig.listenToCaptionChange) {
+            // Client blocked by whitelist/blacklist but app has non-matching windows that have override - add captionChanged listener to check if we get a matching window
+            client.rwp_captionListenerAdded = Date.now();
+            client.captionChanged.connect(onCaptionChanged);
+        }
+        if (currentConfig.blocked) return; // App was blacklisted or not on the whitelist
+        if (currentConfig.rememberNever) return; // App or window was set to not remember on close
+
         log('Adding window for client: ' + client.resourceClass);
         log('- internalId: ' + client.internalId + ' width: ' + client.width + ' height: ' + client.height);
         log('- caption: ' + client.caption);
@@ -418,7 +486,20 @@ Item {
 
         function onClosed() {
             client.closed.disconnect(onClosed);
+            if (client.rwp_captionListenerAdded) {
+                client.captionChanged.disconnect(onCaptionChanged);
+                delete client.rwp_captionListenerAdded;
+            }
             removeWindow(client);
+        }
+
+        function onCaptionChanged() {
+            client.captionChanged.disconnect(onCaptionChanged);
+            if (Date.now() - client.rwp_captionListenerAdded <= 10000) {
+                // Try again, see if caption change made a difference (if it is no longer blocked)
+                addWindow(client);
+            }
+            delete client.rwp_captionListenerAdded;
         }
 
         onActivateWindow(client);
@@ -439,33 +520,43 @@ Item {
         windowData.windowCount++;
 
         if (windowData.saved.length > 0) {
+            let repeats = config.multiWindowRestoreAttempts;
+            if (config.usePerfectMultiWindowRestore && config.perfectMultiWindowRestoreList.includes(client.resourceClass)) {
+                repeats = config.perfectMultiWindowRestoreAttempts;
+            }
             logE('windowCountLastSession: ' + windowData.windowCountLastSession + ' windowCount: ' + windowData.windowCount);
-            if (windowData.windowCountLastSession == 1) {
-                if (!config.appsMultiWindowOnly) {
+            if (currentConfig.override && currentConfig.window) {
+                log('addWindow single window overriden - restoring');
+                let matchSaveIndex = windowData.saved.findIndex((s) => client.caption === s.caption && client.width === s.width && client.height === s.height);
+                if (matchSaveIndex < 0) {
+                    matchSaveIndex = windowData.saved.findIndex((s) => client.caption === s.caption);
+                }
+                if (matchSaveIndex >= 0) {
+                    let saved = windowData.saved[matchSaveIndex];
+                    restoreWindowPlacement(saved, client, 100, currentConfig, false);
+                }
+                // Some windows cannot be moved right when they open, add a backup timer to move it if the above restore failed to move the window (example - Watcher of Realms)
+                windowData.loading.push(client);
+                restoreTimer.setTimeout(1000, client.resourceClass, 100, 100, 0);
+            } else if (windowData.windowCountLastSession == 1 && windowData.saved.length == 1) {
+                if (!config.appsMultiWindowOnly || currentConfig.override) {
                     // Single window application - just restore it to last known state
-                    if (windowData.saved.length == 1) {
-                        let captionScore = getHighestCaptionScore(windowData, client);
-                        let saved = windowData.saved.splice(0, 1)[0];
-                        restoreWindowPlacement(saved, client, captionScore);
-                    } else {
-                        // This should never happen, but does not hurt to have as backup
-                        restoreTimer.setTimeout(1000, client.resourceClass, 0, 0);
-                    }
+                    let captionScore = getHighestCaptionScore(windowData, client);
+                    let saved = windowData.saved[0];
+                    restoreWindowPlacement(saved, client, captionScore, currentConfig, false);
+                    // Some windows cannot be moved right when they open, add a backup timer to move it if the above restore failed to move the window (example - Watcher of Realms)
+                    windowData.loading.push(client);
+                    restoreTimer.setTimeout(1000, client.resourceClass, 0, 0, 0);
                 }
             } else {
-                let repeats = config.multiWindowRestoreAttempts;
-                if (config.usePerfectMultiWindowRestore && config.perfectMultiWindowRestoreList.includes(client.resourceClass)) {
-                    repeats = config.perfectMultiWindowRestoreAttempts;
-                }
-
                 if (config.instantRestore) {
                     let instantMatchSaveIndex = windowData.saved.findIndex((s) => client.caption === s.caption && client.width === s.width && client.height === s.height);
                     if (instantMatchSaveIndex != -1) {
                         // Instantly found a 100% match, restore everything except z-index
                         logE('Found multi-window perfect match, instant restoring window - z index will be restored later');
-                        restoreWindowPlacement(windowData.saved[instantMatchSaveIndex], client, 100, false);
-                        client.rwp_saveIndex = instantMatchSaveIndex;
+                        restoreWindowPlacement(windowData.saved[instantMatchSaveIndex], client, 100, currentConfig, false);
                         client.rwp_stackingOrder = windowData.saved[instantMatchSaveIndex].stackingOrder;
+                        client.rwp_save = windowData.saved[instantMatchSaveIndex];
                         windowData.instantMatchRestored++;
                     }
                 }
@@ -473,52 +564,39 @@ Item {
                 windowData.loading.push(client);
 
                 // Backup timer - if captions do not match enough by the timeout, this makes sure windows are restored to best ability
-                restoreTimer.setTimeout(repeats * 1000 + 1000 + (windowData.windowCountLastSession * 100), client.resourceClass, 0, 0);
+                restoreTimer.setTimeout(repeats * 1000 + 1000 + (windowData.windowCountLastSession * 100), client.resourceClass, 0, config.minimumCaptionMatch, 0);
 
                 // All windows from previous session have opened, try to restore based on best caption and size match with minimum caption match of 85
-                if (windowData.windowCountLastSession == windowData.windowCount) {
+                if (windowData.windowCountLastSession <= windowData.windowCount || currentConfig.rememberAlways) {
                     // TODO: In case I ever implement caption change listener
                     // TODO: Match captions and if mismatch do:
                     // client.onCaptionChanged.connect(onCaptionChanged);
 
-                    // TODO: Might cause issues with Firefox - revert to "slower" restore for now
-                    // Trigger first restore ASAP to make it appear smooth in case all captions match right away
-                    //restoreTimer.setTimeout(1, client.resourceClass, 85, repeats + 1);
-
                     log('All windows for ' + client.resourceClass + ' loaded - windowCountLastSession: ' + windowData.windowCountLastSession + ' instantMatchRestored: ' + windowData.instantMatchRestored);
 
-                    if (config.instantRestore && windowData.instantMatchRestored == windowData.windowCountLastSession) {
-                        // All windows restored - restore z-positions
-                        restoreTimer.removeTimeoutsFor(client.resourceClass);
-                        windowData.loading.sort((a, b) => a.rwp_stackingOrder - b.rwp_stackingOrder);
-                        for (let i = 0; i < windowData.loading.length; i++) {
-                            restoreWindowPlacement(windowData.saved[windowData.loading[i].rwp_saveIndex], windowData.loading[i], 100);
-                        }
-                        windowData.saved = [];
-                        windowData.loading = [];
+                    if (windowData.instantMatchRestored > 0 && windowData.instantMatchRestored == windowData.windowCountLastSession) {
+                        // All instant match windows restored - restore z-positions and fallback position restoration
+                        restoreTimer.setTimeout(1000, client.resourceClass, 100, 100, 0);
                     } else {
-                        restoreTimer.setTimeout(1000, client.resourceClass, 85, repeats);
+                        restoreTimer.setTimeout(1000, client.resourceClass, 85, config.minimumCaptionMatch, repeats);
                     }
                     windowData.instantMatchRestored = 0;
                 }
             }
         }
-
-        // TODO: In case I ever implement caption change listener
-        // function onCaptionChanged() {
-        //     client.captionChanged.disconnect(onCaptionChanged);
-        // }
     }
 
     function removeWindow(client) {
         if (!isValidWindow(client)) return;
 
         let windowData = config.windows[client.resourceClass];
+        let currentConfig = getCurrentConfig(client);
 
         log('Removing window for client: ' + client.resourceClass);
         log(' - internalId: ' + client.internalId);
         log(' - windowCount: ' + windowData.windowCount);
         log(' - caption: ' + client.caption);
+        log(' - remember on window close: ' + currentConfig.rememberAlways);
 
         if (windowData && windowData.windowCount > 0) {
             windowData.windowCount--;
@@ -530,24 +608,49 @@ Item {
 
             let currentWindowOrder = windowData.windowOrder.indexOf(client.internalId);
 
-            windowData.closed.push({
-                internalId    : client.internalId,
-                caption       : client.caption.toString(),
-                x             : client.x,
-                y             : client.y,
-                width         : client.width,
-                height        : client.height,
-                minimized     : client.minimized,
-                outputName    : client.output.name,
-                stackingOrder : currentWindowOrder == -1 ? client.stackingOrder : currentWindowOrder,
-                desktopNumber : client.onAllDesktops ? -1 : client.desktops[0].x11DesktopNumber,
-                activities    : [...client.activities],
-                closeTime     : Date.now()
-            });
+            let currentWindowData = {
+                internalId     : client.internalId,
+                caption        : client.caption.toString(),
+                x              : client.x,
+                y              : client.y,
+                width          : client.width,
+                height         : client.height,
+                minimized      : client.minimized,
+                // outputName     : client.output.name,
+                stackingOrder  : currentWindowOrder == -1 ? client.stackingOrder : currentWindowOrder,
+                desktopNumber  : client.onAllDesktops ? -1 : client.desktops[0].x11DesktopNumber,
+                activities     : [...client.activities],
+                closeTime      : Date.now(),
+                rememberAlways : currentConfig.rememberAlways
+            };
+
+            if (currentConfig.rememberAlways) {
+                // Always remember window - save it instantly
+
+                let index = windowOrder.indexOf(currentWindowData.internalId);
+
+                if (index != -1) {
+                    windowOrder.splice(index, 1);
+                    delete currentWindowData.internalId;
+                }
+
+                windowData.saved.push(currentWindowData);
+
+                if (windowData.windowCount > 0) {
+                    // Only save if window count is > 0, because at 0, it will be saved below
+                    saveWindowsToSettings();
+                }
+
+                log('Saved single window due to rememberAlways being true');
+            } else {
+                // Add to closed windows to handle it when last window closes
+                windowData.closed.push(currentWindowData);
+            }
 
             if (windowData.windowCount == 0) {
+                clearSavesExceptRememberAlways(client.resourceClass);
+                // clearLoadingExceptRememberAlways(client.resourceClass);
                 windowData.loading = [];
-                windowData.saved = [];
                 windowData.lastAccessTime = Date.now();
                 windowData.windowCountLastSession = 0;
 
@@ -563,7 +666,7 @@ Item {
                     }
 
                     log('Closing - time since last: ' + (lastValidClosingTime - saving.closeTime));
-                    if (lastValidClosingTime - saving.closeTime <= 1000) {
+                    if (lastValidClosingTime - saving.closeTime <= 1200) {
                         // Valid save
                         windowData.windowCountLastSession++;
                         windowData.saved.push(saving);
@@ -583,15 +686,59 @@ Item {
         }
     }
 
+    function clearSaves(name, allWindows, caption) {
+        let windowData = config.windows[name];
+        log('clearingSaves name: ' + name + ' allWindows: ' + allWindows + ' caption: ' + caption);
+        if (windowData) {
+            if (allWindows) {
+                windowData.saved = [];
+            } else if (caption) {
+                for (let i = windowData.saved.length - 1; i >= 0; i--) {
+                    if (windowData.saved[i].caption == caption) {
+                        windowData.saved.splice(i, 1);
+                    }
+                }
+            }
+            saveWindowsToSettings();
+        }
+    }
+
+    function clearSavesExceptRememberAlways(name) {
+        let windowData = config.windows[name];
+        for (let i = windowData.saved.length - 1; i >= 0; i--) {
+            if (!windowData.saved[i].rememberAlways) {
+                windowData.saved.splice(i, 1);
+            }
+        }
+    }
+
+    function clearLoadingExceptRememberAlways(name) {
+        let windowData = config.windows[name];
+        for (let i = windowData.loading.length - 1; i >= 0; i--) {
+            if (!windowData.loading[i].rememberAlways) {
+                windowData.loading.splice(i, 1);
+            }
+        }
+    }
+
     function clearExpiredApps() {
         let changed = false;
 
-        // Remove saves for all apps that have not been accessed for 30 days
+        // Remove saves for all apps that have not been accessed for 30 days - manually overriden apps after 1 year
         // TODO: Make this a setting perhaps - 7 - 90 days?
         const expirationDate = Date.now() - (30 * 24 * 60 * 60 * 1000);
+        const expirationDateOverriden = Date.now() - (365 * 24 * 60 * 60 * 1000);
 
         for (let key in config.windows) {
-            if (config.windows[key].lastAccessTime < expirationDate) {
+            let clear = false;
+            if (config.overrides[key]) {
+                if (config.windows[key].lastAccessTime < expirationDateOverriden) {
+                    clear = true;
+                }
+            } else if (config.windows[key].lastAccessTime < expirationDate) {
+                clear = true;
+            }
+            if (clear) {
                 log('Clearing expired app: ' + key);
                 delete config.windows[key];
                 changed = true;
@@ -630,9 +777,9 @@ Item {
         property var timeoutIsRunning: false
         property var timeoutData: []
 
-        function setTimeout(delay, name, minConfidence, repeats) {
-            logE('Setting timout for ' + delay + ' isRunning: ' + timeoutIsRunning + ' timer count: ' + timeoutData.length);
-            timeoutData.push({time: Date.now() + delay, name: name, minConfidence: minConfidence, repeats: repeats});
+        function setTimeout(delay, name, expectedConfidence, minConfidence, repeats) {
+            logE('Setting timeout for ' + delay + ' isRunning: ' + timeoutIsRunning + ' timer count: ' + timeoutData.length);
+            timeoutData.push({time: Date.now() + delay, name: name, expectedConfidence: expectedConfidence, minConfidence: minConfidence, repeats: repeats});
             timeoutData.sort((a, b) => a.time - b.time);
 
             if (!timeoutIsRunning) {
@@ -661,7 +808,7 @@ Item {
         function onTimeoutTriggered() {
             while (timeoutData.length > 0 && timeoutData[0].time <= Date.now()) {
                 let data = timeoutData.shift();
-                restoreWindowsBasedOnConfidence(data.name, data.minConfidence, data.repeats);
+                restoreWindowsBasedOnConfidence(data.name, data.expectedConfidence, data.minConfidence, data.repeats);
             }
 
             if (timeoutData.length == 0) {
@@ -694,21 +841,22 @@ Item {
             for (let i = 0; i < window.s.length; i++) {
                 let save = window.s[i];
                 convertedWindows[key].saved.push({
-                    caption       : save.c,      // caption
-                    x             : save.x,      // x
-                    y             : save.y,      // y
-                    width         : save.w,      // width
-                    height        : save.h,      // height
-                    minimized     : save.m == 1, // minimized
-                    outputName    : save.o,      // outputName
-                    stackingOrder : save.s,      // stackingOrder
-                    desktopNumber : save.d,      // desktopNumber
-                    activities    : save.a       // activities
-                    // --- Ommited fields ---
+                    caption        : save.c,      // caption
+                    x              : save.x,      // x
+                    y              : save.y,      // y
+                    width          : save.w,      // width
+                    height         : save.h,      // height
+                    minimized      : save.m == 1, // minimized
+                    // outputName     : save.o,      // outputName
+                    stackingOrder  : save.s,      // stackingOrder
+                    desktopNumber  : save.d,      // desktopNumber
+                    activities     : save.a,      // activities
+                    rememberAlways : save.r == 1  // rememberAlways
+                    // --- Omitted fields ---
                     // closeTime  : save.t       // closeTime
                     // internalId : save.i       // internalId
                 });
-                log('Window ' + i + ' - x: ' + save.x + ' y: ' + save.y + ' width: ' + save.w + ' height: ' + save.h + ' minimized: ' + (save.m == 1) + ' outputName: ' + save.o + ' stackingNumber: ' + save.s + ' desktopNumber: ' + save.d);
+                log('Window ' + i + ' - x: ' + save.x + ' y: ' + save.y + ' width: ' + save.w + ' height: ' + save.h + ' minimized: ' + (save.m == 1) + /*' outputName: ' + save.o +*/ ' stackingNumber: ' + save.s + ' desktopNumber: ' + save.d);
                 log('- activities: ' + JSON.stringify(save.a));
                 log('- caption: ' + save.c + '\n');
             }
@@ -719,7 +867,7 @@ Item {
     }
 
     function saveWindowsToSettings() {
-        // Convert save data to minimaze size in storage - ommit all data that is not relevant for the save
+        // Convert save data to minimize size in storage - omit all data that is not relevant for the save
         let convertedWindows = {};
 
         for (let key in config.windows) {
@@ -729,7 +877,7 @@ Item {
                     s: [],                            // saved
                     l: window.lastAccessTime,         // lastAccessTime
                     w: window.windowCountLastSession  // windowCountLastSession
-                    // --- Ommited fields ---
+                    // --- Omitted fields ---
                     // c: window.windowCount          // windowCount
                     // i: window.instantMatchRestored // instantMatchRestored
                     // o: window.loading              // loading
@@ -738,17 +886,18 @@ Item {
                 for (let i = 0; i < window.saved.length; i++) {
                     let save = window.saved[i];
                     convertedWindows[key].s.push({
-                        c: save.caption,           // caption
-                        x: save.x,                 // x
-                        y: save.y,                 // y
-                        w: save.width,             // width
-                        h: save.height,            // height
-                        m: save.minimized ? 1 : 0, // minimized
-                        o: save.outputName,        // outputName
-                        s: save.stackingOrder,     // stackingOrder
-                        d: save.desktopNumber,     // desktopNumber
-                        a: save.activities         // activities
-                        // --- Ommited fields ---
+                        c: save.caption,               // caption
+                        x: save.x,                     // x
+                        y: save.y,                     // y
+                        w: save.width,                 // width
+                        h: save.height,                // height
+                        m: save.minimized ? 1 : 0,     // minimized
+                        // o: save.outputName,            // outputName
+                        s: save.stackingOrder,         // stackingOrder
+                        d: save.desktopNumber,         // desktopNumber
+                        a: save.activities,            // activities
+                        r: save.rememberAlways ? 1 : 0 // rememberAlways
+                        // --- Omitted fields ---
                         // t: save.closeTime       // closeTime
                         // i: save.internalId      // internalId
                     });
@@ -762,10 +911,98 @@ Item {
         log('Windows saved!');
     }
 
+    function loadOverridesFromSettings() {
+        let savedOverrides = JSON.parse(settings.rememberwindowpositions_configOverrides);
+        let convertedOverrides = {};
+
+        log('Loading application overrides from settings');
+
+        for (let applicationKey in savedOverrides) {
+            let application = savedOverrides[applicationKey];
+            convertedOverrides[applicationKey] = {
+                config: {
+                    override        : application.o == 1, // override
+                    rememberOnClose : application.c == 1, // rememberOnClose
+                    rememberNever   : application.n == 1, // rememberNever
+                    rememberAlways  : application.r == 1, // rememberAlways
+                    position        : application.p == 1, // position
+                    size            : application.s == 1, // size
+                    desktop         : application.d == 1, // desktop
+                    activity        : application.a == 1, // activity
+                    minimized       : application.m == 1  // minimized
+                },
+                windows             : {}                  // windows
+            };
+            for (let windowKey in application.w) {
+                let window = application.w[windowKey];
+                convertedOverrides[applicationKey].windows[windowKey] = {
+                    override        : window.o == 1, // override
+                    rememberOnClose : window.c == 1, // rememberOnClose
+                    rememberNever   : window.n == 1, // rememberNever
+                    rememberAlways  : window.r == 1, // rememberAlways
+                    position        : window.p == 1, // position
+                    size            : window.s == 1, // size
+                    desktop         : window.d == 1, // desktop
+                    activity        : window.a == 1, // activity
+                    minimized       : window.m == 1  // minimized
+                };
+            }
+        }
+
+        log('Load - converted overrides: ' + JSON.stringify(convertedOverrides));
+        config.overrides = convertedOverrides;
+    }
+
+    function saveOverridesToSettings(overrides) {
+        if (overrides) {
+            config.overrides = overrides;
+        }
+
+        // Convert save data to minimize size in storage - omit all data that is not relevant for the save
+        let convertedOverrides = {};
+
+        for (let applicationKey in config.overrides) {
+            let application = config.overrides[applicationKey];
+            let appConfig = application.config;
+            convertedOverrides[applicationKey] = {
+                o: appConfig.override        ? 1 : 0, // override
+                c: appConfig.rememberOnClose ? 1 : 0, // rememberOnClose
+                n: appConfig.rememberNever   ? 1 : 0, // rememberNever
+                r: appConfig.rememberAlways  ? 1 : 0, // rememberAlways
+                p: appConfig.position        ? 1 : 0, // position
+                s: appConfig.size            ? 1 : 0, // size
+                d: appConfig.desktop         ? 1 : 0, // desktop
+                a: appConfig.activity        ? 1 : 0, // activity
+                m: appConfig.minimized       ? 1 : 0, // minimized
+                w: {}                                 // windows
+            };
+            for (let windowKey in application.windows) {
+                let window = application.windows[windowKey];
+                convertedOverrides[applicationKey].w[windowKey] = {
+                    o: window.override        ? 1 : 0, // override
+                    c: window.rememberOnClose ? 1 : 0, // rememberOnClose
+                    n: window.rememberNever   ? 1 : 0, // rememberNever
+                    r: window.rememberAlways  ? 1 : 0, // rememberAlways
+                    p: window.position        ? 1 : 0, // position
+                    s: window.size            ? 1 : 0, // size
+                    d: window.desktop         ? 1 : 0, // desktop
+                    a: window.activity        ? 1 : 0, // activity
+                    m: window.minimized       ? 1 : 0  // minimized
+                };
+            }
+        }
+
+        // log('Attempting to save overrides: ' + JSON.stringify(convertedOverrides));
+        settings.rememberwindowpositions_configOverrides = JSON.stringify(convertedOverrides);
+        // log('Overrides saved!');
+    }
+
     Settings {
         // Saved in default settings file ~/.config/kde.org/kwin.conf
         id: settings
         property string rememberwindowpositions_windows: "{}"
+        property string rememberwindowpositions_configOverrides: "{}"
+        // property bool rememberwindowpositions_autoShowMainMenu: true
     }
 
     Connections {
@@ -791,6 +1028,7 @@ Item {
         log('Loaded...');
         cacheWindowOrder();
         loadConfig();
+        loadOverridesFromSettings();
         loadWindowsFromSettings();
 
         // Add existing windows
@@ -802,25 +1040,32 @@ Item {
         // Clear expired apps to reduce used save-file space
         clearExpiredApps();
 
-        showMainMenu();
+        // if (settings.rememberwindowpositions_autoShowMainMenu) {
+        //     showMainMenu();
+        // }
     }
 
     Component.onDestruction: {
         log('Closing...');
         saveWindowsToSettings();
+        saveOverridesToSettings();
     }
 
     function showMainMenu() {
-        mainMenuWindow = mainmenu.createObject(root);
-        mainMenuWindow.show();
-        mainMenuWindow.initMainMenu();
-    }
-
-    function closeMainMenu() {
-        if (mainMenuWindow.visible) {
-            mainMenuWindow.close();
+        if (!mainMenuWindow) {
+            mainMenuWindow = mainmenu.createObject(root);
+        }
+        if (!mainMenuWindow.visible) {
+            mainMenuWindow.show();
+            mainMenuWindow.initMainMenu();
         }
     }
+
+    // function closeMainMenu() {
+    //     if (mainMenuWindow && mainMenuWindow.visible) {
+    //         mainMenuWindow.close();
+    //     }
+    // }
 
     function selectWindow() {
         identifyWindow = true;
@@ -837,6 +1082,16 @@ Item {
         MainMenu {
             defaultConfig: root.defaultConfig
             overrides: root.config.overrides
+            // showFirstTimeHint: settings.rememberwindowpositions_autoShowMainMenu
+        }
+    }
+
+    ShortcutHandler {
+        name: "Remember Window Positions: Show Config"
+        text: "Remember Window Positions: Show Config"
+        sequence: "Meta+Ctrl+W"
+        onActivated: {
+            showMainMenu()
         }
     }
 }

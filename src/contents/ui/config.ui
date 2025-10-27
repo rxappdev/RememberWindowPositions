@@ -302,6 +302,35 @@
       <zorder>groupBox_minimumCaptionMatch</zorder>
       <zorder>kcfg_printApplicationNameToLog</zorder>
      </widget>
+     <widget class="QWidget" name="tab">
+      <attribute name="icon">
+       <iconset theme="emblem-important"/>
+      </attribute>
+      <attribute name="title">
+       <string>Configure Single Application/Window</string>
+      </attribute>
+      <layout class="QVBoxLayout" name="verticalLayout_6">
+       <item>
+        <widget class="QLabel" name="label_perAppInformation">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="text">
+          <string>To override default settings of a single application or window, please open the configuration window through the &quot;&lt;b&gt;Remember Window Positions: Show Config&lt;/b&gt;&quot; keyboard shortcut (&quot;&lt;b&gt;Ctrl+Meta+W&lt;/b&gt;&quot; by default - Meta key depends on your keyboard, but on most keyboards it is the Windows key). If this keyboard shortcut does not work, please manually assign it (or any shortcut you like) in &quot;&lt;b&gt;System Settings &gt; Keyboard &gt; Shortcuts &gt; Window Management &gt; Remember Window Positions: Show Config&lt;/b&gt;&quot;.</string>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignmentFlag::AlignCenter</set>
+         </property>
+         <property name="wordWrap">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </widget>
      <widget class="QWidget" name="tab_mulltiWindowRestore">
       <attribute name="icon">
        <iconset theme="preferences-desktop"/>
