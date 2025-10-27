@@ -706,6 +706,9 @@
        <property name="text">
         <string>&lt;a href=&quot;https://discord.gg/Js6AYsnQQj&quot;&gt;Discord page&lt;/a&gt;</string>
        </property>
+       <property name="margin">
+        <number>8</number>
+       </property>
        <property name="openExternalLinks">
         <bool>true</bool>
        </property>
@@ -713,11 +716,36 @@
      </item>
      <item>
       <widget class="QLabel" name="label_webpageLink">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
        <property name="toolTip">
         <string>https://github.com/rxappdev/RememberWindowPositions</string>
        </property>
        <property name="text">
         <string>&lt;a href=&quot;https://github.com/rxappdev/RememberWindowPositions&quot;&gt;Github page&lt;/a&gt;</string>
+       </property>
+       <property name="margin">
+        <number>0</number>
+       </property>
+       <property name="openExternalLinks">
+        <bool>true</bool>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QLabel" name="label_3">
+       <property name="mouseTracking">
+        <bool>true</bool>
+       </property>
+       <property name="toolTip">
+        <string>https://buymeacoffee.com/rxappdev</string>
+       </property>
+       <property name="text">
+        <string>&lt;a href=&quot;https://buymeacoffee.com/rxappdev&quot;&gt;Buy me a coffee&lt;/a&gt;</string>
        </property>
        <property name="margin">
         <number>8</number>
