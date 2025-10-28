@@ -319,7 +319,9 @@
           </sizepolicy>
          </property>
          <property name="text">
-          <string>To override default settings of a single application or window, please open the configuration window through the &quot;&lt;b&gt;Remember Window Positions: Show Config&lt;/b&gt;&quot; keyboard shortcut (&quot;&lt;b&gt;Ctrl+Meta+W&lt;/b&gt;&quot; by default - Meta key depends on your keyboard, but on most keyboards it is the Windows key). If this keyboard shortcut does not work, please manually assign it (or any shortcut you like) in &quot;&lt;b&gt;System Settings &gt; Keyboard &gt; Shortcuts &gt; Window Management &gt; Remember Window Positions: Show Config&lt;/b&gt;&quot;.</string>
+          <string>To override default settings of a single application or window, please open the configuration window through the &quot;&lt;b&gt;Remember Window Positions: Show Config&lt;/b&gt;&quot; keyboard shortcut (&quot;&lt;b&gt;Ctrl+Meta+W&lt;/b&gt;&quot; by default - Meta key depends on your keyboard, but on most keyboards it is the Windows key). If this keyboard shortcut does not work, please manually assign it (or any shortcut you like) in &quot;&lt;b&gt;System Settings &gt; Keyboard &gt; Shortcuts &gt; Window Management &gt; Remember Window Positions: Show Config&lt;/b&gt;&quot;.
+&lt;br&gt;&lt;br&gt;
+When upgrading from an earlier version, a reboot might be required to enable the shortcut. Disabling and enabling the script might also work.</string>
          </property>
          <property name="alignment">
           <set>Qt::AlignmentFlag::AlignCenter</set>
@@ -704,10 +706,10 @@
         <string>https://discord.gg/Js6AYsnQQj</string>
        </property>
        <property name="text">
-        <string>&lt;a href=&quot;https://discord.gg/Js6AYsnQQj&quot;&gt;Discord page&lt;/a&gt;</string>
+        <string>&amp;nbsp;&lt;a href=&quot;https://discord.gg/Js6AYsnQQj&quot;&gt;Discord page&lt;/a&gt;</string>
        </property>
        <property name="margin">
-        <number>8</number>
+        <number>0</number>
        </property>
        <property name="openExternalLinks">
         <bool>true</bool>
@@ -745,10 +747,10 @@
         <string>https://buymeacoffee.com/rxappdev</string>
        </property>
        <property name="text">
-        <string>&lt;a href=&quot;https://buymeacoffee.com/rxappdev&quot;&gt;Buy me a coffee&lt;/a&gt;</string>
+        <string>&lt;a href=&quot;https://buymeacoffee.com/rxappdev&quot;&gt;Buy me a coffee&lt;/a&gt;&amp;nbsp;&amp;nbsp;&lt;b style=&quot;color:#FF0000&quot;&gt;❤&lt;/b&gt;</string>
        </property>
        <property name="margin">
-        <number>8</number>
+        <number>0</number>
        </property>
        <property name="openExternalLinks">
         <bool>true</bool>

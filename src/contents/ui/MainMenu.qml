@@ -2,6 +2,7 @@ import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
 import org.kde.kwin
+import org.kde.kirigami as Kirigami
 
 ApplicationWindow {
     property var overrides: {}
@@ -13,10 +14,13 @@ ApplicationWindow {
     property var currentWindowIndex: -1
     // property var showFirstTimeHint: false
 
+    Kirigami.Theme.colorSet: Kirigami.Theme.Window
+
     id: mainMenuRoot
     width: 1000
     height: 700
     title: "Remember Window Positions - Per Application/Window Configuration"
+    color: Kirigami.Theme.backgroundColor
 
     function initMainMenu() {
         currentOverrides = JSON.parse(JSON.stringify(overrides));
