@@ -6,7 +6,7 @@
 Especially useful for multi-window applications such as browsers.
 Remembers and restores the windows position, size, screen and virtual desktop.</pre>
 
-* Compatible with KDE Plasma 6+ (compatibility with previous version is unknown).
+* Compatible with KDE Plasma 6+ (compatibility with previous versions is unknown).
 
 * Tested on Fedora 42 KDE running Wayland and X11 with Plasma version 6.4.5.
 
@@ -136,12 +136,12 @@ Recommended usage would be to either use a whitelist or a blacklist. It's also p
 ### <p id="blacklist"></p>Using Blacklist
 
 * Identify problematic applications.
-* Check the application names to add in the log (see "**Find application names**" below).
+* Check the application names to add in the log (see "<a href="#names">**Find application names**</a>" below).
 * Add them to the Blacklist, one per line.
 
 ### <p id="whitelist"></p>Using Whitelist
 
-* Check the application names to add in the log (see "**Find application names**" below).
+* Check the application names to add in the log (see "<a href="#names">**Find application names**</a>" below).
 * Add applications you would like to remember to the list, one per line.
 
 ### <p id="names"></p>Find application names
@@ -210,7 +210,7 @@ The system user settings data is stored in `~/.config/kwinrc` under `[Script-kre
 ![](./assets/browser_1.png)<br>
 2) Change to `Remember` "`Only whitelisted applications`"<br>
 ![](./assets/browser_2.png)<br>
-3) Find your browser name (see "`Find application names`") and add it to the whitelist (might be pre-added)<br>
+3) Find your browser name (see <a href="#names">`Find application names`</a>") and add it to the whitelist (might be pre-added)<br>
 ![](./assets/browser_3.png)<br>
 4) Click "`OK`" to save the changes
 5) Untick `Remember Window Positions`<br>
