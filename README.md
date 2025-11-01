@@ -8,7 +8,7 @@ Remembers and restores the windows position, size, screen and virtual desktop.</
 
 * Compatible with KDE Plasma 6+ (compatibility with previous version is unknown).
 
-* Tested on Fedora 42 KDE running Wayland with Plasma version 6.4.5.
+* Tested on Fedora 42 KDE running Wayland and X11 with Plasma version 6.4.5.
 
 [![kde-store](https://img.shields.io/badge/KDE%20Store-download-blue?logo=KDE)](https://store.kde.org/p/2324743)
 
@@ -49,7 +49,7 @@ There are lots of other settings that let you control exactly how and when to re
 
 ### From KDE Store (Recommended)
 
-1) Open `Settings` > `Window Management` > `KWin Scripts`.
+1) Open `System Settings` > `Window Management` > `KWin Scripts`.
 2) Click the `Get New...` in upper right corner.<br>
 ![](./assets/get.png)<br>
 3) Search for `Remember Window Positions` and click on it (step `1` applies only with small window size)<br>
@@ -69,7 +69,7 @@ Please note that changing settings requires some additional steps to apply due t
 
 You can download the `rememberwindowpositions.kwinscript` file and install it through **System Settings**.
 1) Download the .kwinscript file.
-2) Open `Settings` > `Window Management` > `KWin Scripts`.
+2) Open `System Settings` > `Window Management` > `KWin Scripts`.
 3) Click the `Install from File...` in upper right corner.<br>
 ![](./assets/install.png)<br>
 4) Select the downloaded file and click `Open`
@@ -111,7 +111,17 @@ Then in a terminal (Konsole) run:
 
 ![](./assets/print.png)<br>
 
-## Changing settings
+## Per Application / Window override
+
+It is possible to configure individual application and windows by pressing the Ctrl+Meta+W key. (On mosy keyboards Windows key is the Meta key).
+
+![](./assets/per_window_settings.png)<br>
+
+If this keyboard shortcut does not work for you, make sure it is correctly setup in `System Settings` > `Keyboard` > `Shortcuts` > `Window Management` > `Remember Window Positions: Show Config`<br>
+
+![](./assets/shortcut_1.png)<br>
+
+## Changing system settings
 
 ### **`IMPORTANT`**
 
@@ -119,7 +129,7 @@ Due to a bug in KDE, changing user configuration requires reloading the script. 
 
 To make setting changes effective, **reload the script as follows**:
 
-1) In `Settings` > `Window Management` > `KWin Scripts`, untick `Remember Window Positions`<br>
+1) In `System Settings` > `Window Management` > `KWin Scripts`, untick `Remember Window Positions`<br>
 ![](./assets/untick.png)<br>
 2) Click `Apply`<br>
 ![](./assets/apply.png)<br>
@@ -135,6 +145,66 @@ If there is ever need to manually erase user data (do not do this unless you are
 The application/window data is stored in `~/.config/kde.org/kwin.conf` under the key `rememberwindowpositions_windows`.
 
 The system user settings data is stored in `~/.config/kwinrc` under `[Script-krestorewindowpositions]`.
+
+## Use case examples
+
+### Remember Firefox/LibreWolf/Waterfox Picture-in-Picture position
+
+1) Open your Firefox-based browser and go to Youtube
+2) Start a video and click the Picture-in-Picture button<br>
+![](./assets/firefox_1.png)<br>
+3) Open Per Application/Window Configuration (**Ctrl+Meta+W**)
+4) Click the `Select Application/Window` button<br>
+![](./assets/firefox_2.png)<br>
+5) Click on the Picture-in-Picture window<br>
+![](./assets/firefox_3.png)<br>
+6) Make sure the "`Window`" is checked, "`Close This Window`" is selected and click the "`Save Override Settings`"<br>
+![](./assets/firefox_4.png)<br>
+
+### Only restore my browser - let other application use system default behavior
+
+1) Open `System Settings` > `Window Management` > `KWin Scripts` > `Remember Window Positions Settings`<br>
+![](./assets/browser_1.png)<br>
+2) Change to `Remember` "`Only whitelisted applications`"<br>
+![](./assets/browser_2.png)<br>
+3) Find your browser name (see "`Find application names`") and add it to the whitelist (might be pre-added)<br>
+![](./assets/browser_3.png)<br>
+4) Click "`OK`" to save the changes
+5) Untick `Remember Window Positions`<br>
+![](./assets/untick.png)<br>
+6) Click `Apply`<br>
+![](./assets/apply.png)<br>
+7) Tick `Remember Window Positions`<br>
+![](./assets/tick.png)<br>
+8) Click `Apply`<br>
+![](./assets/apply.png)<br>
+
+### Do not restore virtual desktop for Konsole
+
+1) Open a Konsole window
+2) Open Per Application/Window Configuration (**Ctrl+Meta+W**)
+3) Click the `Select Application/Window` button<br>
+![](./assets/firefox_2.png)<br>
+4) Click on the Konsole window<br>
+![](./assets/konsole_1.png)<br>
+6) Make sure the "`Application`" is checked, "`Close Last Window`" is selected, "`Desktop`" is unchecked and click the "`Save Override Settings`"<br>
+![](./assets/konsole_2.png)<br>
+
+### Only remember windows that fully match caption (title)
+
+1) Open `System Settings` > `Window Management` > `KWin Scripts` > `Remember Window Positions Settings`<br>
+![](./assets/browser_1.png)<br>
+2) Change the `Minimum Caption Match Percentage` to around 85%. Anything much higher and you will get issues with windows that show number of messages or similar information<br>
+![](./assets/caption_1.png)<br>
+3) Click "`OK`" to save the changes
+4) Untick `Remember Window Positions`<br>
+![](./assets/untick.png)<br>
+5) Click `Apply`<br>
+![](./assets/apply.png)<br>
+6) Tick `Remember Window Positions`<br>
+![](./assets/tick.png)<br>
+7) Click `Apply`<br>
+![](./assets/apply.png)<br>
 
 ## Troubleshooting
 
