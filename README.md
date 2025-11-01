@@ -12,9 +12,52 @@ Remembers and restores the windows position, size, screen and virtual desktop.</
 
 [![kde-store](https://img.shields.io/badge/KDE%20Store-download-blue?logo=KDE)](https://store.kde.org/p/2324743)
 
-## Features
 
-### Automatic restoration of saved windows
+# Table of contents
+<ul>
+<li><a href="#features">Features</a>
+    <ul>
+        <li><a href="#auto"> Automatic restoration of saved windows</a></li>
+        <li><a href="#customizable">Customizable</a></li>
+    </ul>
+</li>
+<li><a href="#how">How it works</a></li>
+<li><a href="#installation">Installation</a>
+    <ul>
+        <li><a href="#store">From KDE Store (Recommended)</a></li>
+        <li><a href="#file">From File</a></li>
+    </ul>
+</li>
+<li><a href="#setup">Recommended setup</a></li>
+    <ul>
+        <li><a href="#blacklist">Using Blacklist</a></li>
+        <li><a href="#whitelist">Using Whitelist</a></li>
+        <li><a href="#names">Find application names</a></li>
+    </ul>
+</li>
+<li><a href="#override">Per Application / Window override</a></li>
+<li><a href="#system-settings">Changing system settings</a></li>
+<li><a href="#remove-settings">Manually erasing settings</a></li>
+<li><a href="#use">Use case examples</a>
+    <ul>
+        <li><a href="#firefox">Remember Firefox/LibreWolf/Waterfox Picture-in-Picture position</a></li>
+        <li><a href="#browser">Only restore my browser - let other application use system default behavior</a></li>
+        <li><a href="#desktop">Do not restore virtual desktop for Konsole</a></li>
+        <li><a href="#caption">Only remember windows that fully match caption (title)</a></li>
+    </ul>
+</li>
+<li><a href="#troubleshooting">Troubleshooting</a>
+    <ul>
+        <li><a href="#commandline">Command line</a></li>
+    </ul>
+</li>
+<li><a href="#compatibility">Compatibility</a></li>
+<li><a href="#getintouch">Get in touch</a></li>
+</ul>
+
+## <p id="features"></p>Features
+
+### <p id="auto"></p>Automatic restoration of saved windows
 
 The process of saving and restoring a window is extremely simple:
 
@@ -24,7 +67,7 @@ The process of saving and restoring a window is extremely simple:
 
 ![](./assets/restore_process.gif)
 
-### Customizable
+### <p id="customizable"></p>Customizable
 
 Can operate in one of four modes where it remembers:
 
@@ -35,7 +78,7 @@ Can operate in one of four modes where it remembers:
 
 There are lots of other settings that let you control exactly how and when to restore windows to their previous state.
 
-## How it works
+## <p id="how"></p>How it works
 
 1. When the last window of an application is closed, the properties of all windows that were closed within the past second are saved. To save all windows for a browser, simply "Quit" it from the application menu so that all windows are closed at once.
 
@@ -45,9 +88,9 @@ There are lots of other settings that let you control exactly how and when to re
 
 3. The process above is repeated once a second, for a customizable amount of attempts. If it fails to restore the windows with high caption match level, they are instead restored to the best ability.
 
-## Installation
+## <p id="installation"></p>Installation
 
-### From KDE Store (Recommended)
+### <p id="store"></p>From KDE Store (Recommended)
 
 1) Open `System Settings` > `Window Management` > `KWin Scripts`.
 2) Click the `Get New...` in upper right corner.<br>
@@ -65,7 +108,7 @@ There are lots of other settings that let you control exactly how and when to re
 
 Please note that changing settings requires some additional steps to apply due to a KDE limitation - see `Changing settings` below for more information.
 
-### From File
+### <p id="file"></p>From File
 
 You can download the `rememberwindowpositions.kwinscript` file and install it through **System Settings**.
 1) Download the .kwinscript file.
@@ -82,7 +125,7 @@ You can download the `rememberwindowpositions.kwinscript` file and install it th
 
 Please note that changing settings requires some additional steps to apply due to a KDE limitation - see `Changing settings` below for more information.
 
-## Recommended setup
+## <p id="setup"></p>Recommended setup
 
 Since there are probably tens of thousands of different applications, it is simply impossible to test how all of them behave.
 
@@ -90,18 +133,18 @@ By default, all applications except those that are blacklisted will be remembere
 
 Recommended usage would be to either use a whitelist or a blacklist. It's also possible to simply adjust other settings and get perfect results. The default configuration should not cause many issues, but it all depends on which applications you use - so some tweaking might be required. Enable logs to find application names to add to the blacklist or the whitelist if you go that route.
 
-### Using Blacklist
+### <p id="blacklist"></p>Using Blacklist
 
 * Identify problematic applications.
 * Check the application names to add in the log (see "**Find application names**" below).
 * Add them to the Blacklist, one per line.
 
-### Using Whitelist
+### <p id="whitelist"></p>Using Whitelist
 
 * Check the application names to add in the log (see "**Find application names**" below).
 * Add applications you would like to remember to the list, one per line.
 
-### Find application names
+### <p id="names"></p>Find application names
 
 To find application names to add to the Blacklist, Whitelist or Perfect Multi-Window Restore List, enable the "**Print Application Name To Log**" in the "**General**" tab of the settings.
 
@@ -111,7 +154,7 @@ Then in a terminal (Konsole) run:
 
 ![](./assets/print.png)<br>
 
-## Per Application / Window override
+## <p id="override"></p>Per Application / Window override
 
 It is possible to configure individual application and windows by pressing the Ctrl+Meta+W key. (On mosy keyboards Windows key is the Meta key).
 
@@ -121,7 +164,7 @@ If this keyboard shortcut does not work for you, make sure it is correctly setup
 
 ![](./assets/shortcut_1.png)<br>
 
-## Changing system settings
+## <p id="system-settings"></p>Changing system settings
 
 ### **`IMPORTANT`**
 
@@ -138,7 +181,7 @@ To make setting changes effective, **reload the script as follows**:
 4) Click `Apply`<br>
 ![](./assets/apply.png)<br>
 
-### Manually erasing settings ###
+### <p id="remove-settings"></p>Manually erasing settings
 
 If there is ever need to manually erase user data (do not do this unless you are a developer or really need it).
 
@@ -146,9 +189,9 @@ The application/window data is stored in `~/.config/kde.org/kwin.conf` under the
 
 The system user settings data is stored in `~/.config/kwinrc` under `[Script-krestorewindowpositions]`.
 
-## Use case examples
+## <p id="use"></p>Use case examples
 
-### Remember Firefox/LibreWolf/Waterfox Picture-in-Picture position
+### <p id="firefox"></p>Remember Firefox/LibreWolf/Waterfox Picture-in-Picture position
 
 1) Open your Firefox-based browser and go to Youtube
 2) Start a video and click the Picture-in-Picture button<br>
@@ -161,7 +204,7 @@ The system user settings data is stored in `~/.config/kwinrc` under `[Script-kre
 6) Make sure the "`Window`" is checked, "`Close This Window`" is selected and click the "`Save Override Settings`"<br>
 ![](./assets/firefox_4.png)<br>
 
-### Only restore my browser - let other application use system default behavior
+### <p id="browser"></p>Only restore my browser - let other application use system default behavior
 
 1) Open `System Settings` > `Window Management` > `KWin Scripts` > `Remember Window Positions Settings`<br>
 ![](./assets/browser_1.png)<br>
@@ -179,7 +222,7 @@ The system user settings data is stored in `~/.config/kwinrc` under `[Script-kre
 8) Click `Apply`<br>
 ![](./assets/apply.png)<br>
 
-### Do not restore virtual desktop for Konsole
+### <p id="desktop"></p>Do not restore virtual desktop for Konsole
 
 1) Open a Konsole window
 2) Open Per Application/Window Configuration (**Ctrl+Meta+W**)
@@ -190,7 +233,7 @@ The system user settings data is stored in `~/.config/kwinrc` under `[Script-kre
 6) Make sure the "`Application`" is checked, "`Close Last Window`" is selected, "`Desktop`" is unchecked and click the "`Save Override Settings`"<br>
 ![](./assets/konsole_2.png)<br>
 
-### Only remember windows that fully match caption (title)
+### <p id="caption"></p>Only remember windows that fully match caption (title)
 
 1) Open `System Settings` > `Window Management` > `KWin Scripts` > `Remember Window Positions Settings`<br>
 ![](./assets/browser_1.png)<br>
@@ -206,9 +249,9 @@ The system user settings data is stored in `~/.config/kwinrc` under `[Script-kre
 7) Click `Apply`<br>
 ![](./assets/apply.png)<br>
 
-## Troubleshooting
+## <p id="troubleshooting"></p>Troubleshooting
 
-### Command line
+### <p id="commandline"></p>Command line
 
 In case there are any issues (such as a crash - which should never happen but just in case), this is how to disable the script from command line (open a console with `Ctrl+Alt+F5`):
 
@@ -219,11 +262,11 @@ qdbus org.kde.KWin /KWin reconfigure
 
 If the window configuration contains corrupted data, it can be manually deleted in the file: `~/.config/kde.org/kwin.conf` under key `rememberwindowpositions_windows`.
 
-## Compatibility ##
+## <p id="compatibility"></p>Compatibility ##
 
 Compatible with:
 * Session Restore - some users report success, however this is not officially supported and one user reported crash loop when restoring a saved session (reported by Equivalent-Cut-9253)
 
-## Get in touch ##
+## <p id="getintouch"></p>Get in touch ##
 
 Join the official discord channel https://discord.gg/Js6AYsnQQj to discuss, report bugs or find guides.
