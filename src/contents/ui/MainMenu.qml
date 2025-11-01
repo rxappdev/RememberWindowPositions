@@ -12,15 +12,47 @@ ApplicationWindow {
     property var defaultConfig: {}
     property var currentApplicationIndex: -1
     property var currentWindowIndex: -1
+    // property var isX11: Qt.platform.pluginName == 'xcb'
     // property var showFirstTimeHint: false
+    property var mouseStartX
+    property var mouseStartY
+    property var windowStartX
+    property var windowStartY
 
     Kirigami.Theme.colorSet: Kirigami.Theme.Window
 
+    property var lightTheme: {
+        return Kirigami.ColorUtils.brightnessForColor(Kirigami.Theme.backgroundColor) === Kirigami.ColorUtils.Light;
+    }
+
+    property var headerColor: {
+        if (lightTheme) {
+            return Kirigami.ColorUtils.tintWithAlpha(Kirigami.Theme.backgroundColor, "white", 0.4);
+        } else {
+            return Kirigami.ColorUtils.tintWithAlpha(Kirigami.Theme.backgroundColor, "black", 0.3);
+        }
+    }
+
+    property var headerBorderColor: {
+        if (lightTheme) {
+            return Kirigami.ColorUtils.tintWithAlpha(Kirigami.Theme.backgroundColor, "black", 0.2);
+        } else {
+            return Kirigami.ColorUtils.tintWithAlpha(Kirigami.Theme.backgroundColor, "white", 0.2);
+        }
+    }
+
     id: mainMenuRoot
     width: 1000
-    height: 700
+    height: 734
     title: "Remember Window Positions - Per Application/Window Configuration"
     color: Kirigami.Theme.backgroundColor
+    flags: Qt.FramelessWindowHint | Qt.Window | Qt.BypassWindowManagerHint
+    // flags: ixX11 ? Qt.X11BypassWindowManagerHint : flags
+
+    // x: isX11 ? Workspace.virtualScreenSize.width / 2 - width / 2 : x
+    // y: isX11 ? Workspace.virtualScreenSize.height / 2 - height / 2 : y
+    x: Workspace.virtualScreenSize.width / 2 - width / 2
+    y: Workspace.virtualScreenSize.height / 2 - height / 2
 
     function initMainMenu() {
         currentOverrides = JSON.parse(JSON.stringify(overrides));
@@ -347,9 +379,60 @@ ApplicationWindow {
         }
     }
 
+    Rectangle {
+        color: headerColor
+        height: 34
+        anchors.top: parent.top
+        anchors.left: parent.left
+        anchors.right: parent.right
+        border.color: headerBorderColor
+        border.width: 1
+
+        MouseArea {
+            anchors.fill: parent
+            acceptedButtons: Qt.LeftButton
+
+            onPressed: {
+                mouseStartX = Workspace.cursorPos.x;
+                mouseStartY = Workspace.cursorPos.y;
+                windowStartX = mainMenuRoot.x;
+                windowStartY = mainMenuRoot.y;
+            }
+
+            onPositionChanged: {
+                mainMenuRoot.x = windowStartX + (Workspace.cursorPos.x - mouseStartX);
+                mainMenuRoot.y = windowStartY + (Workspace.cursorPos.y - mouseStartY);
+            }
+
+            onReleased: {
+                mainMenuRoot.x = windowStartX + (Workspace.cursorPos.x - mouseStartX);
+                mainMenuRoot.y = windowStartY + (Workspace.cursorPos.y - mouseStartY);
+            }
+
+            Label {
+                text: "Remember Window Positions - Per Application/Window Configuration"
+                anchors.centerIn: parent
+            }
+
+            Button {
+                text: "X"
+                flat: true
+
+                width: 26
+                height: 26
+                anchors.right: parent.right
+                anchors.top: parent.top
+                anchors.margins: 4
+
+                onClicked: root.closeMainMenu()
+            }
+        }
+    }
+
     GroupBox {
         id: mainGroupBox
         anchors.fill: parent
+        anchors.topMargin: 35
 
 
         // GroupBox {

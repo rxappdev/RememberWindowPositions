@@ -109,7 +109,7 @@ Item {
             perfectMultiWindowRestoreAttempts: KWin.readConfig("perfectMultiWindowRestoreAttempts", 12),
             perfectMultiWindowRestoreList: stringListToArray(KWin.readConfig("perfectMultiWindowRestoreList", browserList)),
             printApplicationNameToLog: KWin.readConfig("printApplicationNameToLog", true),
-            blacklist: stringListToArray(KWin.readConfig("blacklist", "org.kde.spectacle\norg.kde.polkit-kde-authentication-agent-1\nsteam_proton\nsteam")),
+            blacklist: stringListToArray(KWin.readConfig("blacklist", "org.kde.spectacle\norg.kde.polkit-kde-authentication-agent-1\nsteam_proton\nsteam\norg.kde.plasmashell\nkwin\nksmserver")),
             whitelist: stringListToArray(KWin.readConfig("whitelist", browserList)),
             // confidence
             confidence: [
@@ -445,6 +445,9 @@ Item {
                 currentConfig = application.config;
                 currentConfig.blocked = false;
                 currentConfig.window = false;
+                if (currentConfig.rememberNever) {
+                    currentConfig.listenToCaptionChange = true;
+                }
             } else {
                 log('getCurrentConfig use default - no window match found');
                 currentConfig = defaultConfig;
@@ -466,7 +469,7 @@ Item {
         return currentConfig;
     }
 
-    function addWindow(client) {
+    function addWindow(client, restore) {
         if (!isValidWindow(client)) return;
         let currentConfig = getCurrentConfig(client);
         if (config.printApplicationNameToLog) logAppInfo(client.resourceClass, currentConfig.override);
@@ -474,6 +477,7 @@ Item {
             // Client blocked by whitelist/blacklist but app has non-matching windows that have override - add captionChanged listener to check if we get a matching window
             client.rwp_captionListenerAdded = Date.now();
             client.captionChanged.connect(onCaptionChanged);
+            log('Connecting caption change listener ' + JSON.stringify(client.internalId));
         }
         if (currentConfig.blocked) return; // App was blacklisted or not on the whitelist
         if (currentConfig.rememberNever) return; // App or window was set to not remember on close
@@ -495,11 +499,15 @@ Item {
 
         function onCaptionChanged() {
             client.captionChanged.disconnect(onCaptionChanged);
+            log('Caption changed ' + JSON.stringify(client.internalId));
             if (Date.now() - client.rwp_captionListenerAdded <= 10000) {
                 // Try again, see if caption change made a difference (if it is no longer blocked)
-                addWindow(client);
+                delete client.rwp_captionListenerAdded;
+                addWindow(client, true);
+            } else {
+                delete client.rwp_captionListenerAdded;
+                addWindow(client, false);
             }
-            delete client.rwp_captionListenerAdded;
         }
 
         onActivateWindow(client);
@@ -519,7 +527,7 @@ Item {
         let windowData = config.windows[client.resourceClass];
         windowData.windowCount++;
 
-        if (windowData.saved.length > 0) {
+        if (restore && windowData.saved.length > 0) {
             let repeats = config.multiWindowRestoreAttempts;
             if (config.usePerfectMultiWindowRestore && config.perfectMultiWindowRestoreList.includes(client.resourceClass)) {
                 repeats = config.perfectMultiWindowRestoreAttempts;
@@ -1009,7 +1017,7 @@ Item {
         target: Workspace
 
         function onWindowAdded(client) {
-            addWindow(client);
+            addWindow(client, true);
         }
 
         // Using client.closed.connect(onClosed); instead since it's faster and more accurate
@@ -1034,7 +1042,7 @@ Item {
         // Add existing windows
         const clients = Workspace.stackingOrder;
         for (var i = 0; i < clients.length; i++) {
-            addWindow(clients[i]);
+            addWindow(clients[i], true);
         }
 
         // Clear expired apps to reduce used save-file space
@@ -1061,11 +1069,11 @@ Item {
         }
     }
 
-    // function closeMainMenu() {
-    //     if (mainMenuWindow && mainMenuWindow.visible) {
-    //         mainMenuWindow.close();
-    //     }
-    // }
+    function closeMainMenu() {
+        if (mainMenuWindow && mainMenuWindow.visible) {
+            mainMenuWindow.close();
+        }
+    }
 
     function selectWindow() {
         identifyWindow = true;
@@ -1091,7 +1099,11 @@ Item {
         text: "Remember Window Positions: Show Config"
         sequence: "Meta+Ctrl+W"
         onActivated: {
-            showMainMenu()
+            if (mainMenuWindow && mainMenuWindow.visible) {
+                closeMainMenu();
+            } else {
+                showMainMenu();
+            }
         }
     }
 }

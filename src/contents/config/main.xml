@@ -66,7 +66,10 @@ waterfox-default</default>
             <default>org.kde.spectacle
 org.kde.polkit-kde-authentication-agent-1
 steam_proton
-steam</default>
+steam
+org.kde.plasmashell
+kwin
+ksmserver</default>
         </entry>
         <entry name="whitelist" type="String">
             <default>brave-browser
