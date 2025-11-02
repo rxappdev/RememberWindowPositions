@@ -191,13 +191,17 @@ Item {
 
     function getHighestCaptionScore(windowData, client) {
         var highestScore = 0;
+        var highestIndex = -1;
 
         for (let i = 0; i < windowData.saved.length; i++) {
             let score = matchCaption(windowData.saved[i].caption, client.caption);
             if (score > highestScore) {
                 highestScore = score;
+                highestIndex = i;
             }
         }
+
+        log('getHighestCaptionScore highestScore: ' + highestScore + ' caption client: ' + client.caption + ' caption save: ' + windowData.saved[highestIndex].caption);
 
         return highestScore;
     }
@@ -315,7 +319,8 @@ Item {
             if (loading.rwp_save) {
                 highestSaveIndex = windowData.saved.indexOf(loading.rwp_save);
                 if (highestSaveIndex >= 0) {
-                    results.push({ loading: windowData.loading.splice(0, 1)[0], saved: windowData.saved.splice(highestSaveIndex, 1)[0], captionScore: 100 });
+                    log('twoWayMatch found instant match - loading caption: ' + windowData.loading[loadingIndex].caption + ' saved caption: ' + windowData.saved[highestSaveIndex].caption);
+                    results.push({ loading: windowData.loading.splice(loadingIndex, 1)[0], saved: windowData.saved.splice(highestSaveIndex, 1)[0], captionScore: 100 });
                     delete loading.rwp_save;
                     continue;
                 }
@@ -340,6 +345,8 @@ Item {
             }
 
             if (saveFound) {
+                log('twoWayMatch found save - loading caption: ' + windowData.loading[loadingIndex].caption + ' saved caption: ' + windowData.saved[highestSaveIndex].caption);
+
                 // Make sure the save does not have a better matching loading window
                 var highestLoadingCaptionScore = highestSaveCaptionScore;
                 var highestLoadingMatchingDimentions = highestSaveMatchingDimentions;
@@ -364,6 +371,8 @@ Item {
                         }
                     }
                 }
+
+                log('twoWayMatch found reverse - loading caption: ' + windowData.loading[highestLoadingIndex].caption + ' saved caption: ' + windowData.saved[highestSaveIndex].caption);
 
                 log('Highest caption score: ' + highestLoadingCaptionScore + ' matching dimentions: ' + highestLoadingMatchingDimentions + ' best match for: ' + (loadingFound ? 'saved' : 'loading') + ' saved caption: ' + saved.caption);
                 if (highestLoadingCaptionScore >= minConfidence) {
@@ -394,14 +403,14 @@ Item {
                 logE('Still could not find a match for caption: ' + windowData.loading[windowData.lastNonMatchingIndex].caption);
                 restoreTimer.setTimeout(1000, clientName, expectedConfidence, minConfidence, repeats - 1);
                 return;
-            } else {
-                for (let i = 0; i < windowData.loading.length; i++) {
-                    if (getHighestCaptionScore(windowData, windowData.loading[i]) < expectedConfidence) {
-                        logE('Could not find a match for caption: ' + windowData.loading[i].caption);
-                        windowData.lastNonMatchingIndex = i;
-                        restoreTimer.setTimeout(1000, clientName, expectedConfidence, minConfidence, repeats - 1);
-                        return;
-                    }
+            }
+
+            for (let i = 0; i < windowData.loading.length; i++) {
+                if (getHighestCaptionScore(windowData, windowData.loading[i]) < expectedConfidence) {
+                    logE('Could not find a match for caption: ' + windowData.loading[i].caption);
+                    windowData.lastNonMatchingIndex = i;
+                    restoreTimer.setTimeout(1000, clientName, expectedConfidence, minConfidence, repeats - 1);
+                    return;
                 }
             }
         }
