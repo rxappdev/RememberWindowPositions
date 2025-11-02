@@ -44,6 +44,8 @@ ApplicationWindow {
     id: mainMenuRoot
     width: 1000
     height: 734
+    minimumWidth: Math.min(editSaved.implicitWidth, Workspace.virtualScreenSize.width);
+    minimumHeight: Math.min(editSaved.implicitHeight + header.height + 1, Workspace.virtualScreenSize.height);
     title: "Remember Window Positions - Per Application/Window Configuration"
     color: Kirigami.Theme.backgroundColor
     flags: Qt.FramelessWindowHint | Qt.Window | Qt.BypassWindowManagerHint
@@ -239,29 +241,27 @@ ApplicationWindow {
                 if (currentWindowIndex >= 0) {
                     let window = application.windows[currentWindows[currentWindowIndex]];
                     if (window) {
-                        let overrideWindow = wOverride.checked;
-                        window.override = overrideWindow;
-                        window.rememberOnClose = overrideWindow ? wOnClose.checked : defaultConfig.rememberOnClose;
-                        window.rememberNever = overrideWindow ? wNever.checked : defaultConfig.rememberNever;
-                        window.rememberAlways = overrideWindow ? wAlways.checked : defaultConfig.rememberAlways;
-                        window.position = overrideWindow ? wPosition.checked : defaultConfig.position;
-                        window.size = overrideWindow ? wSize.checked : defaultConfig.size;
-                        window.desktop = overrideWindow ? wDesktop.checked : defaultConfig.desktop;
-                        window.activity = overrideWindow ? wActivity.checked : defaultConfig.activity;
-                        window.minimized = overrideWindow ? wMinimized.checked : defaultConfig.minimized;
+                        window.override = wOverride.checked;
+                        window.rememberOnClose = wOnClose.checked;
+                        window.rememberNever = wNever.checked;
+                        window.rememberAlways = wAlways.checked;
+                        window.position = wPosition.checked;
+                        window.size = wSize.checked;
+                        window.desktop = wDesktop.checked;
+                        window.activity = wActivity.checked;
+                        window.minimized = wMinimized.checked;
                     }
                 }
 
-                let overrideApplication = aOverride.checked;
-                application.config.override = overrideApplication;
-                application.config.rememberOnClose = overrideApplication ? aOnClose.checked : defaultConfig.rememberOnClose;
-                application.config.rememberNever = overrideApplication ? aNever.checked : defaultConfig.rememberNever;
-                application.config.rememberAlways = overrideApplication ? aAlways.checked : defaultConfig.rememberAlways;
-                application.config.position = overrideApplication ? aPosition.checked : defaultConfig.position;
-                application.config.size = overrideApplication ? aSize.checked : defaultConfig.size;
-                application.config.desktop = overrideApplication ? aDesktop.checked : defaultConfig.desktop;
-                application.config.activity = overrideApplication ? aActivity.checked : defaultConfig.activity;
-                application.config.minimized = overrideApplication ? aMinimized.checked : defaultConfig.minimized;
+                application.config.override = aOverride.checked;
+                application.config.rememberOnClose = aOnClose.checked;
+                application.config.rememberNever = aNever.checked;
+                application.config.rememberAlways = aAlways.checked;
+                application.config.position = aPosition.checked;
+                application.config.size = aSize.checked;
+                application.config.desktop = aDesktop.checked;
+                application.config.activity = aActivity.checked;
+                application.config.minimized = aMinimized.checked;
             }
         }
     }
@@ -380,6 +380,7 @@ ApplicationWindow {
     }
 
     Rectangle {
+        id: header
         color: headerColor
         height: 34
         anchors.top: parent.top
@@ -430,10 +431,10 @@ ApplicationWindow {
     }
 
     GroupBox {
-        id: mainGroupBox
+        id: mainChoice
+        visible: true
         anchors.fill: parent
-        anchors.topMargin: 35
-
+        anchors.topMargin: header.height + 1
 
         // GroupBox {
         //     id: firstTimeHint
@@ -470,8 +471,6 @@ ApplicationWindow {
         // }
 
         ColumnLayout {
-            id: mainChoice
-            visible: true
             anchors.left: parent.left
             anchors.right: parent.right
             anchors.verticalCenter: parent.verticalCenter
@@ -530,11 +529,17 @@ ApplicationWindow {
             }
         }
 
+    }
+
+    GroupBox {
+        id: editSaved
+        anchors.fill: parent
+        anchors.topMargin: header.height + 1
+        visible: false
+
         RowLayout {
-            id: editSaved
             anchors.fill: parent
             uniformCellSizes: true
-            visible: false
 
             ColumnLayout {
                 Layout.fillWidth: true
