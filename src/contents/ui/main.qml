@@ -1089,8 +1089,12 @@ Item {
     }
 
     function windowIdentified(client) {
-        identifyWindow = false;
-        mainMenuWindow.windowSelected(client);
+        if (client.desktopWindow && client.resourceClass == "plasmashell") {
+            log('Desktop window clicked waiting for real window selection...');
+        } else {
+            identifyWindow = false;
+            mainMenuWindow.windowSelected(client);
+        }
     }
 
     Component {
