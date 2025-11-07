@@ -109,7 +109,7 @@ Item {
             perfectMultiWindowRestoreAttempts: KWin.readConfig("perfectMultiWindowRestoreAttempts", 12),
             perfectMultiWindowRestoreList: stringListToArray(KWin.readConfig("perfectMultiWindowRestoreList", browserList)),
             printApplicationNameToLog: KWin.readConfig("printApplicationNameToLog", true),
-            blacklist: stringListToArray(KWin.readConfig("blacklist", "org.kde.spectacle\norg.kde.polkit-kde-authentication-agent-1\nsteam_proton\nsteam\norg.kde.plasmashell\nkwin\nksmserver")),
+            blacklist: stringListToArray(KWin.readConfig("blacklist", "org.kde.spectacle\norg.kde.polkit-kde-authentication-agent-1\nsteam_proton\nsteam\norg.kde.plasmashell\nkwin\nksmserver\nsystemsettings")),
             whitelist: stringListToArray(KWin.readConfig("whitelist", browserList)),
             // confidence
             confidence: [
@@ -189,7 +189,7 @@ Item {
         return 0;
     }
 
-    function getHighestCaptionScore(windowData, client) {
+    function getHighestCaptionScore(windowData, client, returnIndex = false) {
         var highestScore = 0;
         var highestIndex = -1;
 
@@ -203,7 +203,7 @@ Item {
 
         log('getHighestCaptionScore highestScore: ' + highestScore + ' caption client: ' + client.caption + ' caption save: ' + windowData.saved[highestIndex].caption);
 
-        return highestScore;
+        return returnIndex ? [highestScore, highestIndex] : highestScore;
     }
 
     function restoreWindowPlacement(saveData, client, captionScore, windowConfig, restoreZ = true) {
@@ -333,6 +333,7 @@ Item {
                 if (matchingDimentions < confidence.matchingDimentions) continue;
                 let captionScore = matchCaption(saved.caption, loading.caption);
                 if (captionScore < confidence.caption) continue;
+                if (saved.singleWindow && captionScore < 100) continue;
 
                 if (captionScore >= highestSaveCaptionScore) {
                     if (matchingDimentions > highestSaveMatchingDimentions || captionScore > highestSaveCaptionScore) {
@@ -550,6 +551,7 @@ Item {
                 }
                 if (matchSaveIndex >= 0) {
                     let saved = windowData.saved[matchSaveIndex];
+                    client.rwp_save = saved;
                     restoreWindowPlacement(saved, client, 100, currentConfig, false);
                 }
                 // Some windows cannot be moved right when they open, add a backup timer to move it if the above restore failed to move the window (example - Watcher of Realms)
@@ -572,7 +574,6 @@ Item {
                         // Instantly found a 100% match, restore everything except z-index
                         logE('Found multi-window perfect match, instant restoring window - z index will be restored later');
                         restoreWindowPlacement(windowData.saved[instantMatchSaveIndex], client, 100, currentConfig, false);
-                        client.rwp_stackingOrder = windowData.saved[instantMatchSaveIndex].stackingOrder;
                         client.rwp_save = windowData.saved[instantMatchSaveIndex];
                         windowData.instantMatchRestored++;
                     }
@@ -638,7 +639,8 @@ Item {
                 desktopNumber  : client.onAllDesktops ? -1 : client.desktops[0].x11DesktopNumber,
                 activities     : [...client.activities],
                 closeTime      : Date.now(),
-                rememberAlways : currentConfig.rememberAlways
+                rememberAlways : currentConfig.rememberAlways,
+                singleWindow   : currentConfig.window
             };
 
             if (currentConfig.rememberAlways) {
@@ -649,6 +651,17 @@ Item {
                 if (index != -1) {
                     windowOrder.splice(index, 1);
                     delete currentWindowData.internalId;
+                }
+
+                // Delete previous save to avoid duplicates in case it was not yet restored
+                if (client.rwp_save) {
+                    let saveIndex = windowData.saved.indexOf(client.rwp_save);
+                    if (saveIndex >= 0) {
+                        log('remove saved duplicate window with caption: ' + windowData.saved[saveIndex].caption);
+                        windowData.saved.splice(saveIndex, 1);
+
+                        delete client.rwp_save;
+                    }
                 }
 
                 windowData.saved.push(currentWindowData);
@@ -741,10 +754,10 @@ Item {
     function clearExpiredApps() {
         let changed = false;
 
-        // Remove saves for all apps that have not been accessed for 30 days - manually overriden apps after 1 year
+        // Remove saves for all apps that have not been accessed for 30 days - manually overriden apps/windows after 60 days
         // TODO: Make this a setting perhaps - 7 - 90 days?
         const expirationDate = Date.now() - (30 * 24 * 60 * 60 * 1000);
-        const expirationDateOverriden = Date.now() - (365 * 24 * 60 * 60 * 1000);
+        const expirationDateOverriden = Date.now() - (60 * 24 * 60 * 60 * 1000);
 
         for (let key in config.windows) {
             let clear = false;
@@ -864,14 +877,15 @@ Item {
                     width          : save.w,      // width
                     height         : save.h,      // height
                     minimized      : save.m == 1, // minimized
-                    // outputName     : save.o,      // outputName
+                    // outputName     : save.o,   // outputName
                     stackingOrder  : save.s,      // stackingOrder
                     desktopNumber  : save.d,      // desktopNumber
                     activities     : save.a,      // activities
-                    rememberAlways : save.r == 1  // rememberAlways
+                    rememberAlways : save.r == 1, // rememberAlways
+                    singleWindow   : save.n == 1  // singleWindow
                     // --- Omitted fields ---
-                    // closeTime  : save.t       // closeTime
-                    // internalId : save.i       // internalId
+                    // closeTime  : save.t        // closeTime
+                    // internalId : save.i        // internalId
                 });
                 log('Window ' + i + ' - x: ' + save.x + ' y: ' + save.y + ' width: ' + save.w + ' height: ' + save.h + ' minimized: ' + (save.m == 1) + /*' outputName: ' + save.o +*/ ' stackingNumber: ' + save.s + ' desktopNumber: ' + save.d);
                 log('- activities: ' + JSON.stringify(save.a));
@@ -903,20 +917,21 @@ Item {
                 for (let i = 0; i < window.saved.length; i++) {
                     let save = window.saved[i];
                     convertedWindows[key].s.push({
-                        c: save.caption,               // caption
-                        x: save.x,                     // x
-                        y: save.y,                     // y
-                        w: save.width,                 // width
-                        h: save.height,                // height
-                        m: save.minimized ? 1 : 0,     // minimized
-                        // o: save.outputName,            // outputName
-                        s: save.stackingOrder,         // stackingOrder
-                        d: save.desktopNumber,         // desktopNumber
-                        a: save.activities,            // activities
-                        r: save.rememberAlways ? 1 : 0 // rememberAlways
+                        c: save.caption,                // caption
+                        x: save.x,                      // x
+                        y: save.y,                      // y
+                        w: save.width,                  // width
+                        h: save.height,                 // height
+                        m: save.minimized ? 1 : 0,      // minimized
+                        // o: save.outputName,          // outputName
+                        s: save.stackingOrder,          // stackingOrder
+                        d: save.desktopNumber,          // desktopNumber
+                        a: save.activities,             // activities
+                        r: save.rememberAlways ? 1 : 0, // rememberAlways
+                        n: save.singleWindow ? 1 : 0    // singleWindow
                         // --- Omitted fields ---
-                        // t: save.closeTime       // closeTime
-                        // i: save.internalId      // internalId
+                        // t: save.closeTime            // closeTime
+                        // i: save.internalId           // internalId
                     });
                 }
             }

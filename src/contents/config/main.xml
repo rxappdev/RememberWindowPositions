@@ -69,7 +69,8 @@ steam_proton
 steam
 org.kde.plasmashell
 kwin
-ksmserver</default>
+ksmserver
+systemsettings</default>
         </entry>
         <entry name="whitelist" type="String">
             <default>brave-browser
