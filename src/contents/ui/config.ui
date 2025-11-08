@@ -211,6 +211,55 @@
         </widget>
        </item>
        <item>
+        <widget class="QGroupBox" name="groupBox">
+         <property name="title">
+          <string>Multi-monitor behavior</string>
+         </property>
+         <layout class="QVBoxLayout" name="verticalLayout_7">
+          <item>
+           <widget class="QLabel" name="label_4">
+            <property name="text">
+             <string>This setting determines what happens when a monitor is not connected or monitors get re-arranged prior to window restoration. Depending on the setting - windows might appear outside of connected monitors or visible screen areas. A window will always try to restore on the monitor it was last connected to if possible.</string>
+            </property>
+            <property name="wordWrap">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <layout class="QFormLayout" name="formLayout">
+            <item row="1" column="0">
+             <widget class="QLabel" name="label_5">
+              <property name="text">
+               <string>Restore to</string>
+              </property>
+             </widget>
+            </item>
+            <item row="1" column="1">
+             <widget class="QComboBox" name="kcfg_multiMonitorType">
+              <item>
+               <property name="text">
+                <string>The last monitor window was on - if a monitor is disconnected, this will only restore window size and not position. (Recommended for most laptop and multi-monitor users).</string>
+               </property>
+              </item>
+              <item>
+               <property name="text">
+                <string>Last position - even if windows end up off-screen. (Recommended for users using a single monitor or a permanent configuration - faster than first option).</string>
+               </property>
+              </item>
+              <item>
+               <property name="text">
+                <string>Port the last monitor was connected to - if configuration changes, restore window based on connection/cable such as HDMI. (Recommended for office workers with flexible work spaces).</string>
+               </property>
+              </item>
+             </widget>
+            </item>
+           </layout>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
         <widget class="QGroupBox" name="kcfg_printApplicationNameToLog">
          <property name="title">
           <string>Print Application Names To Log</string>
@@ -301,6 +350,7 @@
       <zorder>groupBox_restoreType</zorder>
       <zorder>groupBox_minimumCaptionMatch</zorder>
       <zorder>kcfg_printApplicationNameToLog</zorder>
+      <zorder>groupBox</zorder>
      </widget>
      <widget class="QWidget" name="tab">
       <attribute name="icon">

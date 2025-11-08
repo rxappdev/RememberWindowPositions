@@ -25,6 +25,9 @@
             <min>0</min>
             <max>100</max>
         </entry>
+        <entry name="multiMonitorType" type="Int">
+            <default>0</default>
+        </entry>
         <entry name="printType" type="Int">
             <default>0</default>
         </entry>

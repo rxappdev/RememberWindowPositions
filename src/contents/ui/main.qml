@@ -152,6 +152,7 @@ Item {
             restoreMinimized: KWin.readConfig("restoreMinimized", true),
             restoreWindowsWithoutCaption: KWin.readConfig("restoreWindowsWithoutCaption", true),
             minimumCaptionMatch: KWin.readConfig("minimumCaptionMatch", 0),
+            multiMonitorType: KWin.readConfig("multiMonitorType", 0),
             printType: KWin.readConfig("printType", 0),
             instantRestore: KWin.readConfig("instantRestore", true),
             multiWindowRestoreAttempts: KWin.readConfig("multiWindowRestoreAttempts", 5),
@@ -187,7 +188,9 @@ Item {
         config.appsNotBlacklisted = config.restoreType == 2;
         config.appsWhitelistedOnly = config.restoreType == 3;
         config.printAllWindows = config.printType == 1;
-        log('Whitelist: ' + JSON.stringify(config.whitelist));
+        config.perScreenRestore = config.multiMonitorType == 0 || config.multiMonitorType == 2;
+        config.rememberOnlyScreenName = config.multiMonitorType == 2;
+        // log('Whitelist: ' + JSON.stringify(config.whitelist));
         logMode();
 
         defaultConfig = {
@@ -256,6 +259,36 @@ Item {
         return returnIndex ? [highestScore, highestIndex] : highestScore;
     }
 
+    function getOutputFromSave(serialNumber, name) {
+        log('Wanted screen ' + serialNumber + ' name: ' + name);
+        const screens = Workspace.screens;
+        var serialNumberMatchIndex = -1;
+        var nameMatchIndex = -1;
+        for (var i = 0; i < screens.length; i++) {
+            log('- screen #' + i + ' serialNumber: ' + screens[i].serialNumber + ' name: ' + screens[i].name);
+            if (screens[i].serialNumber == serialNumber) {
+                serialNumberMatchIndex = i;
+            }
+            if (screens[i].name == name) {
+                if (serialNumberMatchIndex == i) {
+                    return screens[i];
+                } else {
+                    nameMatchIndex = i;
+                }
+            }
+        }
+
+        if (serialNumberMatchIndex != -1) {
+            return screens[serialNumberMatchIndex];
+        } else if (config.rememberOnlyScreenName && nameMatchIndex != -1) {
+            return screens[nameMatchIndex];
+        }
+
+        log('Failed to find screen - only window size will be restored');
+
+        return null;
+    }
+
     function restoreWindowPlacement(saveData, client, captionScore, windowConfig, restoreZ = true) {
         if (!client) return;
         if (client.deleted) return;
@@ -269,23 +302,49 @@ Item {
         let zRestored = false;
 
         // Restore frame geometry
-        if (windowConfig.position && windowConfig.size) {
-            if (client.x != saveData.x || client.y != saveData.y || client.width != saveData.width || client.height != saveData.height) {
-                log('Attempting to restore window size and position');
-                positionRestored = client.x != saveData.x || client.y != saveData.y;
-                sizeRestored = client.width != saveData.width || client.height != saveData.height;
-                client.frameGeometry = Qt.rect(saveData.x, saveData.y, saveData.width, saveData.height);
+        if (config.perScreenRestore && saveData.position) {
+            log('Restoring frame geometry based on screen position');
+            let output = getOutputFromSave(saveData.position.serialNumber, saveData.position.name);
+            let positionGlobal = output != null ? output.mapToGlobal(Qt.point(saveData.position.x, saveData.position.y)) : client.pos;
+            log('- positionGlobal: ' + positionGlobal);
+            if (windowConfig.position && windowConfig.size) {
+                if (client.x != positionGlobal.x || client.y != positionGlobal.y || client.width != saveData.width || client.height != saveData.height) {
+                    log('Attempting to restore window size and position');
+                    positionRestored = client.x != positionGlobal.x || client.y != positionGlobal.y;
+                    sizeRestored = client.width != saveData.width || client.height != saveData.height;
+                    client.frameGeometry = Qt.rect(positionGlobal.x, positionGlobal.y, saveData.width, saveData.height);
+                }
+            } else if (windowConfig.size) {
+                if (client.width != saveData.width || client.height != saveData.height) {
+                    log('Attempting to restore window size');
+                    client.frameGeometry = Qt.rect(client.x, client.y, saveData.width, saveData.height);
+                    sizeRestored = true;
+                }
+            } else if (windowConfig.position && (client.x != positionGlobal.x || client.y != positionGlobal.y)) {
+                log('Attempting to restore window position');
+                client.frameGeometry = Qt.rect(positionGlobal.x, positionGlobal.y, client.width, client.height);
+                positionRestored = true;
             }
-        } else if (windowConfig.size) {
-            if (client.width != saveData.width || client.height != saveData.height) {
-                log('Attempting to restore window size');
-                client.frameGeometry = Qt.rect(client.x, client.y, saveData.width, saveData.height);
-                sizeRestored = true;
+        } else {
+            log('Restoring frame geometry based on global position');
+            if (windowConfig.position && windowConfig.size) {
+                if (client.x != saveData.x || client.y != saveData.y || client.width != saveData.width || client.height != saveData.height) {
+                    log('Attempting to restore window size and position');
+                    positionRestored = client.x != saveData.x || client.y != saveData.y;
+                    sizeRestored = client.width != saveData.width || client.height != saveData.height;
+                    client.frameGeometry = Qt.rect(saveData.x, saveData.y, saveData.width, saveData.height);
+                }
+            } else if (windowConfig.size) {
+                if (client.width != saveData.width || client.height != saveData.height) {
+                    log('Attempting to restore window size');
+                    client.frameGeometry = Qt.rect(client.x, client.y, saveData.width, saveData.height);
+                    sizeRestored = true;
+                }
+            } else if (windowConfig.position && (client.x != saveData.x || client.y != saveData.y)) {
+                log('Attempting to restore window position');
+                client.frameGeometry = Qt.rect(saveData.x, saveData.y, client.width, client.height);
+                positionRestored = true;
             }
-        } else if (windowConfig.position && (client.x != saveData.x || client.y != saveData.y)) {
-            log('Attempting to restore window position');
-            client.frameGeometry = Qt.rect(saveData.x, saveData.y, client.width, client.height);
-            positionRestored = true;
         }
 
         // Restore activities
@@ -596,6 +655,7 @@ Item {
         log('Adding window for client: ' + client.resourceClass);
         log('- internalId: ' + client.internalId + ' width: ' + client.width + ' height: ' + client.height);
         log('- caption: ' + client.caption);
+        log('- screen serialNumber: ' + client.output.serialNumber + ' name: ' + client.output.name);
 
         client.closed.connect(onClosed);
 
@@ -726,6 +786,7 @@ Item {
             }
 
             let currentWindowOrder = windowData.windowOrder.indexOf(client.internalId);
+            let convertedPosition = client.output.mapFromGlobal(client.pos);
 
             let currentWindowData = {
                 internalId     : client.internalId,
@@ -741,7 +802,13 @@ Item {
                 activities     : [...client.activities],
                 closeTime      : Date.now(),
                 rememberAlways : currentConfig.rememberAlways,
-                singleWindow   : currentConfig.window
+                singleWindow   : currentConfig.window,
+                position       : {
+                    x: convertedPosition.x,
+                    y: convertedPosition.y,
+                    serialNumber: client.output.serialNumber,
+                    name: client.output.name
+                }
             };
 
             if (currentConfig.rememberAlways) {
@@ -972,23 +1039,33 @@ Item {
             for (let i = 0; i < window.s.length; i++) {
                 let save = window.s[i];
                 convertedWindows[key].saved.push({
-                    caption        : save.c,      // caption
-                    x              : save.x,      // x
-                    y              : save.y,      // y
-                    width          : save.w,      // width
-                    height         : save.h,      // height
-                    minimized      : save.m == 1, // minimized
-                    // outputName     : save.o,   // outputName
-                    stackingOrder  : save.s,      // stackingOrder
-                    desktopNumber  : save.d,      // desktopNumber
-                    activities     : save.a,      // activities
-                    rememberAlways : save.r == 1, // rememberAlways
-                    singleWindow   : save.n == 1  // singleWindow
+                    caption          : save.c,      // caption
+                    x                : save.x,      // x
+                    y                : save.y,      // y
+                    width            : save.w,      // width
+                    height           : save.h,      // height
+                    minimized        : save.m == 1, // minimized
+                    // outputName    : save.o,   // outputName
+                    stackingOrder    : save.s,      // stackingOrder
+                    desktopNumber    : save.d,      // desktopNumber
+                    activities       : save.a,      // activities
+                    rememberAlways   : save.r == 1, // rememberAlways
+                    singleWindow     : save.n == 1, // singleWindow
+                    position         : save.p ? {   // position
+                        x            : save.p.x,    // x
+                        y            : save.p.y,    // y
+                        serialNumber : save.p.s,    // serialNumber
+                        name         : save.p.n     // name
+                    } : undefined
                     // --- Omitted fields ---
                     // closeTime  : save.t        // closeTime
                     // internalId : save.i        // internalId
                 });
-                log('Window ' + i + ' - x: ' + save.x + ' y: ' + save.y + ' width: ' + save.w + ' height: ' + save.h + ' minimized: ' + (save.m == 1) + /*' outputName: ' + save.o +*/ ' stackingNumber: ' + save.s + ' desktopNumber: ' + save.d);
+                if (save.p) {
+                    log('Window ' + i + ' - x: ' + save.p.x + ' y: ' + save.p.y + ' width: ' + save.w + ' height: ' + save.h + ' minimized: ' + (save.m == 1) + ' stackingNumber: ' + save.s + ' desktopNumber: ' + save.d + ' serialNumber: ' + save.p.s + ' name: ' + save.p.n);
+                } else {
+                    log('Window ' + i + ' - x: ' + save.x + ' y: ' + save.y + ' width: ' + save.w + ' height: ' + save.h + ' minimized: ' + (save.m == 1) + ' stackingNumber: ' + save.s + ' desktopNumber: ' + save.d);
+                }
                 log('- activities: ' + JSON.stringify(save.a));
                 log('- caption: ' + save.c + '\n');
             }
@@ -1018,21 +1095,27 @@ Item {
                 for (let i = 0; i < window.saved.length; i++) {
                     let save = window.saved[i];
                     convertedWindows[key].s.push({
-                        c: save.caption,                // caption
-                        x: save.x,                      // x
-                        y: save.y,                      // y
-                        w: save.width,                  // width
-                        h: save.height,                 // height
-                        m: save.minimized ? 1 : 0,      // minimized
-                        // o: save.outputName,          // outputName
-                        s: save.stackingOrder,          // stackingOrder
-                        d: save.desktopNumber,          // desktopNumber
-                        a: save.activities,             // activities
-                        r: save.rememberAlways ? 1 : 0, // rememberAlways
-                        n: save.singleWindow ? 1 : 0    // singleWindow
+                        c: save.caption,                   // caption
+                        x: save.x,                         // x
+                        y: save.y,                         // y
+                        w: save.width,                     // width
+                        h: save.height,                    // height
+                        m: save.minimized ? 1 : 0,         // minimized
+                        // o: save.outputName,             // outputName
+                        s: save.stackingOrder,             // stackingOrder
+                        d: save.desktopNumber,             // desktopNumber
+                        a: save.activities,                // activities
+                        r: save.rememberAlways ? 1 : 0,    // rememberAlways
+                        n: save.singleWindow ? 1 : 0,      // singleWindow
+                        p: save.position ? {               // position
+                            x: save.position.x,            // x
+                            y: save.position.y,            // y
+                            s: save.position.serialNumber, // serialNumber
+                            n: save.position.name          // name
+                        } : undefined
                         // --- Omitted fields ---
-                        // t: save.closeTime            // closeTime
-                        // i: save.internalId           // internalId
+                        // t: save.closeTime               // closeTime
+                        // i: save.internalId              // internalId
                     });
                 }
             }
