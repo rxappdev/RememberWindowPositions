@@ -45,13 +45,13 @@ Item {
                 let len = config.windows[name].saved.length;
                 info += ' - ' + len + ' saved window' + (len > 1 ? 's' : '');
             }
-            if (config.whitelist.includes(name)) {
+            if (isWhitelisted(name)) {
                 info += ' - on whitelist';
             }
-            if (config.blacklist.includes(name)) {
+            if (isBlacklisted(name)) {
                 info += ' - on blacklist';
             }
-            if (config.perfectMultiWindowRestoreList.includes(name)) {
+            if (isOnPerfectList(name)) {
                 info += ' - on perfect list';
             }
             if (override) {
@@ -90,6 +90,56 @@ Item {
         return array;
     }
 
+    function stringListToNormalAndWildcard(list) {
+        let output = {
+            normal: [],
+            wildcard: []
+        };
+        let items = list.split(/\r?\n/);
+        for (let i = 0; i < items.length; i++) {
+            let item = items[i].trim();
+            if (item && item.length > 0) {
+                if (item.indexOf('*') >= 0) {
+                    output.wildcard.push(tokenizeWildcards(item));
+                } else {
+                    output.normal.push(item);
+                }
+            }
+        }
+        return output;
+    }
+
+    function tokenizeWildcards(name) {
+        let nextIsNew = true;
+        let token = '';
+        let tokens = [];
+        for (let i = 0; i < name.length; i++) {
+            let character = name[i];
+            if (character == '*') {
+                if (nextIsNew) {
+                    tokens.push('*');
+                } else {
+                    tokens.push(token);
+                    tokens.push('*');
+                }
+                token = '';
+                nextIsNew = true;
+            } else {
+                if (nextIsNew) {
+                    token = character;
+                } else {
+                    token += character;
+                }
+                nextIsNew = false;
+            }
+        }
+        if (token.length > 0) {
+            tokens.push(token);
+        }
+
+        return tokens;
+    }
+
     function loadConfig() {
         log('Loading configuration');
         const browserList = "brave-browser\norg.mozilla.firefox\nvivaldi-stable\nlibrewolf\nchromium-browser\nChromium-browser\ngoogle-chrome\nmicrosoft-edge\nMullvad Browser\nOpera\nio.github.ungoogled_software.ungoogled_chromium\napp.zen_browser.zen\nwaterfox-default";
@@ -107,10 +157,10 @@ Item {
             multiWindowRestoreAttempts: KWin.readConfig("multiWindowRestoreAttempts", 5),
             usePerfectMultiWindowRestore: KWin.readConfig("usePerfectMultiWindowRestore", true),
             perfectMultiWindowRestoreAttempts: KWin.readConfig("perfectMultiWindowRestoreAttempts", 12),
-            perfectMultiWindowRestoreList: stringListToArray(KWin.readConfig("perfectMultiWindowRestoreList", browserList)),
+            perfectMultiWindowRestoreList: stringListToNormalAndWildcard(KWin.readConfig("perfectMultiWindowRestoreList", browserList)),
             printApplicationNameToLog: KWin.readConfig("printApplicationNameToLog", true),
-            blacklist: stringListToArray(KWin.readConfig("blacklist", "org.kde.spectacle\norg.kde.polkit-kde-authentication-agent-1\nsteam_proton\nsteam\norg.kde.plasmashell\nkwin\nksmserver\nsystemsettings")),
-            whitelist: stringListToArray(KWin.readConfig("whitelist", browserList)),
+            blacklist: stringListToNormalAndWildcard(KWin.readConfig("blacklist", "org.kde.spectacle\norg.kde.polkit-kde-authentication-agent-1\nsteam_proton\nsteam\norg.kde.plasmashell\nkwin\nksmserver\nsystemsettings")),
+            whitelist: stringListToNormalAndWildcard(KWin.readConfig("whitelist", browserList)),
             // confidence
             confidence: [
                 { caption: 100, matchingDimentions: 2, allowHeightShrinking: false }, // Caption and size match
@@ -440,6 +490,57 @@ Item {
         }
     }
 
+    function isListed(name, list, listName) {
+        if (list.normal.includes(name)) {
+            return true;
+        } else {
+            for (let i = 0; i < list.wildcard.length; i++) {
+                let currentIndex = 0;
+                let startsWith = true;
+                let matching = true;
+                for (let t = 0; t < list.wildcard[i].length; t++) {
+                    let token = list.wildcard[i][t];
+                    if (token == '*') {
+                        startsWith = false;
+                    } else {
+                        if (startsWith) {
+                            if (!name.startsWith(token, currentIndex)) {
+                                matching = false;
+                                break;
+                            }
+                            currentIndex += token.length;
+                        } else {
+                            let matchIndex = name.indexOf(token, currentIndex);
+                            if (matchIndex == -1) {
+                                matching = false;
+                                break;
+                            }
+                            currentIndex = matchIndex + token.length;
+                        }
+                        startsWith = true;
+                    }
+                }
+                if (matching) {
+                    log('Found wildcard match on ' + listName + ' name: ' + name + ' wildcard: ' + list.wildcard[i]);
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    function isWhitelisted(name) {
+        return isListed(name, config.whitelist, "whitelist");
+    }
+
+    function isBlacklisted(name) {
+        return isListed(name, config.blacklist, "blacklist");
+    }
+
+    function isOnPerfectList(name) {
+        return isListed(name, config.perfectMultiWindowRestoreList, "perfect list");
+    }
+
     function getCurrentConfig(client) {
         let application = config.overrides[client.resourceClass];
         let currentConfig;
@@ -461,7 +562,7 @@ Item {
             } else {
                 log('getCurrentConfig use default - no window match found');
                 currentConfig = defaultConfig;
-                currentConfig.blocked = config.appsWhitelistedOnly && !config.whitelist.includes(client.resourceClass) || config.appsNotBlacklisted && config.blacklist.includes(client.resourceClass);
+                currentConfig.blocked = config.appsWhitelistedOnly && !isWhitelisted(client.resourceClass) || config.appsNotBlacklisted && isBlacklisted(client.resourceClass);
                 currentConfig.window = false;
                 if (currentConfig.blocked) {
                     currentConfig.listenToCaptionChange = true;
@@ -470,7 +571,7 @@ Item {
         } else {
             log('getCurrentConfig use default - no application or window match found');
             currentConfig = defaultConfig;
-            currentConfig.blocked = config.appsWhitelistedOnly && !config.whitelist.includes(client.resourceClass) || config.appsNotBlacklisted && config.blacklist.includes(client.resourceClass);
+            currentConfig.blocked = config.appsWhitelistedOnly && !isWhitelisted(client.resourceClass) || config.appsNotBlacklisted && isBlacklisted(client.resourceClass);
             currentConfig.window = false;
         }
 
@@ -539,7 +640,7 @@ Item {
 
         if (restore && windowData.saved.length > 0) {
             let repeats = config.multiWindowRestoreAttempts;
-            if (config.usePerfectMultiWindowRestore && config.perfectMultiWindowRestoreList.includes(client.resourceClass)) {
+            if (config.usePerfectMultiWindowRestore && isOnPerfectList(client.resourceClass)) {
                 repeats = config.perfectMultiWindowRestoreAttempts;
             }
             logE('windowCountLastSession: ' + windowData.windowCountLastSession + ' windowCount: ' + windowData.windowCount);

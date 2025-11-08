@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1176</width>
+    <width>1110</width>
     <height>640</height>
    </rect>
   </property>
@@ -534,7 +534,7 @@ When upgrading from an earlier version, a reboot might be required to enable the
           <item>
            <widget class="QLabel" name="label_perfectMultiWindowRestoreListExplanation">
             <property name="text">
-             <string>Add browsers or other multi-window applications that are slow to set their window captions to this list, one per line. Enable &quot;Print Application Name To Log&quot; in the &quot;General&quot; tab to find application names.</string>
+             <string>Add browsers or other multi-window applications that are slow to set their window captions to this list, one per line. Wildcards are allowed by using the * character, such as &quot;*.exe&quot; or &quot;steam_*&quot; without the quotes. Enable &quot;Print Application Name To Log&quot; in the &quot;General&quot; tab to find application names.</string>
             </property>
             <property name="wordWrap">
              <bool>true</bool>
@@ -591,7 +591,7 @@ When upgrading from an earlier version, a reboot might be required to enable the
           <item>
            <widget class="QLabel" name="label_blacklistExplanation">
             <property name="text">
-             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;One application per line.&lt;/p&gt;&lt;p&gt;Enable &amp;quot;Print Application Name To Log&amp;quot; in the &amp;quot;General&amp;quot; tab to find application names.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;One application per line. Wildcards are allowed by using the * character, such as &amp;quot;*.exe&amp;quot; or &amp;quot;steam_*&amp;quot; without the quotes.&lt;/p&gt;&lt;p&gt;Enable &amp;quot;Print Application Name To Log&amp;quot; in the &amp;quot;General&amp;quot; tab to find application names.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
             </property>
            </widget>
           </item>
@@ -632,7 +632,7 @@ When upgrading from an earlier version, a reboot might be required to enable the
           <item>
            <widget class="QLabel" name="label_whitelistExplanation">
             <property name="text">
-             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;One application per line.&lt;/p&gt;&lt;p&gt;Enable &amp;quot;Print Application Name To Log&amp;quot; in the &amp;quot;General&amp;quot; tab to find application names.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;One application per line. Wildcards are allowed by using the * character, such as &amp;quot;*.exe&amp;quot; or &amp;quot;steam_*&amp;quot; without the quotes.&lt;/p&gt;&lt;p&gt;Enable &amp;quot;Print Application Name To Log&amp;quot; in the &amp;quot;General&amp;quot; tab to find application names.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
             </property>
            </widget>
           </item>
@@ -659,6 +659,9 @@ When upgrading from an earlier version, a reboot might be required to enable the
            <widget class="QLabel" name="label">
             <property name="text">
              <string>Intended for development or when submitting a bug/issue to give more details to the current issue. This will write a lot of data to the system log. Not recommended for every day use.</string>
+            </property>
+            <property name="wordWrap">
+             <bool>true</bool>
             </property>
            </widget>
           </item>
