@@ -156,7 +156,7 @@ Then in a terminal (Konsole) run:
 
 ## <p id="override"></p>Per Application / Window override
 
-It is possible to configure individual application and windows by pressing the Ctrl+Meta+W key. (On mosy keyboards Windows key is the Meta key).
+It is possible to configure individual application and windows by pressing the Ctrl+Meta+W key. (On most keyboards Windows key is the Meta key).
 
 ![](./assets/per_window_settings.png)<br>
 

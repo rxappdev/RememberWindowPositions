@@ -237,6 +237,12 @@
             </item>
             <item row="1" column="1">
              <widget class="QComboBox" name="kcfg_multiMonitorType">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
               <item>
                <property name="text">
                 <string>Last monitor window was on - if a monitor is disconnected, this will only restore window size and not position. (Recommended for most laptop and multi-monitor users).</string>
