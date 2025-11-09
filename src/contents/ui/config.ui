@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1110</width>
-    <height>640</height>
+    <width>1188</width>
+    <height>650</height>
    </rect>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
@@ -239,7 +239,7 @@
              <widget class="QComboBox" name="kcfg_multiMonitorType">
               <item>
                <property name="text">
-                <string>The last monitor window was on - if a monitor is disconnected, this will only restore window size and not position. (Recommended for most laptop and multi-monitor users).</string>
+                <string>Last monitor window was on - if a monitor is disconnected, this will only restore window size and not position. (Recommended for most laptop and multi-monitor users).</string>
                </property>
               </item>
               <item>
@@ -249,85 +249,12 @@
               </item>
               <item>
                <property name="text">
-                <string>Port the last monitor was connected to - if configuration changes, restore window based on connection/cable such as HDMI. (Recommended for office workers with flexible work spaces).</string>
+                <string>Port the last monitor was connected to - restore window based on connection/cable such as HDMI. (Recommended for office workers with flexible work spaces).</string>
                </property>
               </item>
              </widget>
             </item>
            </layout>
-          </item>
-         </layout>
-        </widget>
-       </item>
-       <item>
-        <widget class="QGroupBox" name="kcfg_printApplicationNameToLog">
-         <property name="title">
-          <string>Print Application Names To Log</string>
-         </property>
-         <property name="checkable">
-          <bool>true</bool>
-         </property>
-         <property name="checked">
-          <bool>true</bool>
-         </property>
-         <layout class="QVBoxLayout" name="verticalLayout_printApplicationNameToLog">
-          <item>
-           <widget class="QLabel" name="label_printTypeExplanation">
-            <property name="text">
-             <string>For ease of adding apps to the different lists, application names will be printed in the log.</string>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <layout class="QFormLayout" name="formLayout_printType">
-            <item row="0" column="0">
-             <widget class="QLabel" name="label_printType">
-              <property name="text">
-               <string>Print when</string>
-              </property>
-             </widget>
-            </item>
-            <item row="0" column="1">
-             <widget class="QComboBox" name="kcfg_printType">
-              <property name="sizePolicy">
-               <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
-                <horstretch>0</horstretch>
-                <verstretch>0</verstretch>
-               </sizepolicy>
-              </property>
-              <item>
-               <property name="text">
-                <string>First window for the application is opened or last window is closed</string>
-               </property>
-              </item>
-              <item>
-               <property name="text">
-                <string>Any window is opened or last window is closed</string>
-               </property>
-              </item>
-             </widget>
-            </item>
-           </layout>
-          </item>
-          <item>
-           <widget class="QLabel" name="label_printApplicationNameToLogExplanation">
-            <property name="text">
-             <string>To check the log - type this in the console:</string>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QLineEdit" name="lineEdit_printApplicationNameToLogCommand">
-            <property name="toolTip">
-             <string>Copy this command and paste it into a terminal window to list application names when they are opened.</string>
-            </property>
-            <property name="text">
-             <string>journalctl -f | grep RememberWindowPositions</string>
-            </property>
-            <property name="readOnly">
-             <bool>true</bool>
-            </property>
-           </widget>
           </item>
          </layout>
         </widget>
@@ -349,7 +276,6 @@
       <zorder>verticalSpacer_general</zorder>
       <zorder>groupBox_restoreType</zorder>
       <zorder>groupBox_minimumCaptionMatch</zorder>
-      <zorder>kcfg_printApplicationNameToLog</zorder>
       <zorder>groupBox</zorder>
      </widget>
      <widget class="QWidget" name="tab">
@@ -584,7 +510,7 @@ When upgrading from an earlier version, a reboot might be required to enable the
           <item>
            <widget class="QLabel" name="label_perfectMultiWindowRestoreListExplanation">
             <property name="text">
-             <string>Add browsers or other multi-window applications that are slow to set their window captions to this list, one per line. Wildcards are allowed by using the * character, such as &quot;*.exe&quot; or &quot;steam_*&quot; without the quotes. Enable &quot;Print Application Name To Log&quot; in the &quot;General&quot; tab to find application names.</string>
+             <string>Add browsers or other multi-window applications that are slow to set their window captions to this list, one per line. Wildcards are allowed by using the * character, such as &quot;*.exe&quot; or &quot;steam_*&quot; without the quotes. Enable &quot;Print Application Name To Log&quot; in the &quot;Debug&quot; tab to find application names.</string>
             </property>
             <property name="wordWrap">
              <bool>true</bool>
@@ -641,7 +567,7 @@ When upgrading from an earlier version, a reboot might be required to enable the
           <item>
            <widget class="QLabel" name="label_blacklistExplanation">
             <property name="text">
-             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;One application per line. Wildcards are allowed by using the * character, such as &amp;quot;*.exe&amp;quot; or &amp;quot;steam_*&amp;quot; without the quotes.&lt;/p&gt;&lt;p&gt;Enable &amp;quot;Print Application Name To Log&amp;quot; in the &amp;quot;General&amp;quot; tab to find application names.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;One application per line. Wildcards are allowed by using the * character, such as &amp;quot;*.exe&amp;quot; or &amp;quot;steam_*&amp;quot; without the quotes.&lt;/p&gt;&lt;p&gt;Enable &amp;quot;Print Application Name To Log&amp;quot; in the &amp;quot;Debug&amp;quot; tab to find application names.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
             </property>
            </widget>
           </item>
@@ -682,7 +608,7 @@ When upgrading from an earlier version, a reboot might be required to enable the
           <item>
            <widget class="QLabel" name="label_whitelistExplanation">
             <property name="text">
-             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;One application per line. Wildcards are allowed by using the * character, such as &amp;quot;*.exe&amp;quot; or &amp;quot;steam_*&amp;quot; without the quotes.&lt;/p&gt;&lt;p&gt;Enable &amp;quot;Print Application Name To Log&amp;quot; in the &amp;quot;General&amp;quot; tab to find application names.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;One application per line. Wildcards are allowed by using the * character, such as &amp;quot;*.exe&amp;quot; or &amp;quot;steam_*&amp;quot; without the quotes.&lt;/p&gt;&lt;p&gt;Enable &amp;quot;Print Application Name To Log&amp;quot; in the &amp;quot;Debug&amp;quot; tab to find application names.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
             </property>
            </widget>
           </item>
@@ -699,6 +625,79 @@ When upgrading from an earlier version, a reboot might be required to enable the
        <string>Debug</string>
       </attribute>
       <layout class="QVBoxLayout" name="verticalLayout_3">
+       <item>
+        <widget class="QGroupBox" name="kcfg_printApplicationNameToLog">
+         <property name="title">
+          <string>Print Application Names To Log</string>
+         </property>
+         <property name="checkable">
+          <bool>true</bool>
+         </property>
+         <property name="checked">
+          <bool>true</bool>
+         </property>
+         <layout class="QVBoxLayout" name="verticalLayout_printApplicationNameToLog">
+          <item>
+           <widget class="QLabel" name="label_printTypeExplanation">
+            <property name="text">
+             <string>For ease of adding apps to the different lists, application names will be printed in the log.</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <layout class="QFormLayout" name="formLayout_printType">
+            <item row="0" column="0">
+             <widget class="QLabel" name="label_printType">
+              <property name="text">
+               <string>Print when</string>
+              </property>
+             </widget>
+            </item>
+            <item row="0" column="1">
+             <widget class="QComboBox" name="kcfg_printType">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <item>
+               <property name="text">
+                <string>First window for the application is opened or last window is closed</string>
+               </property>
+              </item>
+              <item>
+               <property name="text">
+                <string>Any window is opened or last window is closed</string>
+               </property>
+              </item>
+             </widget>
+            </item>
+           </layout>
+          </item>
+          <item>
+           <widget class="QLabel" name="label_printApplicationNameToLogExplanation">
+            <property name="text">
+             <string>To check the log - type this in the console:</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLineEdit" name="lineEdit_printApplicationNameToLogCommand">
+            <property name="toolTip">
+             <string>Copy this command and paste it into a terminal window to list application names when they are opened.</string>
+            </property>
+            <property name="text">
+             <string>journalctl -f | grep RememberWindowPositions</string>
+            </property>
+            <property name="readOnly">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
        <item>
         <widget class="QGroupBox" name="groupBox_debug">
          <property name="title">
@@ -824,7 +823,7 @@ When upgrading from an earlier version, a reboot might be required to enable the
         <string/>
        </property>
        <property name="text">
-        <string>To apply changes, please disable (untick then click &quot;Apply&quot;), and re-enable (tick then click &quot;Apply&quot;) the script (limitation of KDE)</string>
+        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; color:#ff0000;&quot;&gt;To apply changes, please disable (untick then click &amp;quot;Apply&amp;quot;), and re-enable (tick then click &amp;quot;Apply&amp;quot;) the script (limitation of KDE)&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
        </property>
        <property name="scaledContents">
         <bool>false</bool>
