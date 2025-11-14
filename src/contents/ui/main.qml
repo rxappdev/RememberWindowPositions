@@ -18,6 +18,7 @@ Item {
     property var windowOrder: []
     property var mainMenuWindow: undefined
     property bool identifyWindow: false
+    property var sessionRestoreSaves: []
 
     property var defaultConfig: {}
 
@@ -155,13 +156,21 @@ Item {
             multiMonitorType: KWin.readConfig("multiMonitorType", 0),
             printType: KWin.readConfig("printType", 0),
             instantRestore: KWin.readConfig("instantRestore", true),
-            multiWindowRestoreAttempts: KWin.readConfig("multiWindowRestoreAttempts", 5),
+            multiWindowRestoreAttemptsDefault: KWin.readConfig("multiWindowRestoreAttempts", 5),
             usePerfectMultiWindowRestore: KWin.readConfig("usePerfectMultiWindowRestore", true),
-            perfectMultiWindowRestoreAttempts: KWin.readConfig("perfectMultiWindowRestoreAttempts", 12),
+            perfectMultiWindowRestoreAttemptsDefault: KWin.readConfig("perfectMultiWindowRestoreAttempts", 12),
             perfectMultiWindowRestoreList: stringListToNormalAndWildcard(KWin.readConfig("perfectMultiWindowRestoreList", browserList)),
-            printApplicationNameToLog: KWin.readConfig("printApplicationNameToLog", true),
+            loginBoost: KWin.readConfig("loginBoost", true),
+            loginBoostMultiplier: KWin.readConfig("loginBoostMultiplier", 3),
+            sessionRestore: KWin.readConfig("sessionRestore", false),
+            sessionRestoreSize: KWin.readConfig("sessionRestoreSize", true),
+            sessionRestoreVirtualDesktop: KWin.readConfig("sessionRestoreVirtualDesktop", true),
+            sessionRestoreActivities: KWin.readConfig("sessionRestoreActivities", true),
+            sessionRestoreMinimized: KWin.readConfig("sessionRestoreMinimized", true),
+            sessionRestoreTime: KWin.readConfig("sessionRestoreTime", 25),
             blacklist: stringListToNormalAndWildcard(KWin.readConfig("blacklist", "org.kde.spectacle\norg.kde.polkit-kde-authentication-agent-1\nsteam_proton\nsteam\norg.kde.plasmashell\nkwin\nksmserver\nsystemsettings")),
             whitelist: stringListToNormalAndWildcard(KWin.readConfig("whitelist", browserList)),
+            printApplicationNameToLog: KWin.readConfig("printApplicationNameToLog", true),
             // confidence
             confidence: [
                 { caption: 100, matchingDimentions: 2, allowHeightShrinking: false }, // Caption and size match
@@ -190,6 +199,9 @@ Item {
         config.printAllWindows = config.printType == 1;
         config.perScreenRestore = config.multiMonitorType == 0 || config.multiMonitorType == 2;
         config.rememberOnlyScreenName = config.multiMonitorType == 2;
+        config.multiWindowRestoreAttempts = config.loginBoost ? config.loginBoostMultiplier * config.multiWindowRestoreAttemptsDefault : config.multiWindowRestoreAttemptsDefault;
+        config.perfectMultiWindowRestoreAttempts = config.loginBoost ? config.loginBoostMultiplier * config.perfectMultiWindowRestoreAttemptsDefault : config.perfectMultiWindowRestoreAttemptsDefault;
+        config.loginOverride = true;
         // log('Whitelist: ' + JSON.stringify(config.whitelist));
         logMode();
 
@@ -301,20 +313,27 @@ Item {
         let minimizeRestored = false;
         let zRestored = false;
 
+        let restoreSession = saveData.sessionRestore ? config.loginOverride : false;
+        log('restoreWindowPlacement restoreSession: ' + restoreSession + ' saveData.sessionRestore: ' + saveData.sessionRestore + ' config.loginOverride: ' + config.loginOverride);
+        let restoreSize = restoreSession ? config.sessionRestoreSize : windowConfig.size;
+        let restoreDesktop = restoreSession ? config.sessionRestoreVirtualDesktop : windowConfig.desktop;
+        let restoreActivities = restoreSession ? config.sessionRestoreActivities : windowConfig.activity;
+        let restoreMinimized = restoreSession ? config.sessionRestoreMinimized : windowConfig.minimized;
+
         // Restore frame geometry
         if (config.perScreenRestore && saveData.position) {
             log('Restoring frame geometry based on screen position');
             let output = getOutputFromSave(saveData.position.serialNumber, saveData.position.name);
             let positionGlobal = output != null ? output.mapToGlobal(Qt.point(saveData.position.x, saveData.position.y)) : client.pos;
             log('- positionGlobal: ' + positionGlobal);
-            if (windowConfig.position && windowConfig.size) {
+            if (windowConfig.position && restoreSize) {
                 if (client.x != positionGlobal.x || client.y != positionGlobal.y || client.width != saveData.width || client.height != saveData.height) {
                     log('Attempting to restore window size and position');
                     positionRestored = client.x != positionGlobal.x || client.y != positionGlobal.y;
                     sizeRestored = client.width != saveData.width || client.height != saveData.height;
                     client.frameGeometry = Qt.rect(positionGlobal.x, positionGlobal.y, saveData.width, saveData.height);
                 }
-            } else if (windowConfig.size) {
+            } else if (restoreSize) {
                 if (client.width != saveData.width || client.height != saveData.height) {
                     log('Attempting to restore window size');
                     client.frameGeometry = Qt.rect(client.x, client.y, saveData.width, saveData.height);
@@ -327,14 +346,14 @@ Item {
             }
         } else {
             log('Restoring frame geometry based on global position');
-            if (windowConfig.position && windowConfig.size) {
+            if (windowConfig.position && restoreSize) {
                 if (client.x != saveData.x || client.y != saveData.y || client.width != saveData.width || client.height != saveData.height) {
                     log('Attempting to restore window size and position');
                     positionRestored = client.x != saveData.x || client.y != saveData.y;
                     sizeRestored = client.width != saveData.width || client.height != saveData.height;
                     client.frameGeometry = Qt.rect(saveData.x, saveData.y, saveData.width, saveData.height);
                 }
-            } else if (windowConfig.size) {
+            } else if (restoreSize) {
                 if (client.width != saveData.width || client.height != saveData.height) {
                     log('Attempting to restore window size');
                     client.frameGeometry = Qt.rect(client.x, client.y, saveData.width, saveData.height);
@@ -348,7 +367,7 @@ Item {
         }
 
         // Restore activities
-        if (windowConfig.activity) {
+        if (restoreActivities) {
             if (saveData.activities && client.activities) {
                 log('Attempting to restore window activities');
                 let activities = [];
@@ -367,7 +386,7 @@ Item {
         }
 
         // Restore virtual desktop
-        if (windowConfig.desktop) {
+        if (restoreDesktop) {
             let desktopNumber = client.onAllDesktops ? -1 : client.desktops[0].x11DesktopNumber;
             if (saveData.desktopNumber != desktopNumber) {
                 if (saveData.desktopNumber == -1) {
@@ -401,7 +420,7 @@ Item {
         }
 
         // Restore minimized
-        if (saveData.minimized && windowConfig.minimized) {
+        if (saveData.minimized && restoreMinimized) {
             log('Attempting to restore window minimized');
             client.minimized = true;
             minimizeRestored = true;
@@ -808,7 +827,8 @@ Item {
                     y: convertedPosition.y,
                     serialNumber: client.output.serialNumber,
                     name: client.output.name
-                }
+                },
+                sessionRestore : false
             };
 
             if (currentConfig.rememberAlways) {
@@ -833,6 +853,9 @@ Item {
                 }
 
                 windowData.saved.push(currentWindowData);
+                if (config.sessionRestore) {
+                    sessionRestoreSaves.push(currentWindowData);
+                }
 
                 if (windowData.windowCount > 0) {
                     // Only save if window count is > 0, because at 0, it will be saved below
@@ -868,6 +891,9 @@ Item {
                         // Valid save
                         windowData.windowCountLastSession++;
                         windowData.saved.push(saving);
+                        if (config.sessionRestore) {
+                            sessionRestoreSaves.push(saving);
+                        }
                         lastValidClosingTime = saving.closeTime;
                     }
 
@@ -880,6 +906,45 @@ Item {
                 saveWindowsToSettings();
 
                 if (config.printApplicationNameToLog) logAppInfoOnClose(client.resourceClass, windowData.saved.length);
+            }
+        }
+    }
+
+    Timer {
+        id: sessionStartedTimer
+
+        repeat: false
+        running: false
+        onTriggered: () => {
+            logE('sessionStartedTimer expired - going back to normal operation');
+            config.multiWindowRestoreAttempts = config.multiWindowRestoreAttemptsDefault;
+            config.perfectMultiWindowRestoreAttempts = config.perfectMultiWindowRestoreAttemptsDefault;
+            config.loginOverride = false;
+        }
+
+        function setTimeout(delay) {
+            log('Setting sessionStartedTimer for ' + delay);
+            sessionStartedTimer.interval = delay;
+            sessionStartedTimer.start();
+        }
+    }
+
+    function clearSessionRestoreSaves() {
+        while (sessionRestoreSaves.length > 0) {
+            if (sessionRestoreSaves[0].closeTime < Date.now() - config.sessionRestoreTime * 1000) {
+                sessionRestoreSaves.shift();
+            } else {
+                break;
+            }
+        }
+    }
+
+    function updateSessionRestoreSaves() {
+        if (config.sessionRestore) {
+            for (let i = 0; i < sessionRestoreSaves.length; i++) {
+                if (sessionRestoreSaves[i].closeTime >= Date.now() - config.sessionRestoreTime * 1000) {
+                    sessionRestoreSaves[i].sessionRestore = true;
+                }
             }
         }
     }
@@ -1045,7 +1110,6 @@ Item {
                     width            : save.w,      // width
                     height           : save.h,      // height
                     minimized        : save.m == 1, // minimized
-                    // outputName    : save.o,   // outputName
                     stackingOrder    : save.s,      // stackingOrder
                     desktopNumber    : save.d,      // desktopNumber
                     activities       : save.a,      // activities
@@ -1056,15 +1120,16 @@ Item {
                         y            : save.p.y,    // y
                         serialNumber : save.p.s,    // serialNumber
                         name         : save.p.n     // name
-                    } : undefined
+                    } : undefined,
+                    sessionRestore   : save.z == 1  // sessionRestore
                     // --- Omitted fields ---
-                    // closeTime  : save.t        // closeTime
-                    // internalId : save.i        // internalId
+                    // closeTime  : save.t          // closeTime
+                    // internalId : save.i          // internalId
                 });
                 if (save.p) {
-                    log('Window ' + i + ' - x: ' + save.p.x + ' y: ' + save.p.y + ' width: ' + save.w + ' height: ' + save.h + ' minimized: ' + (save.m == 1) + ' stackingNumber: ' + save.s + ' desktopNumber: ' + save.d + ' serialNumber: ' + save.p.s + ' name: ' + save.p.n);
+                    log('Window ' + i + ' - x: ' + save.p.x + ' y: ' + save.p.y + ' width: ' + save.w + ' height: ' + save.h + ' minimized: ' + (save.m == 1) + ' stackingNumber: ' + save.s + ' desktopNumber: ' + save.d + ' serialNumber: ' + save.p.s + ' name: ' + save.p.n + ' sessionRestore: ' + (save.z == 1));
                 } else {
-                    log('Window ' + i + ' - x: ' + save.x + ' y: ' + save.y + ' width: ' + save.w + ' height: ' + save.h + ' minimized: ' + (save.m == 1) + ' stackingNumber: ' + save.s + ' desktopNumber: ' + save.d);
+                    log('Window ' + i + ' - x: ' + save.x + ' y: ' + save.y + ' width: ' + save.w + ' height: ' + save.h + ' minimized: ' + (save.m == 1) + ' stackingNumber: ' + save.s + ' desktopNumber: ' + save.d + ' sessionRestore: ' + (save.z == 1));
                 }
                 log('- activities: ' + JSON.stringify(save.a));
                 log('- caption: ' + save.c + '\n');
@@ -1076,6 +1141,8 @@ Item {
     }
 
     function saveWindowsToSettings() {
+        clearSessionRestoreSaves();
+
         // Convert save data to minimize size in storage - omit all data that is not relevant for the save
         let convertedWindows = {};
 
@@ -1101,7 +1168,6 @@ Item {
                         w: save.width,                     // width
                         h: save.height,                    // height
                         m: save.minimized ? 1 : 0,         // minimized
-                        // o: save.outputName,             // outputName
                         s: save.stackingOrder,             // stackingOrder
                         d: save.desktopNumber,             // desktopNumber
                         a: save.activities,                // activities
@@ -1112,7 +1178,8 @@ Item {
                             y: save.position.y,            // y
                             s: save.position.serialNumber, // serialNumber
                             n: save.position.name          // name
-                        } : undefined
+                        } : undefined,
+                        z: save.sessionRestore ? 1 : 0     // sessionRestore
                         // --- Omitted fields ---
                         // t: save.closeTime               // closeTime
                         // i: save.internalId              // internalId
@@ -1247,6 +1314,8 @@ Item {
         loadOverridesFromSettings();
         loadWindowsFromSettings();
 
+        sessionStartedTimer.setTimeout(2 * 60 * 1000); // 2 minute session start countdown
+
         // Add existing windows
         const clients = Workspace.stackingOrder;
         for (var i = 0; i < clients.length; i++) {
@@ -1263,6 +1332,7 @@ Item {
 
     Component.onDestruction: {
         log('Closing...');
+        updateSessionRestoreSaves();
         saveWindowsToSettings();
         saveOverridesToSettings();
     }

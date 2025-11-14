@@ -62,8 +62,33 @@ io.github.ungoogled_software.ungoogled_chromium
 app.zen_browser.zen
 waterfox-default</default>
         </entry>
-        <entry name="printApplicationNameToLog" type="Bool">
+        <entry name="loginBoost" type="Bool">
             <default>true</default>
+        </entry>
+        <entry name="loginBoostMultiplier" type="Int">
+            <default>3</default>
+            <min>2</min>
+            <max>8</max>
+        </entry>
+        <entry name="sessionRestore" type="Bool">
+            <default>false</default>
+        </entry>
+        <entry name="sessionRestoreSize" type="Bool">
+            <default>true</default>
+        </entry>
+        <entry name="sessionRestoreVirtualDesktop" type="Bool">
+            <default>true</default>
+        </entry>
+        <entry name="sessionRestoreActivities" type="Bool">
+            <default>true</default>
+        </entry>
+        <entry name="sessionRestoreMinimized" type="Bool">
+            <default>true</default>
+        </entry>
+        <entry name="sessionRestoreTime" type="Int">
+            <default>25</default>
+            <min>15</min>
+            <max>120</max>
         </entry>
         <entry name="blacklist" type="String">
             <default>org.kde.spectacle
@@ -89,6 +114,9 @@ Opera
 io.github.ungoogled_software.ungoogled_chromium
 app.zen_browser.zen
 waterfox-default</default>
+        </entry>
+        <entry name="printApplicationNameToLog" type="Bool">
+            <default>true</default>
         </entry>
         <entry name="debugLogs" type="Bool">
             <default>false</default>
