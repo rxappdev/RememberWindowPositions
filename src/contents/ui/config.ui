@@ -648,13 +648,6 @@ When upgrading from an earlier version, a reboot might be required to enable the
          </property>
          <layout class="QVBoxLayout" name="verticalLayout_9">
           <item>
-           <widget class="QLabel" name="label_7">
-            <property name="text">
-             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; color:#ffff00;&quot;&gt;WARNING - This feature is experimental. Please provide feedback on the official Discord if you are using it and have success or issues with it.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-            </property>
-           </widget>
-          </item>
-          <item>
            <widget class="QLabel" name="label_6">
             <property name="text">
              <string>When enabled, apps that close within the specified time before the script shuts down (usually when logging out/shutting down) will use these settings when restoring at next session start. These settings will override both the settings from the General tab, and per app configuration. The override is active for two minutes after logging in to give plenty of time for all apps from previous session to start. Use this if you use session restore and want different behaviour compared to rest of the session.</string>
@@ -986,7 +979,14 @@ When upgrading from an earlier version, a reboot might be required to enable the
           <item>
            <widget class="QCheckBox" name="kcfg_debugLogs">
             <property name="text">
-             <string>Enable debug logs</string>
+             <string>Enable Debug Logs - Enable to print a lot of debug data to solve generic issues - this will spam a lot data to the logs</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QCheckBox" name="kcfg_printMonitorInfoToLog">
+            <property name="text">
+             <string>Monitor Logs - Enable to print saved monitor information for each window that restores - with a matching list of currently connected monitors</string>
             </property>
            </widget>
           </item>

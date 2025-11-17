@@ -121,5 +121,8 @@ waterfox-default</default>
         <entry name="debugLogs" type="Bool">
             <default>false</default>
         </entry>
+        <entry name="printMonitorInfoToLog" type="Bool">
+            <default>false</default>
+        </entry>
     </group>
 </kcfg>

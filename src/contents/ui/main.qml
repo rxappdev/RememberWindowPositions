@@ -171,6 +171,7 @@ Item {
             blacklist: stringListToNormalAndWildcard(KWin.readConfig("blacklist", "org.kde.spectacle\norg.kde.polkit-kde-authentication-agent-1\nsteam_proton\nsteam\norg.kde.plasmashell\nkwin\nksmserver\nsystemsettings")),
             whitelist: stringListToNormalAndWildcard(KWin.readConfig("whitelist", browserList)),
             printApplicationNameToLog: KWin.readConfig("printApplicationNameToLog", true),
+            printMonitorInfoToLog: KWin.readConfig("printMonitorInfoToLog", false),
             // confidence
             confidence: [
                 { caption: 100, matchingDimentions: 2, allowHeightShrinking: false }, // Caption and size match
@@ -271,13 +272,17 @@ Item {
         return returnIndex ? [highestScore, highestIndex] : highestScore;
     }
 
-    function getOutputFromSave(serialNumber, name) {
-        log('Wanted screen ' + serialNumber + ' name: ' + name);
-        const screens = Workspace.screens;
+    function getOutputFromSave(serialNumber, name, applicationName) {
+        if (config.printMonitorInfoToLog) {
+            console.warn('RememberWindowPositions - window saved screen serialNumber: ' + serialNumber + ' name: ' + name + ' application name: ' + applicationName);
+        }
+        let screens = Workspace.screens;
         var serialNumberMatchIndex = -1;
         var nameMatchIndex = -1;
         for (var i = 0; i < screens.length; i++) {
-            log('- screen #' + i + ' serialNumber: ' + screens[i].serialNumber + ' name: ' + screens[i].name);
+            if (config.printMonitorInfoToLog) {
+                console.warn('RememberWindowPositions - screen #' + i + ' serialNumber: ' + screens[i].serialNumber + ' name: ' + screens[i].name);
+            }
             if (screens[i].serialNumber == serialNumber) {
                 serialNumberMatchIndex = i;
             }
@@ -296,7 +301,9 @@ Item {
             return screens[nameMatchIndex];
         }
 
-        log('Failed to find screen - only window size will be restored');
+        if (config.printMonitorInfoToLog) {
+            console.warn('RememberWindowPositions - failed to find screen - only window size will be restored');
+        }
 
         return null;
     }
@@ -323,7 +330,7 @@ Item {
         // Restore frame geometry
         if (config.perScreenRestore && saveData.position) {
             log('Restoring frame geometry based on screen position');
-            let output = getOutputFromSave(saveData.position.serialNumber, saveData.position.name);
+            let output = getOutputFromSave(saveData.position.serialNumber, saveData.position.name, client.resourceClass);
             let positionGlobal = output != null ? output.mapToGlobal(Qt.point(saveData.position.x, saveData.position.y)) : client.pos;
             log('- positionGlobal: ' + positionGlobal);
             if (windowConfig.position && restoreSize) {
