@@ -167,9 +167,9 @@ ApplicationWindow {
         if (currentApplicationIndex >= 0) {
             let application = currentOverrides[currentApplications[currentApplicationIndex]];
             if (application) {
-                blacklisted.checked = root.config.blacklist.includes(applicationName.text);
-                whitelisted.checked = root.config.whitelist.includes(applicationName.text);
-                perfectMatch.checked = root.config.perfectMultiWindowRestoreList.includes(applicationName.text);
+                blacklisted.checked = root.isBlacklisted(applicationName.text);
+                whitelisted.checked = root.isWhitelisted(applicationName.text);
+                perfectMatch.checked = root.isOnPerfectList(applicationName.text);
 
                 let config = application.config;
                 aOverride.enabled = true;
