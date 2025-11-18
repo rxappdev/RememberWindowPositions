@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>1188</width>
-    <height>640</height>
+    <height>672</height>
    </rect>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
@@ -125,6 +125,16 @@
            </widget>
           </item>
           <item>
+           <widget class="QCheckBox" name="kcfg_moveVirtualDesktop">
+            <property name="text">
+             <string>Move to virtual desktop - automatically moves to the virtual desktop where last application was restored - only works for single window applications</string>
+            </property>
+            <property name="checked">
+             <bool>false</bool>
+            </property>
+           </widget>
+          </item>
+          <item>
            <widget class="QCheckBox" name="kcfg_restoreActivities">
             <property name="text">
              <string>Restore activities - windows will remember which activity/activities they belong to</string>
@@ -135,9 +145,22 @@
            </widget>
           </item>
           <item>
+           <widget class="QCheckBox" name="kcfg_moveActivity">
+            <property name="text">
+             <string>Move to activity - automatically moves to the activity where last application was restored - only works for single window applications</string>
+            </property>
+            <property name="checked">
+             <bool>false</bool>
+            </property>
+           </widget>
+          </item>
+          <item>
            <widget class="QCheckBox" name="kcfg_restoreMinimized">
             <property name="text">
              <string>Restore minimized state - some windows might be minimized when the application is closed (such as browser windows) - use this setting to keep the window minimized</string>
+            </property>
+            <property name="checked">
+             <bool>true</bool>
             </property>
            </widget>
           </item>

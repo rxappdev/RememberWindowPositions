@@ -149,7 +149,9 @@ Item {
             restoreType: KWin.readConfig("restoreType", 2),
             restoreSize: KWin.readConfig("restoreSize", true),
             restoreVirtualDesktop: KWin.readConfig("restoreVirtualDesktop", true),
+            moveVirtualDesktop: KWin.readConfig("moveVirtualDesktop", false),
             restoreActivities: KWin.readConfig("restoreActivities", true),
+            moveActivity: KWin.readConfig("moveActivity", false),
             restoreMinimized: KWin.readConfig("restoreMinimized", true),
             restoreWindowsWithoutCaption: KWin.readConfig("restoreWindowsWithoutCaption", true),
             minimumCaptionMatch: KWin.readConfig("minimumCaptionMatch", 0),
@@ -161,7 +163,7 @@ Item {
             perfectMultiWindowRestoreAttemptsDefault: KWin.readConfig("perfectMultiWindowRestoreAttempts", 12),
             perfectMultiWindowRestoreList: stringListToNormalAndWildcard(KWin.readConfig("perfectMultiWindowRestoreList", browserList)),
             loginBoost: KWin.readConfig("loginBoost", true),
-            loginBoostMultiplier: KWin.readConfig("loginBoostMultiplier", 3),
+            loginBoostMultiplier: KWin.readConfig("loginBoostMultiplier", 2),
             sessionRestore: KWin.readConfig("sessionRestore", false),
             sessionRestoreSize: KWin.readConfig("sessionRestoreSize", true),
             sessionRestoreVirtualDesktop: KWin.readConfig("sessionRestoreVirtualDesktop", true),
@@ -308,7 +310,7 @@ Item {
         return null;
     }
 
-    function restoreWindowPlacement(saveData, client, captionScore, windowConfig, restoreZ = true) {
+    function restoreWindowPlacement(saveData, client, captionScore, windowConfig, restoreZ = true, moveVirtualDesktop = false, moveActivity = false) {
         if (!client) return;
         if (client.deleted) return;
         if (!saveData) return;
@@ -388,6 +390,9 @@ Item {
                 }
                 if (JSON.stringify(client.activities) != JSON.stringify(activities)) {
                     client.activities = activities;
+                    if (moveActivity && !activities.includes(Workspace.currentActivity)) {
+                        Workspace.currentActivity = activities[0];
+                    }
                 }
             }
         }
@@ -408,6 +413,9 @@ Item {
                         if (JSON.stringify(desktops) != JSON.stringify(client.desktops)) {
                             client.desktops = desktops;
                             virtualDesktopRestored = true;
+                            if (moveVirtualDesktop) {
+                                Workspace.currentDesktop = desktop;
+                            }
                         }
                     } else {
                         logE('Failed to restore window virtual desktop');
@@ -749,7 +757,7 @@ Item {
                     // Single window application - just restore it to last known state
                     let captionScore = getHighestCaptionScore(windowData, client);
                     let saved = windowData.saved[0];
-                    restoreWindowPlacement(saved, client, captionScore, currentConfig, false);
+                    restoreWindowPlacement(saved, client, captionScore, currentConfig, false, config.moveVirtualDesktop, config.moveActivity);
                     // Some windows cannot be moved right when they open, add a backup timer to move it if the above restore failed to move the window (example - Watcher of Realms)
                     windowData.loading.push(client);
                     restoreTimer.setTimeout(1000, client.resourceClass, 0, 0, 0);

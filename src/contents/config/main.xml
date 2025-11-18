@@ -11,8 +11,14 @@
         <entry name="restoreVirtualDesktop" type="Bool">
             <default>true</default>
         </entry>
+        <entry name="moveVirtualDesktop" type="Bool">
+            <default>false</default>
+        </entry>
         <entry name="restoreActivities" type="Bool">
             <default>true</default>
+        </entry>
+        <entry name="moveActivity" type="Bool">
+            <default>false</default>
         </entry>
         <entry name="restoreMinimized" type="Bool">
             <default>true</default>
@@ -66,7 +72,7 @@ waterfox-default</default>
             <default>true</default>
         </entry>
         <entry name="loginBoostMultiplier" type="Int">
-            <default>3</default>
+            <default>2</default>
             <min>2</min>
             <max>8</max>
         </entry>
