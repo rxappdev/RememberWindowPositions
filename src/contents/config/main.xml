@@ -99,8 +99,7 @@ waterfox-default</default>
         <entry name="blacklist" type="String">
             <default>org.kde.spectacle
 org.kde.polkit-kde-authentication-agent-1
-steam_proton
-steam
+steam*
 org.kde.plasmashell
 kwin
 ksmserver
