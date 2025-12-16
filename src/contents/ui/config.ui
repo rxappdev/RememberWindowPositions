@@ -1084,6 +1084,12 @@ When upgrading from an earlier version, a reboot might be required to enable the
      </item>
      <item>
       <widget class="QLabel" name="label_3">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
        <property name="mouseTracking">
         <bool>true</bool>
        </property>
@@ -1095,6 +1101,19 @@ When upgrading from an earlier version, a reboot might be required to enable the
        </property>
        <property name="margin">
         <number>0</number>
+       </property>
+       <property name="openExternalLinks">
+        <bool>true</bool>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QLabel" name="label_7">
+       <property name="toolTip">
+        <string>https://patreon.com/rxappdev</string>
+       </property>
+       <property name="text">
+        <string>&lt;a href=&quot;https://patreon.com/rxappdev&quot;&gt;Patreon&lt;/a&gt;&amp;nbsp;&amp;nbsp;&lt;b style=&quot;color:#FF0000&quot;&gt;❤&lt;/b&gt;</string>
        </property>
        <property name="openExternalLinks">
         <bool>true</bool>
