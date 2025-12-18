@@ -23,6 +23,12 @@
         <entry name="restoreMinimized" type="Bool">
             <default>true</default>
         </entry>
+        <entry name="restoreKeepAbove" type="Bool">
+            <default>true</default>
+        </entry>
+        <entry name="restoreKeepBelow" type="Bool">
+            <default>true</default>
+        </entry>
         <entry name="restoreWindowsWithoutCaption" type="Bool">
             <default>true</default>
         </entry>
@@ -89,6 +95,12 @@ waterfox-default</default>
             <default>true</default>
         </entry>
         <entry name="sessionRestoreMinimized" type="Bool">
+            <default>true</default>
+        </entry>
+        <entry name="sessionRestoreKeepAbove" type="Bool">
+            <default>true</default>
+        </entry>
+        <entry name="sessionRestoreKeepBelow" type="Bool">
             <default>true</default>
         </entry>
         <entry name="sessionRestoreTime" type="Int">

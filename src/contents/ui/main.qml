@@ -153,6 +153,8 @@ Item {
             restoreActivities: KWin.readConfig("restoreActivities", true),
             moveActivity: KWin.readConfig("moveActivity", false),
             restoreMinimized: KWin.readConfig("restoreMinimized", true),
+            restoreKeepAbove: KWin.readConfig("restoreKeepAbove", true),
+            restoreKeepBelow: KWin.readConfig("restoreKeepBelow", true),
             restoreWindowsWithoutCaption: KWin.readConfig("restoreWindowsWithoutCaption", true),
             minimumCaptionMatch: KWin.readConfig("minimumCaptionMatch", 0),
             multiMonitorType: KWin.readConfig("multiMonitorType", 0),
@@ -169,6 +171,8 @@ Item {
             sessionRestoreVirtualDesktop: KWin.readConfig("sessionRestoreVirtualDesktop", true),
             sessionRestoreActivities: KWin.readConfig("sessionRestoreActivities", true),
             sessionRestoreMinimized: KWin.readConfig("sessionRestoreMinimized", true),
+            sessionRestoreKeepAbove: KWin.readConfig("sessionRestoreKeepAbove", true),
+            sessionRestoreKeepBelow: KWin.readConfig("sessionRestoreKeepBelow", true),
             sessionRestoreTime: KWin.readConfig("sessionRestoreTime", 25),
             blacklist: stringListToNormalAndWildcard(KWin.readConfig("blacklist", "org.kde.spectacle\norg.kde.polkit-kde-authentication-agent-1\nsteam*\norg.kde.plasmashell\nkwin\nksmserver\nsystemsettings")),
             whitelist: stringListToNormalAndWildcard(KWin.readConfig("whitelist", browserList)),
@@ -217,7 +221,9 @@ Item {
             size: config.restoreSize,
             desktop: config.restoreVirtualDesktop,
             activity: config.restoreActivities,
-            minimized: config.restoreMinimized
+            minimized: config.restoreMinimized,
+            keepAbove: config.restoreKeepAbove,
+            keepBelow: config.restoreKeepBelow
         };
     }
 
@@ -319,7 +325,9 @@ Item {
         let positionRestored = false;
         let sizeRestored = false;
         let virtualDesktopRestored = false;
-        let minimizeRestored = false;
+        let minimizedRestored = false;
+        let keepAboveRestored = false;
+        let keepBelowRestored = false;
         let zRestored = false;
 
         let restoreSession = saveData.sessionRestore ? config.loginOverride : false;
@@ -328,6 +336,8 @@ Item {
         let restoreDesktop = restoreSession ? config.sessionRestoreVirtualDesktop : windowConfig.desktop;
         let restoreActivities = restoreSession ? config.sessionRestoreActivities : windowConfig.activity;
         let restoreMinimized = restoreSession ? config.sessionRestoreMinimized : windowConfig.minimized;
+        let restoreKeepAbove = restoreSession ? config.sessionRestoreKeepAbove : windowConfig.keepAbove;
+        let restoreKeepBelow = restoreSession ? config.sessionRestoreKeepBelow : windowConfig.keepBelow;
 
         // Restore frame geometry
         if (config.perScreenRestore && saveData.position) {
@@ -438,10 +448,24 @@ Item {
         if (saveData.minimized && restoreMinimized) {
             log('Attempting to restore window minimized');
             client.minimized = true;
-            minimizeRestored = true;
+            minimizedRestored = true;
         }
 
-        logE(client.resourceClass + ' restored - z: ' + zRestored + ' positon: ' + positionRestored + ' size: ' + sizeRestored + ' desktop: ' + virtualDesktopRestored + ' minimized: ' + minimizeRestored + ' caption score: ' + captionScore + ' internalId: ' + client.internalId);
+        // Restore keepAbove
+        if (saveData.keepAbove && restoreKeepAbove) {
+            log('Attempting to restore window keepAbove');
+            client.keepAbove = true;
+            keepAboveRestored = true;
+        }
+
+        // Restore keepBelow
+        if (saveData.keepBelow && restoreKeepBelow) {
+            log('Attempting to restore window keepBelow');
+            client.keepBelow = true;
+            keepBelowRestored = true;
+        }
+
+        logE(client.resourceClass + ' restored - z: ' + zRestored + ' positon: ' + positionRestored + ' size: ' + sizeRestored + ' desktop: ' + virtualDesktopRestored + ' minimized: ' + minimizedRestored + ' keepAbove: ' + keepAboveRestored + ' keepBelow: ' + keepBelow + ' caption score: ' + captionScore + ' internalId: ' + client.internalId);
         log('- caption   save: ' + saveData.caption);
         log('- caption window: ' + client.caption);
     }
@@ -830,6 +854,8 @@ Item {
                 width          : client.width,
                 height         : client.height,
                 minimized      : client.minimized,
+                keepAbove      : client.keepAbove,
+                keepBelow      : client.keepBelow,
                 // outputName     : client.output.name,
                 stackingOrder  : currentWindowOrder == -1 ? client.stackingOrder : currentWindowOrder,
                 desktopNumber  : client.onAllDesktops ? -1 : client.desktops[0].x11DesktopNumber,
@@ -1125,6 +1151,8 @@ Item {
                     width            : save.w,      // width
                     height           : save.h,      // height
                     minimized        : save.m == 1, // minimized
+                    keepAbove        : save.k == 1, // keepAbove
+                    keepBelow        : save.b == 1, // keepBelow
                     stackingOrder    : save.s,      // stackingOrder
                     desktopNumber    : save.d,      // desktopNumber
                     activities       : save.a,      // activities
@@ -1183,6 +1211,8 @@ Item {
                         w: save.width,                     // width
                         h: save.height,                    // height
                         m: save.minimized ? 1 : 0,         // minimized
+                        k: save.keepAbove ? 1 : 0,         // keepAbove
+                        b: save.keepBelow ? 1 : 0,         // keepBelow
                         s: save.stackingOrder,             // stackingOrder
                         d: save.desktopNumber,             // desktopNumber
                         a: save.activities,                // activities
@@ -1227,7 +1257,9 @@ Item {
                     size            : application.s == 1, // size
                     desktop         : application.d == 1, // desktop
                     activity        : application.a == 1, // activity
-                    minimized       : application.m == 1  // minimized
+                    minimized       : application.m == 1, // minimized
+                    keepAbove       : application.k == 1, // keepAbove
+                    keepBelow       : application.b == 1  // keepBelow
                 },
                 windows             : {}                  // windows
             };
@@ -1242,7 +1274,9 @@ Item {
                     size            : window.s == 1, // size
                     desktop         : window.d == 1, // desktop
                     activity        : window.a == 1, // activity
-                    minimized       : window.m == 1  // minimized
+                    minimized       : window.m == 1, // minimized
+                    keepAbove       : window.k == 1, // keepAbove
+                    keepBelow       : window.b == 1  // keepBelow
                 };
             }
         }
@@ -1272,6 +1306,8 @@ Item {
                 d: appConfig.desktop         ? 1 : 0, // desktop
                 a: appConfig.activity        ? 1 : 0, // activity
                 m: appConfig.minimized       ? 1 : 0, // minimized
+                k: appConfig.keepAbove       ? 1 : 0, // keepAbove
+                b: appConfig.keepBelow       ? 1 : 0, // keepBelow
                 w: {}                                 // windows
             };
             for (let windowKey in application.windows) {
@@ -1285,7 +1321,9 @@ Item {
                     s: window.size            ? 1 : 0, // size
                     d: window.desktop         ? 1 : 0, // desktop
                     a: window.activity        ? 1 : 0, // activity
-                    m: window.minimized       ? 1 : 0  // minimized
+                    m: window.minimized       ? 1 : 0, // minimized
+                    k: window.keepAbove       ? 1 : 0, // keepAbove
+                    b: window.keepBelow       ? 1 : 0  // keepBelow
                 };
             }
         }

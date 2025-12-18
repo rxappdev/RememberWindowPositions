@@ -100,7 +100,9 @@ ApplicationWindow {
                     size: defaultConfig.size,
                     desktop: defaultConfig.desktop,
                     activity: defaultConfig.activity,
-                    minimized: defaultConfig.minimized
+                    minimized: defaultConfig.minimized,
+                    keepAbove: defaultConfig.keepAbove,
+                    keepBelow: defaultConfig.keepBelow
                 },
                 windows: {}
             };
@@ -118,7 +120,9 @@ ApplicationWindow {
                 size: defaultConfig.size,
                 desktop: defaultConfig.desktop,
                 activity: defaultConfig.activity,
-                minimized: defaultConfig.minimized
+                minimized: defaultConfig.minimized,
+                keepAbove: defaultConfig.keepAbove,
+                keepBelow: defaultConfig.keepBelow
             };
         }
     }
@@ -182,6 +186,8 @@ ApplicationWindow {
                 aDesktop.checked = config.desktop;
                 aActivity.checked = config.activity;
                 aMinimized.checked = config.minimized;
+                aKeepAbove.checked = config.keepAbove;
+                aKeepBelow.checked = config.keepBelow;
                 applicationUpdated = true;
 
                 if (currentWindowIndex >= 0) {
@@ -198,6 +204,8 @@ ApplicationWindow {
                         wDesktop.checked = window.desktop;
                         wActivity.checked = window.activity;
                         wMinimized.checked = window.minimized;
+                        wKeepAbove.checked = window.keepAbove;
+                        wKeepBelow.checked = window.keepBelow;
                         windowUpdated = true;
                     }
                 }
@@ -218,6 +226,8 @@ ApplicationWindow {
             aDesktop.checked = defaultConfig.desktop;
             aActivity.checked = defaultConfig.activity;
             aMinimized.checked = defaultConfig.minimized;
+            aKeepAbove.checked = defaultConfig.keepAbove;
+            aKeepBelow.checked = defaultConfig.keepBelow;
         }
 
         if (!windowUpdated) {
@@ -231,6 +241,8 @@ ApplicationWindow {
             wDesktop.checked = defaultConfig.desktop;
             wActivity.checked = defaultConfig.activity;
             wMinimized.checked = defaultConfig.minimized;
+            wKeepAbove.checked = defaultConfig.keepAbove;
+            wKeepBelow.checked = defaultConfig.keepBelow;
         }
     }
 
@@ -250,6 +262,8 @@ ApplicationWindow {
                         window.desktop = wDesktop.checked;
                         window.activity = wActivity.checked;
                         window.minimized = wMinimized.checked;
+                        window.keepAbove = wKeepAbove.checked;
+                        window.keepBelow = wKeepBelow.checked;
                     }
                 }
 
@@ -262,6 +276,8 @@ ApplicationWindow {
                 application.config.desktop = aDesktop.checked;
                 application.config.activity = aActivity.checked;
                 application.config.minimized = aMinimized.checked;
+                application.config.keepAbove = aKeepAbove.checked;
+                application.config.keepBelow = aKeepBelow.checked;
             }
         }
     }
@@ -823,6 +839,16 @@ ApplicationWindow {
                                         text: "Minimized"
                                         checked: defaultConfig.minimized
                                     }
+                                    CheckBox {
+                                        id: dKeepAbove
+                                        text: "Keep Above"
+                                        checked: defaultConfig.keepAbove
+                                    }
+                                    CheckBox {
+                                        id: dKeepBelow
+                                        text: "Keep Below"
+                                        checked: defaultConfig.keepBelow
+                                    }
                                 }
                             }
 
@@ -891,6 +917,16 @@ ApplicationWindow {
                                     CheckBox {
                                         id: aMinimized
                                         text: "Minimized"
+                                        enabled: aOverride.checked
+                                    }
+                                    CheckBox {
+                                        id: aKeepAbove
+                                        text: "Keep Above"
+                                        enabled: aOverride.checked
+                                    }
+                                    CheckBox {
+                                        id: aKeepBelow
+                                        text: "Keep Below"
                                         enabled: aOverride.checked
                                     }
                                 }
@@ -962,6 +998,16 @@ ApplicationWindow {
                                     CheckBox {
                                         id: wMinimized
                                         text: "Minimized"
+                                        enabled: wOverride.checked
+                                    }
+                                    CheckBox {
+                                        id: wKeepAbove
+                                        text: "Keep Above"
+                                        enabled: wOverride.checked
+                                    }
+                                    CheckBox {
+                                        id: wKeepBelow
+                                        text: "Keep Below"
                                         enabled: wOverride.checked
                                     }
                                 }

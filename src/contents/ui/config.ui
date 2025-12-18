@@ -165,6 +165,20 @@
            </widget>
           </item>
           <item>
+           <widget class="QCheckBox" name="kcfg_restoreKeepAbove">
+            <property name="text">
+             <string>Restore keep above state - applications will remember their keep above state</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QCheckBox" name="kcfg_restoreKeepBelow">
+            <property name="text">
+             <string>Restore keep below state - applications will remember their keep below state</string>
+            </property>
+           </widget>
+          </item>
+          <item>
            <widget class="QCheckBox" name="kcfg_restoreWindowsWithoutCaption">
             <property name="text">
              <string>Restore windows with empty caption (window title) - If disabled, windows with empty caption will not be restored at all (left with default size and position)</string>
@@ -717,6 +731,20 @@ When upgrading from an earlier version, a reboot might be required to enable the
             </property>
             <property name="checked">
              <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QCheckBox" name="kcfg_sessionRestoreKeepAbove">
+            <property name="text">
+             <string>Restore keep above state - applications will remember their keep above state</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QCheckBox" name="kcfg_sessionRestoreKeepBelow">
+            <property name="text">
+             <string>Restore keep below state - applications will remember their keep below state</string>
             </property>
            </widget>
           </item>
