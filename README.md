@@ -78,6 +78,11 @@ Can operate in one of four modes where it remembers:
 
 There are lots of other settings that let you control exactly how and when to restore windows to their previous state.
 
+### Future ideas (might or might not be implemented)
+
+- Add caption change listener restore trigger
+- Add keyboard shortcut to block restoring of next application started
+
 ## <p id="how"></p>How it works
 
 1. When the last window of an application is closed, the properties of all windows that were closed within the past second are saved. To save all windows for a browser, simply "Quit" it from the application menu so that all windows are closed at once.

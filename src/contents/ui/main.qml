@@ -465,7 +465,7 @@ Item {
             keepBelowRestored = true;
         }
 
-        logE(client.resourceClass + ' restored - z: ' + zRestored + ' positon: ' + positionRestored + ' size: ' + sizeRestored + ' desktop: ' + virtualDesktopRestored + ' minimized: ' + minimizedRestored + ' keepAbove: ' + keepAboveRestored + ' keepBelow: ' + keepBelow + ' caption score: ' + captionScore + ' internalId: ' + client.internalId);
+        logE(client.resourceClass + ' restored - z: ' + zRestored + ' positon: ' + positionRestored + ' size: ' + sizeRestored + ' desktop: ' + virtualDesktopRestored + ' minimized: ' + minimizedRestored + ' keepAbove: ' + keepAboveRestored + ' keepBelow: ' + keepBelowRestored + ' caption score: ' + captionScore + ' internalId: ' + client.internalId);
         log('- caption   save: ' + saveData.caption);
         log('- caption window: ' + client.caption);
     }
