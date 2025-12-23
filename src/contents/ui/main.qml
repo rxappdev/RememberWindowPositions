@@ -886,7 +886,7 @@ Item {
                     restoreTimer.setTimeout(1000, client.resourceClass, 0, 0, 0);
                 }
             } else if (windowData.windowCountLastSession == windowData.saved.length && windowData.restoredTotal == windowData.windowCountLastSession - 1 && windowData.restoredTotal == windowData.loading.length) {
-                logDev('Last window not matched - instant restore...');
+                log('Last window not matched - instant restore...');
                 // Last window that has not been matched - just restore it to last known state
                 let captionScoreAndIndex = config.ignoreNumbers ? getHighestCaptionScoreIgnoreNumbers(windowData, client, true, true) : getHighestCaptionScore(windowData, client, true, true);
                 if (captionScoreAndIndex[1] != -1) {
