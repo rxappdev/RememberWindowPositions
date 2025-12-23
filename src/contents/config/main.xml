@@ -135,6 +135,9 @@ waterfox-default</default>
         <entry name="printApplicationNameToLog" type="Bool">
             <default>true</default>
         </entry>
+        <entry name="ignoreNumbers" type="Bool">
+            <default>true</default>
+        </entry>
         <entry name="debugLogs" type="Bool">
             <default>false</default>
         </entry>

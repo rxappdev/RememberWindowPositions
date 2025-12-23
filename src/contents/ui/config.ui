@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>1188</width>
-    <height>672</height>
+    <height>730</height>
    </rect>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
@@ -383,7 +383,7 @@ When upgrading from an earlier version, a reboot might be required to enable the
           <item>
            <widget class="QLabel" name="label_instantRestoreDescription">
             <property name="text">
-             <string>Will instantly restore the window properties for saved windows that 100% match caption and window size even before all windows are loaded. All properties except for stacking order (z-index) will be restored. Once all windows are loaded, stacking order will also be restored.</string>
+             <string>Will instantly restore the window properties for saved windows that 100% match caption even before all windows are loaded. All properties except for stacking order (z-index) will be restored. Once all windows are loaded, stacking order will also be restored. Will ignore numbers if enabled.</string>
             </property>
             <property name="wordWrap">
              <bool>true</bool>
@@ -1005,6 +1005,22 @@ When upgrading from an earlier version, a reboot might be required to enable the
             </property>
             <property name="readOnly">
              <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
+        <widget class="QGroupBox" name="groupBox_2">
+         <property name="title">
+          <string>Experimental Settings</string>
+         </property>
+         <layout class="QVBoxLayout" name="verticalLayout_11">
+          <item>
+           <widget class="QCheckBox" name="kcfg_ignoreNumbers">
+            <property name="text">
+             <string>Ignore numbers in captions - this should be left enabled. Only disable it if it causes any unexpected issues (like if the only way to differentiate applications you use is by numbers)</string>
             </property>
            </widget>
           </item>

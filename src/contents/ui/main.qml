@@ -156,6 +156,7 @@ Item {
             restoreKeepAbove: KWin.readConfig("restoreKeepAbove", true),
             restoreKeepBelow: KWin.readConfig("restoreKeepBelow", true),
             restoreWindowsWithoutCaption: KWin.readConfig("restoreWindowsWithoutCaption", true),
+            ignoreNumbers: KWin.readConfig("ignoreNumbers", true),
             minimumCaptionMatch: KWin.readConfig("minimumCaptionMatch", 0),
             multiMonitorType: KWin.readConfig("multiMonitorType", 0),
             printType: KWin.readConfig("printType", 0),
@@ -230,6 +231,7 @@ Item {
     function isValidWindow(client) {
         if (!client) return false;
         if (!client.normalWindow) return false;
+        if (client.transient) return false;
         if (client.popupWindow) return false;
         if (client.skipTaskbar) return false;
         if (!client.resourceClass) return false;
@@ -263,19 +265,71 @@ Item {
         return 0;
     }
 
-    function getHighestCaptionScore(windowData, client, returnIndex = false) {
+    function matchCaptionIgnoreNumbers(a, b) {
+        if (!a || !b) return 0;
+        return matchCaption(a.replace(/\d+/g, ''), b.replace(/\d+/g, ''));
+    }
+
+    function getHighestCaptionScore(windowData, client, ignoreMatched, returnIndex = false) {
         var highestScore = 0;
         var highestIndex = -1;
+        var matchingDimentions = 0;
 
         for (let i = 0; i < windowData.saved.length; i++) {
+            if (ignoreMatched && windowData.saved[i].alreadyMatched) {
+                continue;
+            }
             let score = matchCaption(windowData.saved[i].caption, client.caption);
             if (score > highestScore) {
                 highestScore = score;
                 highestIndex = i;
+                matchingDimentions = 0;
+                if (windowData.saved[i].width == client.width) matchingDimentions++;
+                if (windowData.saved[i].height == client.height) matchingDimentions++;
+            } else if (score == highestScore && matchingDimentions < 2) {
+                var currentMatchingDimentions = 0;
+                if (windowData.saved[i].width == client.width) currentMatchingDimentions++;
+                if (windowData.saved[i].height == client.height) currentMatchingDimentions++;
+                if (currentMatchingDimentions > matchingDimentions) {
+                    highestIndex = i;
+                    matchingDimentions = currentMatchingDimentions;
+                }
             }
         }
 
         log('getHighestCaptionScore highestScore: ' + highestScore + ' caption client: ' + client.caption + ' caption save: ' + windowData.saved[highestIndex].caption);
+
+        return returnIndex ? [highestScore, highestIndex] : highestScore;
+    }
+
+    function getHighestCaptionScoreIgnoreNumbers(windowData, client, ignoreMatched, returnIndex = false) {
+        var highestScore = 0;
+        var highestIndex = -1;
+        var matchingDimentions = 0;
+
+        for (let i = 0; i < windowData.saved.length; i++) {
+            if (ignoreMatched && windowData.saved[i].alreadyMatched) {
+                continue;
+            }
+            let score = matchCaptionIgnoreNumbers(windowData.saved[i].caption, client.caption);
+            if (score > highestScore) {
+                highestScore = score;
+                highestIndex = i;
+                matchingDimentions = 0;
+                if (windowData.saved[i].width == client.width) matchingDimentions++;
+                if (windowData.saved[i].height == client.height) matchingDimentions++;
+            } else if (score == highestScore && matchingDimentions < 2) {
+                var currentMatchingDimentions = 0;
+                if (windowData.saved[i].width == client.width) currentMatchingDimentions++;
+                if (windowData.saved[i].height == client.height) currentMatchingDimentions++;
+                if (currentMatchingDimentions > matchingDimentions) {
+                    highestIndex = i;
+                    matchingDimentions = currentMatchingDimentions;
+                }
+            }
+        }
+
+        log('getHighestCaptionScoreIgnoreNumbers highestScore: ' + highestScore + ' caption client: ' + client.caption + ' caption save: ' + windowData.saved[highestIndex].caption);
 
         return returnIndex ? [highestScore, highestIndex] : highestScore;
     }
@@ -494,11 +548,12 @@ Item {
             }
             for (let saveIndex = 0; saveIndex < windowData.saved.length; saveIndex++) {
                 let saved = windowData.saved[saveIndex];
+                if (saved.alreadyMatched) continue; // Already matched
                 let matchingDimentions = 0;
                 if (saved.width == loading.width) matchingDimentions++;
                 if (saved.height == loading.height || confidence.allowHeightShrinking && Math.abs(saved.height - loading.height) < 60) matchingDimentions++;
                 if (matchingDimentions < confidence.matchingDimentions) continue;
-                let captionScore = matchCaption(saved.caption, loading.caption);
+                let captionScore = config.ignoreNumbers ? matchCaptionIgnoreNumbers(saved.caption, loading.caption) : matchCaption(saved.caption, loading.caption);
                 if (captionScore < confidence.caption) continue;
                 if (saved.singleWindow && captionScore < 100) continue;
 
@@ -523,11 +578,12 @@ Item {
 
                 for (let loadingReverseMatchIndex = 0; loadingReverseMatchIndex < windowData.loading.length; loadingReverseMatchIndex++) {
                     let loading = windowData.loading[loadingReverseMatchIndex];
+                    if (loading.rwp_save) continue; // Already matched
                     let matchingDimentions = 0;
                     if (saved.width == loading.width) matchingDimentions++;
                     if (saved.height == loading.height || confidence.allowHeightShrinking && Math.abs(saved.height - loading.height) < 60) matchingDimentions++;
                     if (matchingDimentions < confidence.matchingDimentions) continue;
-                    let captionScore = matchCaption(saved.caption, loading.caption);
+                    let captionScore = config.ignoreNumbers ? matchCaptionIgnoreNumbers(saved.caption, loading.caption) : matchCaption(saved.caption, loading.caption);
                     if (captionScore < confidence.caption) continue;
 
                     if (captionScore >= highestLoadingCaptionScore) {
@@ -567,23 +623,27 @@ Item {
         logE('Timeout restore for client: ' + clientName + ' loading count: ' + windowData.loading.length + ' expectedConfidence: ' + expectedConfidence + ' minConfidence: ' + minConfidence + ' repeats: ' + repeats);
 
         if (expectedConfidence > 0 && repeats > 0) {
-            if (windowData.lastNonMatchingIndex != undefined && getHighestCaptionScore(windowData, windowData.loading[windowData.lastNonMatchingIndex]) < expectedConfidence) {
-                logE('Still could not find a match for caption: ' + windowData.loading[windowData.lastNonMatchingIndex].caption);
-                restoreTimer.setTimeout(1000, clientName, expectedConfidence, minConfidence, repeats - 1);
-                return;
-            }
-
-            for (let i = 0; i < windowData.loading.length; i++) {
-                if (getHighestCaptionScore(windowData, windowData.loading[i]) < expectedConfidence) {
-                    logE('Could not find a match for caption: ' + windowData.loading[i].caption);
-                    windowData.lastNonMatchingIndex = i;
+            if (windowData.restoredTotal == windowData.windowCountLastSession - 1 && windowData.loading.length == windowData.windowCountLastSession && windowData.saved.length == windowData.windowCountLastSession) {
+                log('Only a single window unmatched - restore it even if not matching...');
+            } else {
+                if (windowData.lastNonMatchingIndex != undefined && !windowData.loading[windowData.lastNonMatchingIndex].rwp_save && (config.ignoreNumbers ? getHighestCaptionScoreIgnoreNumbers(windowData, windowData.loading[windowData.lastNonMatchingIndex], true) : getHighestCaptionScore(windowData, windowData.loading[windowData.lastNonMatchingIndex], true)) < expectedConfidence) {
+                    logE('Still could not find a match for caption: ' + windowData.loading[windowData.lastNonMatchingIndex].caption);
                     restoreTimer.setTimeout(1000, clientName, expectedConfidence, minConfidence, repeats - 1);
                     return;
+                }
+
+                for (let i = 0; i < windowData.loading.length; i++) {
+                    if (!windowData.loading[i].rwp_save && (config.ignoreNumbers ? getHighestCaptionScoreIgnoreNumbers(windowData, windowData.loading[i], true) : getHighestCaptionScore(windowData, windowData.loading[i], true)) < expectedConfidence) {
+                        logE('Could not find a match for caption: ' + windowData.loading[i].caption);
+                        windowData.lastNonMatchingIndex = i;
+                        restoreTimer.setTimeout(1000, clientName, expectedConfidence, minConfidence, repeats - 1);
+                        return;
+                    }
                 }
             }
         }
 
-        if (windowData.lastNonMatchingIndex) {
+        if (windowData.lastNonMatchingIndex != undefined) {
             delete windowData.lastNonMatchingIndex;
         }
 
@@ -747,6 +807,7 @@ Item {
                 windowCount: 0,
                 windowCountLastSession: 0,
                 instantMatchRestored: 0,
+                restoredTotal: 0,
                 loading: [],
                 closed: [],
                 saved: []
@@ -756,59 +817,116 @@ Item {
         let windowData = config.windows[client.resourceClass];
         windowData.windowCount++;
 
-        if (restore && windowData.saved.length > 0) {
-            let repeats = config.multiWindowRestoreAttempts;
-            if (config.usePerfectMultiWindowRestore && isOnPerfectList(client.resourceClass)) {
-                repeats = config.perfectMultiWindowRestoreAttempts;
+        let repeats = config.multiWindowRestoreAttempts;
+        if (config.usePerfectMultiWindowRestore && isOnPerfectList(client.resourceClass)) {
+            repeats = config.perfectMultiWindowRestoreAttempts;
+        }
+
+        function onCaptionChangedCheckOnce() {
+            client.captionChanged.disconnect(onCaptionChangedCheckOnce);
+            log('Caption changed (check once) ' + JSON.stringify(client.internalId));
+            if (restore) {
+                let captionChangeTime = repeats * 1000 + 1000 + (windowData.windowCountLastSession * 100);
+                if (Date.now() - client.rwp_captionListenerCheckOnce <= captionChangeTime) {
+                    if (config.instantRestore) {
+                        let captionScoreAndIndex = config.ignoreNumbers ? getHighestCaptionScoreIgnoreNumbers(windowData, client, true, true) : getHighestCaptionScore(windowData, client, true, true);
+                        if (captionScoreAndIndex[1] != -1 && captionScoreAndIndex[0] == 100) {
+                            // Found a 100% match after caption change, restore everything except z-index
+                            logE('Found multi-window perfect match, restoring window - z index will be restored later');
+                            let saved = windowData.saved[captionScoreAndIndex[1]];
+                            restoreWindowPlacement(saved, client, 100, currentConfig, false);
+                            client.rwp_save = saved;
+                            saved.alreadyMatched = true;
+                            windowData.restoredTotal++;
+                            windowData.instantMatchRestored++;
+
+                            if (windowData.windowCountLastSession == windowData.saved.length) {
+                                if ((windowData.restoredTotal == windowData.windowCountLastSession && windowData.restoredTotal == windowData.loading.length) ||
+                                    (windowData.restoredTotal == windowData.windowCountLastSession - 1 && windowData.restoredTotal == windowData.loading.length - 1)) {
+                                    // All windows have been restored (or only 1 has not been in which case we can still restore it)
+                                    restoreTimer.setTimeout(1000, client.resourceClass, 0, 0, 0);
+                                }
+                            }
+                        }
+                    }
+                }
             }
+        }
+
+        if (restore && windowData.saved.length > 0) {
             logE('windowCountLastSession: ' + windowData.windowCountLastSession + ' windowCount: ' + windowData.windowCount);
             if (currentConfig.override && currentConfig.window) {
                 log('addWindow single window overriden - restoring');
-                let matchSaveIndex = windowData.saved.findIndex((s) => client.caption === s.caption && client.width === s.width && client.height === s.height);
-                if (matchSaveIndex < 0) {
-                    matchSaveIndex = windowData.saved.findIndex((s) => client.caption === s.caption);
-                }
-                if (matchSaveIndex >= 0) {
-                    let saved = windowData.saved[matchSaveIndex];
+                let captionScoreAndIndex = config.ignoreNumbers ? getHighestCaptionScoreIgnoreNumbers(windowData, client, true, true) : getHighestCaptionScore(windowData, client, true, true);
+                if (captionScoreAndIndex[1] != -1 && captionScoreAndIndex[0] == 100) {
+                    let saved = windowData.saved[captionScoreAndIndex[1]];
+                    if (windowData.windowCountLastSession == 1 && windowData.saved.length == 1) {
+                        restoreWindowPlacement(saved, client, 100, currentConfig, false, config.moveVirtualDesktop, config.moveActivity);
+                    } else {
+                        restoreWindowPlacement(saved, client, 100, currentConfig, false);
+                    }
                     client.rwp_save = saved;
-                    restoreWindowPlacement(saved, client, 100, currentConfig, false);
+                    saved.alreadyMatched = true;
+                    windowData.restoredTotal++;
+                    windowData.loading.push(client);
+                    // Some windows cannot be moved right when they open, add a backup timer to move it if the above restore failed to move the window (example - Watcher of Realms)
+                    restoreTimer.setTimeout(1000, client.resourceClass, 100, 100, 0);
                 }
-                // Some windows cannot be moved right when they open, add a backup timer to move it if the above restore failed to move the window (example - Watcher of Realms)
-                windowData.loading.push(client);
-                restoreTimer.setTimeout(1000, client.resourceClass, 100, 100, 0);
             } else if (windowData.windowCountLastSession == 1 && windowData.saved.length == 1) {
                 if (!config.appsMultiWindowOnly || currentConfig.override) {
                     // Single window application - just restore it to last known state
-                    let captionScore = getHighestCaptionScore(windowData, client);
+                    let captionScore = config.ignoreNumbers ? getHighestCaptionScoreIgnoreNumbers(windowData, client, true) : getHighestCaptionScore(windowData, client, true);
                     let saved = windowData.saved[0];
                     restoreWindowPlacement(saved, client, captionScore, currentConfig, false, config.moveVirtualDesktop, config.moveActivity);
-                    // Some windows cannot be moved right when they open, add a backup timer to move it if the above restore failed to move the window (example - Watcher of Realms)
+                    client.rwp_save = saved;
+                    saved.alreadyMatched = true;
+                    windowData.restoredTotal++;
                     windowData.loading.push(client);
+                    // Some windows cannot be moved right when they open, add a backup timer to move it if the above restore failed to move the window (example - Watcher of Realms)
                     restoreTimer.setTimeout(1000, client.resourceClass, 0, 0, 0);
                 }
+            } else if (windowData.windowCountLastSession == windowData.saved.length && windowData.restoredTotal == windowData.windowCountLastSession - 1 && windowData.restoredTotal == windowData.loading.length) {
+                logDev('Last window not matched - instant restore...');
+                // Last window that has not been matched - just restore it to last known state
+                let captionScoreAndIndex = config.ignoreNumbers ? getHighestCaptionScoreIgnoreNumbers(windowData, client, true, true) : getHighestCaptionScore(windowData, client, true, true);
+                if (captionScoreAndIndex[1] != -1) {
+                    let saved = windowData.saved[captionScoreAndIndex[1]];
+                    restoreWindowPlacement(saved, client, captionScoreAndIndex[0], currentConfig, false, config.moveVirtualDesktop, config.moveActivity);
+                    client.rwp_save = saved;
+                    saved.alreadyMatched = true;
+                    windowData.restoredTotal++;
+                    // Some windows cannot be moved right when they open, add a backup timer to move it if the above restore failed to move the window (example - Watcher of Realms)
+                    windowData.loading.push(client);
+                }
+                restoreTimer.setTimeout(1000, client.resourceClass, 0, 0, 0);
             } else {
                 if (config.instantRestore) {
-                    let instantMatchSaveIndex = windowData.saved.findIndex((s) => client.caption === s.caption && client.width === s.width && client.height === s.height);
-                    if (instantMatchSaveIndex != -1) {
+                    let captionScoreAndIndex = config.ignoreNumbers ? getHighestCaptionScoreIgnoreNumbers(windowData, client, true, true) : getHighestCaptionScore(windowData, client, true, true);
+                    if (captionScoreAndIndex[1] != -1 && captionScoreAndIndex[0] == 100) {
                         // Instantly found a 100% match, restore everything except z-index
                         logE('Found multi-window perfect match, instant restoring window - z index will be restored later');
-                        restoreWindowPlacement(windowData.saved[instantMatchSaveIndex], client, 100, currentConfig, false);
-                        client.rwp_save = windowData.saved[instantMatchSaveIndex];
+                        let saved = windowData.saved[captionScoreAndIndex[1]];
+                        restoreWindowPlacement(saved, client, 100, currentConfig, false);
+                        client.rwp_save = saved;
+                        saved.alreadyMatched = true;
+                        windowData.restoredTotal++;
                         windowData.instantMatchRestored++;
                     }
+                }
+
+                if (!currentConfig.listenToCaptionChange && !client.rwp_save) {
+                    client.rwp_captionListenerCheckOnce = Date.now();
+                    client.captionChanged.connect(onCaptionChangedCheckOnce);
+                    log('Connecting caption change listener (check once) ' + JSON.stringify(client.internalId));
                 }
 
                 windowData.loading.push(client);
 
                 // Backup timer - if captions do not match enough by the timeout, this makes sure windows are restored to best ability
-                restoreTimer.setTimeout(repeats * 1000 + 1000 + (windowData.windowCountLastSession * 100), client.resourceClass, 0, config.minimumCaptionMatch, 0);
+                restoreTimer.setTimeout(repeats * 1000 + 2000 + (windowData.windowCountLastSession * 100), client.resourceClass, 0, config.minimumCaptionMatch, 0, true);
 
                 // All windows from previous session have opened, try to restore based on best caption and size match with minimum caption match of 85
                 if (windowData.windowCountLastSession <= windowData.windowCount || currentConfig.rememberAlways) {
-                    // TODO: In case I ever implement caption change listener
-                    // TODO: Match captions and if mismatch do:
-                    // client.onCaptionChanged.connect(onCaptionChanged);
-
                     log('All windows for ' + client.resourceClass + ' loaded - windowCountLastSession: ' + windowData.windowCountLastSession + ' instantMatchRestored: ' + windowData.instantMatchRestored);
 
                     if (windowData.instantMatchRestored > 0 && windowData.instantMatchRestored == windowData.windowCountLastSession) {
@@ -869,7 +987,8 @@ Item {
                     serialNumber: client.output.serialNumber,
                     name: client.output.name
                 },
-                sessionRestore : false
+                sessionRestore : false,
+                alreadyMatched : false
             };
 
             if (currentConfig.rememberAlways) {
@@ -886,11 +1005,18 @@ Item {
                 if (client.rwp_save) {
                     let saveIndex = windowData.saved.indexOf(client.rwp_save);
                     if (saveIndex >= 0) {
-                        log('remove saved duplicate window with caption: ' + windowData.saved[saveIndex].caption);
+                        log('remove non yet restored saved duplicate window with caption: ' + windowData.saved[saveIndex].caption);
                         windowData.saved.splice(saveIndex, 1);
 
                         delete client.rwp_save;
                     }
+                }
+
+                // Delete previous save to avoid duplicates in case caption changed after restoration
+                let saveIndex = windowData.saved.findIndex((s) => currentWindowData.caption === s.caption);
+                if (saveIndex >= 0) {
+                    log('remove non matched saved duplicate window with caption: ' + windowData.saved[saveIndex].caption);
+                    windowData.saved.splice(saveIndex, 1);
                 }
 
                 windowData.saved.push(currentWindowData);
@@ -915,6 +1041,7 @@ Item {
                 windowData.loading = [];
                 windowData.lastAccessTime = Date.now();
                 windowData.windowCountLastSession = 0;
+                windowData.restoredTotal = 0;
 
                 var saving = windowData.closed.pop();
                 var lastValidClosingTime = Date.now();
@@ -1081,14 +1208,27 @@ Item {
         property var timeoutIsRunning: false
         property var timeoutData: []
 
-        function setTimeout(delay, name, expectedConfidence, minConfidence, repeats) {
-            logE('Setting timeout for ' + delay + ' isRunning: ' + timeoutIsRunning + ' timer count: ' + timeoutData.length);
-            timeoutData.push({time: Date.now() + delay, name: name, expectedConfidence: expectedConfidence, minConfidence: minConfidence, repeats: repeats});
+        function setTimeout(delay, name, expectedConfidence, minConfidence, repeats, update = false) {
+            let updated = false;
+            logE('Setting timeout for ' + delay + ' isRunning: ' + timeoutIsRunning + ' timer count: ' + timeoutData.length + ' update: ' + update);
+            if (update) {
+                let matchTimerIndex = timeoutData.findIndex((t) => name === t.name && expectedConfidence === t.expectedConfidence && minConfidence === t.minConfidence && repeats === t.repeats);
+                if (matchTimerIndex >= 0) {
+                    let newTime = Date.now() + delay;
+                    if (timeoutData[matchTimerIndex].time < newTime) {
+                        timeoutData[matchTimerIndex].time = newTime;
+                    }
+                    updated = true;
+                }
+            }
+            if (!updated) {
+                timeoutData.push({time: Date.now() + delay, name: name, expectedConfidence: expectedConfidence, minConfidence: minConfidence, repeats: repeats});
+            }
             timeoutData.sort((a, b) => a.time - b.time);
 
             if (!timeoutIsRunning) {
                 restoreTimer.interval = 250;
-                restoreTimer.repeat = true,
+                restoreTimer.repeat = true;
                 restoreTimer.triggered.connect(onTimeoutTriggered);
                 timeoutIsRunning = true;
 
@@ -1137,6 +1277,7 @@ Item {
                 windowCountLastSession : window.w, // windowCountLastSession
                 windowCount            : 0,        // windowCount
                 instantMatchRestored   : 0,        // instantMatchRestored
+                restoredTotal          : 0,        // restoredTotal
                 loading                : [],       // loading
                 closed                 : []        // closed
             }
@@ -1164,7 +1305,8 @@ Item {
                         serialNumber : save.p.s,    // serialNumber
                         name         : save.p.n     // name
                     } : undefined,
-                    sessionRestore   : save.z == 1  // sessionRestore
+                    sessionRestore   : save.z == 1,  // sessionRestore
+                    alreadyMatched   : false         // alreadyMatched
                     // --- Omitted fields ---
                     // closeTime  : save.t          // closeTime
                     // internalId : save.i          // internalId
@@ -1199,6 +1341,7 @@ Item {
                     // --- Omitted fields ---
                     // c: window.windowCount          // windowCount
                     // i: window.instantMatchRestored // instantMatchRestored
+                    //  : window.restoredTotal        // restoredTotal
                     // o: window.loading              // loading
                     // e: window.closed               // closed
                 };
@@ -1228,6 +1371,7 @@ Item {
                         // --- Omitted fields ---
                         // t: save.closeTime               // closeTime
                         // i: save.internalId              // internalId
+                        //  : save.alreadyMatched          // alreadyMatched
                     });
                 }
             }
