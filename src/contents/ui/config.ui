@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>1188</width>
-    <height>730</height>
+    <height>671</height>
    </rect>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
@@ -25,6 +25,16 @@
        <string>General</string>
       </attribute>
       <layout class="QVBoxLayout" name="verticalLayout_general">
+       <item>
+        <widget class="QLabel" name="label_18">
+         <property name="text">
+          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; color:#ff0000;&quot;&gt;If you are using older hardware, have poor internet speed, or are for any other reasons experiencing issues with window restoration - please increase the &lt;/span&gt;&lt;span style=&quot; font-weight:700; color:#ff0000;&quot;&gt;Restore Attempts&lt;/span&gt;&lt;span style=&quot; color:#ff0000;&quot;&gt; and &lt;/span&gt;&lt;span style=&quot; font-weight:700; color:#ff0000;&quot;&gt;Perfect Restore Attempts&lt;/span&gt;&lt;span style=&quot; color:#ff0000;&quot;&gt; in the &lt;/span&gt;&lt;span style=&quot; font-weight:700; color:#ff0000;&quot;&gt;Multi-Window Restore&lt;/span&gt;&lt;span style=&quot; color:#ff0000;&quot;&gt; tab - the default settings should be sufficient for most people with modern hardware and decent internet speeds.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+         </property>
+         <property name="wordWrap">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
        <item>
         <widget class="QLabel" name="label_16">
          <property name="text">
@@ -192,72 +202,6 @@
         </widget>
        </item>
        <item>
-        <widget class="QGroupBox" name="groupBox_minimumCaptionMatch">
-         <property name="title">
-          <string>Minimum Caption Match Percentage</string>
-         </property>
-         <layout class="QVBoxLayout" name="verticalLayout_minimumCaptionMatch" stretch="0,0,0">
-          <item>
-           <widget class="QLabel" name="label_minimumCaptionMatchExplanation">
-            <property name="text">
-             <string>Restore only windows that reach this level of caption (window title) match percentage. If a re-opened windows caption match does not reach this level, it will not be restored at all (left with default size and position). Set to 0 to restore all windows to best ability. Some window captions contain information such as number of messages - this means the caption won't match 100%. Because of this, it is not recommended to set this value higher than 85%.</string>
-            </property>
-            <property name="wordWrap">
-             <bool>true</bool>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QSlider" name="kcfg_minimumCaptionMatch">
-            <property name="maximum">
-             <number>100</number>
-            </property>
-            <property name="orientation">
-             <enum>Qt::Orientation::Horizontal</enum>
-            </property>
-            <property name="tickPosition">
-             <enum>QSlider::TickPosition::TicksBelow</enum>
-            </property>
-            <property name="tickInterval">
-             <number>2</number>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <layout class="QHBoxLayout" name="hBoxLayout_minimumCaptionMatch">
-            <item>
-             <widget class="QLabel" name="label_minimumCaptionMatchMin">
-              <property name="text">
-               <string>  0</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QLabel" name="label_minimumCpationMatchInfo">
-              <property name="text">
-               <string>%</string>
-              </property>
-              <property name="alignment">
-               <set>Qt::AlignmentFlag::AlignCenter</set>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QLabel" name="label_minimumCaptionMatchMax">
-              <property name="text">
-               <string>100</string>
-              </property>
-              <property name="alignment">
-               <set>Qt::AlignmentFlag::AlignRight|Qt::AlignmentFlag::AlignTrailing|Qt::AlignmentFlag::AlignVCenter</set>
-              </property>
-             </widget>
-            </item>
-           </layout>
-          </item>
-         </layout>
-        </widget>
-       </item>
-       <item>
         <widget class="QGroupBox" name="groupBox">
          <property name="title">
           <string>Multi-monitor behavior</string>
@@ -317,6 +261,9 @@
          <property name="orientation">
           <enum>Qt::Orientation::Vertical</enum>
          </property>
+         <property name="sizeType">
+          <enum>QSizePolicy::Policy::MinimumExpanding</enum>
+         </property>
          <property name="sizeHint" stdset="0">
           <size>
            <width>0</width>
@@ -328,9 +275,9 @@
       </layout>
       <zorder>verticalSpacer_general</zorder>
       <zorder>groupBox_restoreType</zorder>
-      <zorder>groupBox_minimumCaptionMatch</zorder>
       <zorder>groupBox</zorder>
       <zorder>label_16</zorder>
+      <zorder>label_18</zorder>
      </widget>
      <widget class="QWidget" name="tab">
       <attribute name="icon">
@@ -573,6 +520,12 @@ When upgrading from an earlier version, a reboot might be required to enable the
           </item>
           <item>
            <widget class="QPlainTextEdit" name="kcfg_perfectMultiWindowRestoreList">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Expanding" vsizetype="MinimumExpanding">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
             <property name="maximumSize">
              <size>
               <width>16777215</width>
@@ -583,6 +536,22 @@ When upgrading from an earlier version, a reboot might be required to enable the
           </item>
          </layout>
         </widget>
+       </item>
+       <item>
+        <spacer name="verticalSpacer_3">
+         <property name="orientation">
+          <enum>Qt::Orientation::Vertical</enum>
+         </property>
+         <property name="sizeType">
+          <enum>QSizePolicy::Policy::MinimumExpanding</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>0</width>
+           <height>0</height>
+          </size>
+         </property>
+        </spacer>
        </item>
       </layout>
      </widget>
@@ -835,10 +804,13 @@ When upgrading from an earlier version, a reboot might be required to enable the
          <property name="orientation">
           <enum>Qt::Orientation::Vertical</enum>
          </property>
+         <property name="sizeType">
+          <enum>QSizePolicy::Policy::MinimumExpanding</enum>
+         </property>
          <property name="sizeHint" stdset="0">
           <size>
-           <width>20</width>
-           <height>40</height>
+           <width>0</width>
+           <height>0</height>
           </size>
          </property>
         </spacer>
@@ -869,6 +841,12 @@ When upgrading from an earlier version, a reboot might be required to enable the
           </item>
           <item>
            <widget class="QPlainTextEdit" name="kcfg_blacklist">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Expanding" vsizetype="MinimumExpanding">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
             <property name="lineWrapMode">
              <enum>QPlainTextEdit::LineWrapMode::NoWrap</enum>
             </property>
@@ -913,6 +891,12 @@ When upgrading from an earlier version, a reboot might be required to enable the
           </item>
           <item>
            <widget class="QPlainTextEdit" name="kcfg_whitelist">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Expanding" vsizetype="MinimumExpanding">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
             <property name="plainText">
              <string/>
             </property>
@@ -1028,6 +1012,82 @@ When upgrading from an earlier version, a reboot might be required to enable the
         </widget>
        </item>
        <item>
+        <widget class="QGroupBox" name="groupBox_minimumCaptionMatch">
+         <property name="title">
+          <string>Minimum Caption Match Percentage</string>
+         </property>
+         <layout class="QVBoxLayout" name="verticalLayout_minimumCaptionMatch" stretch="0,0,0,0">
+          <item>
+           <widget class="QLabel" name="label_17">
+            <property name="text">
+             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; color:#ff0000;&quot;&gt;WARNING - this used to be a valid way to filter windows, but is now considered obsolete. You can still use it if you need it, but it is recommended to be left at 0 for almost everyone.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+            </property>
+            <property name="wordWrap">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLabel" name="label_minimumCaptionMatchExplanation">
+            <property name="text">
+             <string>Restore only windows that reach this level of caption (window title) match percentage. If a re-opened windows caption match does not reach this level, it will not be restored at all (left with default size and position). Set to 0 to restore all windows to best ability. Some window captions contain information such as number of messages - this means the caption won't match 100%. Because of this, it is not recommended to set this value higher than 85%.</string>
+            </property>
+            <property name="wordWrap">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QSlider" name="kcfg_minimumCaptionMatch">
+            <property name="maximum">
+             <number>100</number>
+            </property>
+            <property name="orientation">
+             <enum>Qt::Orientation::Horizontal</enum>
+            </property>
+            <property name="tickPosition">
+             <enum>QSlider::TickPosition::TicksBelow</enum>
+            </property>
+            <property name="tickInterval">
+             <number>2</number>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <layout class="QHBoxLayout" name="hBoxLayout_minimumCaptionMatch">
+            <item>
+             <widget class="QLabel" name="label_minimumCaptionMatchMin">
+              <property name="text">
+               <string>  0</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLabel" name="label_minimumCpationMatchInfo">
+              <property name="text">
+               <string>%</string>
+              </property>
+              <property name="alignment">
+               <set>Qt::AlignmentFlag::AlignCenter</set>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLabel" name="label_minimumCaptionMatchMax">
+              <property name="text">
+               <string>100</string>
+              </property>
+              <property name="alignment">
+               <set>Qt::AlignmentFlag::AlignRight|Qt::AlignmentFlag::AlignTrailing|Qt::AlignmentFlag::AlignVCenter</set>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
         <widget class="QGroupBox" name="groupBox_debug">
          <property name="title">
           <string>Debug Settings</string>
@@ -1065,10 +1125,13 @@ When upgrading from an earlier version, a reboot might be required to enable the
          <property name="orientation">
           <enum>Qt::Orientation::Vertical</enum>
          </property>
+         <property name="sizeType">
+          <enum>QSizePolicy::Policy::MinimumExpanding</enum>
+         </property>
          <property name="sizeHint" stdset="0">
           <size>
-           <width>20</width>
-           <height>40</height>
+           <width>0</width>
+           <height>0</height>
           </size>
          </property>
         </spacer>
@@ -1078,92 +1141,7 @@ When upgrading from an earlier version, a reboot might be required to enable the
     </widget>
    </item>
    <item>
-    <layout class="QHBoxLayout" name="hBoxLayout_bottomInformation">
-     <item>
-      <widget class="QLabel" name="label_2">
-       <property name="sizePolicy">
-        <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
-         <horstretch>0</horstretch>
-         <verstretch>0</verstretch>
-        </sizepolicy>
-       </property>
-       <property name="mouseTracking">
-        <bool>true</bool>
-       </property>
-       <property name="toolTip">
-        <string>https://discord.gg/Js6AYsnQQj</string>
-       </property>
-       <property name="text">
-        <string>&amp;nbsp;&lt;a href=&quot;https://discord.gg/Js6AYsnQQj&quot;&gt;Discord page&lt;/a&gt;</string>
-       </property>
-       <property name="margin">
-        <number>0</number>
-       </property>
-       <property name="openExternalLinks">
-        <bool>true</bool>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QLabel" name="label_webpageLink">
-       <property name="sizePolicy">
-        <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
-         <horstretch>0</horstretch>
-         <verstretch>0</verstretch>
-        </sizepolicy>
-       </property>
-       <property name="toolTip">
-        <string>https://github.com/rxappdev/RememberWindowPositions</string>
-       </property>
-       <property name="text">
-        <string>&lt;a href=&quot;https://github.com/rxappdev/RememberWindowPositions&quot;&gt;Github page&lt;/a&gt;</string>
-       </property>
-       <property name="margin">
-        <number>0</number>
-       </property>
-       <property name="openExternalLinks">
-        <bool>true</bool>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QLabel" name="label_3">
-       <property name="sizePolicy">
-        <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
-         <horstretch>0</horstretch>
-         <verstretch>0</verstretch>
-        </sizepolicy>
-       </property>
-       <property name="mouseTracking">
-        <bool>true</bool>
-       </property>
-       <property name="toolTip">
-        <string>https://buymeacoffee.com/rxappdev</string>
-       </property>
-       <property name="text">
-        <string>&lt;a href=&quot;https://buymeacoffee.com/rxappdev&quot;&gt;Buy me a coffee&lt;/a&gt;&amp;nbsp;&amp;nbsp;&lt;b style=&quot;color:#FF0000&quot;&gt;❤&lt;/b&gt;</string>
-       </property>
-       <property name="margin">
-        <number>0</number>
-       </property>
-       <property name="openExternalLinks">
-        <bool>true</bool>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QLabel" name="label_7">
-       <property name="toolTip">
-        <string>https://patreon.com/rxappdev</string>
-       </property>
-       <property name="text">
-        <string>&lt;a href=&quot;https://patreon.com/rxappdev&quot;&gt;Patreon&lt;/a&gt;&amp;nbsp;&amp;nbsp;&lt;b style=&quot;color:#FF0000&quot;&gt;❤&lt;/b&gt;</string>
-       </property>
-       <property name="openExternalLinks">
-        <bool>true</bool>
-       </property>
-      </widget>
-     </item>
+    <layout class="QVBoxLayout" name="vBoxLayout_bottomInformation">
      <item>
       <widget class="QLabel" name="label_reloadInstructions">
        <property name="font">
@@ -1178,18 +1156,126 @@ When upgrading from an earlier version, a reboot might be required to enable the
         <string/>
        </property>
        <property name="text">
-        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; color:#ff0000;&quot;&gt;To apply changes, please disable (untick then click &amp;quot;Apply&amp;quot;), and re-enable (tick then click &amp;quot;Apply&amp;quot;) the script (limitation of KDE)&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; color:#ff0000;&quot;&gt;To apply changes, please reboot or reload the script on the previous screen (disable - untick then click &amp;quot;Apply&amp;quot;, and re-enable - tick then click &amp;quot;Apply&amp;quot;.) (Limitation of KDE.)&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
        </property>
        <property name="scaledContents">
         <bool>false</bool>
        </property>
        <property name="alignment">
-        <set>Qt::AlignmentFlag::AlignRight|Qt::AlignmentFlag::AlignTrailing|Qt::AlignmentFlag::AlignVCenter</set>
-       </property>
-       <property name="margin">
-        <number>8</number>
+        <set>Qt::AlignmentFlag::AlignCenter</set>
        </property>
       </widget>
+     </item>
+     <item>
+      <layout class="QHBoxLayout" name="hBoxLayout_bottomInformation">
+       <item>
+        <widget class="QLabel" name="label_2">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="mouseTracking">
+          <bool>true</bool>
+         </property>
+         <property name="toolTip">
+          <string>https://discord.gg/Js6AYsnQQj</string>
+         </property>
+         <property name="text">
+          <string>&amp;nbsp;&lt;a href=&quot;https://discord.gg/Js6AYsnQQj&quot;&gt;Discord page&lt;/a&gt;</string>
+         </property>
+         <property name="margin">
+          <number>0</number>
+         </property>
+         <property name="openExternalLinks">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QLabel" name="label_webpageLink">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="toolTip">
+          <string>https://github.com/rxappdev/RememberWindowPositions</string>
+         </property>
+         <property name="text">
+          <string>&lt;a href=&quot;https://github.com/rxappdev/RememberWindowPositions&quot;&gt;Github page&lt;/a&gt;</string>
+         </property>
+         <property name="margin">
+          <number>0</number>
+         </property>
+         <property name="openExternalLinks">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QLabel" name="label_3">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="mouseTracking">
+          <bool>true</bool>
+         </property>
+         <property name="toolTip">
+          <string>https://buymeacoffee.com/rxappdev</string>
+         </property>
+         <property name="text">
+          <string>&lt;a href=&quot;https://buymeacoffee.com/rxappdev&quot;&gt;Buy me a coffee&lt;/a&gt;&amp;nbsp;&amp;nbsp;&lt;b style=&quot;color:#FF0000&quot;&gt;❤&lt;/b&gt;</string>
+         </property>
+         <property name="margin">
+          <number>0</number>
+         </property>
+         <property name="openExternalLinks">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QLabel" name="label_7">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="toolTip">
+          <string>https://patreon.com/rxappdev</string>
+         </property>
+         <property name="text">
+          <string>&lt;a href=&quot;https://patreon.com/rxappdev&quot;&gt;Patreon&lt;/a&gt;&amp;nbsp;&amp;nbsp;&lt;b style=&quot;color:#FF0000&quot;&gt;❤&lt;/b&gt;</string>
+         </property>
+         <property name="openExternalLinks">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QLabel" name="label_19">
+         <property name="toolTip">
+          <string>https://github.com/rxappdev/MouseTiler</string>
+         </property>
+         <property name="text">
+          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Designed to work optimally with my &lt;a href=&quot;https://github.com/rxappdev/MouseTiler&quot;&gt;&lt;span style=&quot; text-decoration: underline; color:#007af4;&quot;&gt;Mouse Tiler&lt;/span&gt;&lt;/a&gt;. Use it to effortlessly place windows, and this script to restore them.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignmentFlag::AlignCenter</set>
+         </property>
+         <property name="openExternalLinks">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+      </layout>
      </item>
     </layout>
    </item>
