@@ -198,6 +198,16 @@
             </property>
            </widget>
           </item>
+          <item>
+            <widget class="QCheckBox" name="kcfg_restoreTile">
+              <property name="text">
+                <string>Restore window tile position - If enabled, windows that were placed in KWin tiles will be restored to their exact tile positions</string>
+              </property>
+              <property name="checked">
+                <bool>true</bool>
+              </property>
+            </widget>
+          </item>
          </layout>
         </widget>
        </item>
