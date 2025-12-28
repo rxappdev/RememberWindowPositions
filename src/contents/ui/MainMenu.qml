@@ -12,8 +12,6 @@ ApplicationWindow {
     property var defaultConfig: {}
     property var currentApplicationIndex: -1
     property var currentWindowIndex: -1
-    // property var isX11: Qt.platform.pluginName == 'xcb'
-    // property var showFirstTimeHint: false
     property var mouseStartX
     property var mouseStartY
     property var windowStartX
@@ -49,10 +47,7 @@ ApplicationWindow {
     title: "Remember Window Positions - Per Application/Window Configuration"
     color: Kirigami.Theme.backgroundColor
     flags: Qt.FramelessWindowHint | Qt.Window | Qt.BypassWindowManagerHint
-    // flags: ixX11 ? Qt.X11BypassWindowManagerHint : flags
 
-    // x: isX11 ? Workspace.virtualScreenSize.width / 2 - width / 2 : x
-    // y: isX11 ? Workspace.virtualScreenSize.height / 2 - height / 2 : y
     x: Workspace.virtualScreenSize.width / 2 - width / 2
     y: Workspace.virtualScreenSize.height / 2 - height / 2
 
@@ -60,7 +55,6 @@ ApplicationWindow {
         currentOverrides = JSON.parse(JSON.stringify(overrides));
         currentApplicationIndex = -1;
         currentWindowIndex = -1;
-        // firstTimeHint.visible = showFirstTimeHint;
         mainChoice.visible = true;
         editSaved.visible = false;
         initApplications();
@@ -102,7 +96,8 @@ ApplicationWindow {
                     activity: defaultConfig.activity,
                     minimized: defaultConfig.minimized,
                     keepAbove: defaultConfig.keepAbove,
-                    keepBelow: defaultConfig.keepBelow
+                    keepBelow: defaultConfig.keepBelow,
+                    tile: defaultConfig.tile
                 },
                 windows: {}
             };
@@ -122,7 +117,8 @@ ApplicationWindow {
                 activity: defaultConfig.activity,
                 minimized: defaultConfig.minimized,
                 keepAbove: defaultConfig.keepAbove,
-                keepBelow: defaultConfig.keepBelow
+                keepBelow: defaultConfig.keepBelow,
+                tile: defaultConfig.tile
             };
         }
     }
@@ -188,6 +184,7 @@ ApplicationWindow {
                 aMinimized.checked = config.minimized;
                 aKeepAbove.checked = config.keepAbove;
                 aKeepBelow.checked = config.keepBelow;
+                aTile.checked = config.tile;
                 applicationUpdated = true;
 
                 if (currentWindowIndex >= 0) {
@@ -206,6 +203,7 @@ ApplicationWindow {
                         wMinimized.checked = window.minimized;
                         wKeepAbove.checked = window.keepAbove;
                         wKeepBelow.checked = window.keepBelow;
+                        wTile.checked = window.tile;
                         windowUpdated = true;
                     }
                 }
@@ -228,6 +226,7 @@ ApplicationWindow {
             aMinimized.checked = defaultConfig.minimized;
             aKeepAbove.checked = defaultConfig.keepAbove;
             aKeepBelow.checked = defaultConfig.keepBelow;
+            aTile.checked = defaultConfig.tile;
         }
 
         if (!windowUpdated) {
@@ -243,6 +242,7 @@ ApplicationWindow {
             wMinimized.checked = defaultConfig.minimized;
             wKeepAbove.checked = defaultConfig.keepAbove;
             wKeepBelow.checked = defaultConfig.keepBelow;
+            wTile.checked = defaultConfig.tile;
         }
     }
 
@@ -264,6 +264,7 @@ ApplicationWindow {
                         window.minimized = wMinimized.checked;
                         window.keepAbove = wKeepAbove.checked;
                         window.keepBelow = wKeepBelow.checked;
+                        window.tile = wTile.checked;
                     }
                 }
 
@@ -278,6 +279,7 @@ ApplicationWindow {
                 application.config.minimized = aMinimized.checked;
                 application.config.keepAbove = aKeepAbove.checked;
                 application.config.keepBelow = aKeepBelow.checked;
+                application.config.tile = aTile.checked;
             }
         }
     }
@@ -338,11 +340,6 @@ ApplicationWindow {
 
         updateCurrentData();
     }
-
-    // function closeHint() {
-    //     firstTimeHint.visible = false;
-    //     mainChoice.visible = true;
-    // }
 
     function editSavedAppOrWindow() {
         mainChoice.visible = false;
@@ -451,40 +448,6 @@ ApplicationWindow {
         visible: true
         anchors.fill: parent
         anchors.topMargin: header.height + 1
-
-        // GroupBox {
-        //     id: firstTimeHint
-        //     spacing: 5
-        //     anchors.left: parent.left
-        //     anchors.right: parent.right
-        //     anchors.verticalCenter: parent.verticalCenter
-        //     visible: showFirstTimeHint
-
-        //     ColumnLayout {
-        //         anchors.fill: parent
-
-        //         Label {
-        //             Layout.fillWidth: true
-        //             horizontalAlignment: Text.AlignHCenter
-        //             text: "Welcome to Remember Window Positions"
-        //             wrapMode: Text.WordWrap
-        //         }
-
-        //         Label {
-        //             Layout.fillWidth: true
-        //             text: "This window is only shown once after installation. To view it again, you need to use the \"<b>Remember Window Positions: Show Config</b>\" keyboard shortcut - \"<b>Meta+Ctrl+W</b>\" by default. If this keyboard shortcut does not work, please manually asign it (or any shortcut you like) in \"<b>System Settings > Keyboard > Shortcuts > Window Management > Remember Window Positions: Show Config</b>\"."
-        //             wrapMode: Text.WordWrap
-        //         }
-
-        //         Button {
-        //             text: "I Understand"
-        //             Layout.fillWidth: true
-        //             Layout.topMargin: 20
-
-        //             onClicked: closeHint()
-        //         }
-        //     }
-        // }
 
         ColumnLayout {
             anchors.left: parent.left
@@ -849,6 +812,11 @@ ApplicationWindow {
                                         text: "Keep Below"
                                         checked: defaultConfig.keepBelow
                                     }
+                                    CheckBox {
+                                        id: dTile
+                                        text: "Tile"
+                                        checked: defaultConfig.tile
+                                    }
                                 }
                             }
 
@@ -927,6 +895,11 @@ ApplicationWindow {
                                     CheckBox {
                                         id: aKeepBelow
                                         text: "Keep Below"
+                                        enabled: aOverride.checked
+                                    }
+                                    CheckBox {
+                                        id: aTile
+                                        text: "Tile"
                                         enabled: aOverride.checked
                                     }
                                 }
@@ -1008,6 +981,11 @@ ApplicationWindow {
                                     CheckBox {
                                         id: wKeepBelow
                                         text: "Keep Below"
+                                        enabled: wOverride.checked
+                                    }
+                                    CheckBox {
+                                        id: wTile
+                                        text: "Tile"
                                         enabled: wOverride.checked
                                     }
                                 }

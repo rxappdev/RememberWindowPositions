@@ -32,6 +32,10 @@
         <entry name="restoreWindowsWithoutCaption" type="Bool">
             <default>true</default>
         </entry>
+        <entry name="restoreTile" type="Bool">
+            <default>true</default>
+            <label>Restore window tile position</label>
+        </entry>
         <entry name="minimumCaptionMatch" type="Int">
             <default>0</default>
             <min>0</min>

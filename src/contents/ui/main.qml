@@ -155,6 +155,7 @@ Item {
             restoreMinimized: KWin.readConfig("restoreMinimized", true),
             restoreKeepAbove: KWin.readConfig("restoreKeepAbove", true),
             restoreKeepBelow: KWin.readConfig("restoreKeepBelow", true),
+            restoreTile: KWin.readConfig("restoreTile", true),
             restoreWindowsWithoutCaption: KWin.readConfig("restoreWindowsWithoutCaption", true),
             ignoreNumbers: KWin.readConfig("ignoreNumbers", true),
             minimumCaptionMatch: KWin.readConfig("minimumCaptionMatch", 0),
@@ -224,7 +225,8 @@ Item {
             activity: config.restoreActivities,
             minimized: config.restoreMinimized,
             keepAbove: config.restoreKeepAbove,
-            keepBelow: config.restoreKeepBelow
+            keepBelow: config.restoreKeepBelow,
+            tile: config.restoreTile
         };
     }
 
@@ -490,6 +492,22 @@ Item {
 
         // Restore screen
         // - this seems to be handled by restoring frame geometry as it spans all screens - if anything changes will have to implement this
+
+        // Restore tile
+        if (saveData.tile && windowConfig.tile) {
+            log('Attempting to restore window tile position');
+            let tile = findMatchingTile(saveData.tile, client);
+            if (tile) {
+                try {
+                    client.tile = tile;
+                    log('Tile restored successfully');
+                } catch (e) {
+                    logE('Failed to restore tile: ' + e);
+                }
+            } else {
+                log('Could not find matching tile');
+            }
+        }
 
         // Restore z-index
         if (restoreZ) {
@@ -987,6 +1005,7 @@ Item {
                     serialNumber: client.output.serialNumber,
                     name: client.output.name
                 },
+                tile: getTileInfo(client),
                 sessionRestore : false,
                 alreadyMatched : false
             };
@@ -1305,6 +1324,16 @@ Item {
                         serialNumber : save.p.s,    // serialNumber
                         name         : save.p.n     // name
                     } : undefined,
+                    tile             : save.t ? {                       // tile
+                        relativeGeometry : {
+                            x       : save.t.r.x,
+                            y       : save.t.r.y,
+                            width   : save.t.r.w,
+                            height  : save.t.r.h
+                        },
+                        outputName: save.t.o,
+                        outputSerialNumber: save.t.s
+                    } : undefined,
                     sessionRestore   : save.z == 1,  // sessionRestore
                     alreadyMatched   : false         // alreadyMatched
                     // --- Omitted fields ---
@@ -1366,6 +1395,16 @@ Item {
                             y: save.position.y,            // y
                             s: save.position.serialNumber, // serialNumber
                             n: save.position.name          // name
+                        } : undefined,
+                        t: save.tile ? {                       // tile
+                            r: {                               // relativeGeometry
+                                x: save.tile.relativeGeometry.x,
+                                y: save.tile.relativeGeometry.y,
+                                w: save.tile.relativeGeometry.width,
+                                h: save.tile.relativeGeometry.height
+                            },
+                            o: save.tile.outputName,           // outputName
+                            s: save.tile.outputSerialNumber    // outputSerialNumber
                         } : undefined,
                         z: save.sessionRestore ? 1 : 0     // sessionRestore
                         // --- Omitted fields ---
@@ -1561,6 +1600,88 @@ Item {
             identifyWindow = false;
             mainMenuWindow.windowSelected(client);
         }
+    }
+
+    function getTileInfo(client) {
+        if (!client.tile) return null;
+        
+        let tile = client.tile;
+        let tileInfo = {
+            relativeGeometry: {
+                x: tile.relativeGeometry.x,
+                y: tile.relativeGeometry.y,
+                width: tile.relativeGeometry.width,
+                height: tile.relativeGeometry.height
+            },
+            absoluteGeometry: {
+                x: tile.absoluteGeometry.x,
+                y: tile.absoluteGeometry.y,
+                width: tile.absoluteGeometry.width,
+                height: tile.absoluteGeometry.height
+            }
+        };
+        
+        // Extra: Save the Screen Information for Multi-Monitor-Setups
+        if (client.output) {
+            tileInfo.outputName = client.output.name;
+            tileInfo.outputSerialNumber = client.output.serialNumber;
+        }
+        
+        log('getTileInfo - relativeGeometry: ' + JSON.stringify(tileInfo.relativeGeometry));
+        return tileInfo;
+    }
+
+    function findMatchingTile(tileInfo, client) {
+        if (!tileInfo || !tileInfo.relativeGeometry) return null;
+        
+        // Try to match Tile from relativ Geometrie
+        let output = client.output;
+        
+        // If Screen is saved, try to find screen
+        if (tileInfo.outputSerialNumber && tileInfo.outputName) {
+            output = getOutputFromSave(tileInfo.outputSerialNumber, tileInfo.outputName, client.resourceClass);
+            if (!output) output = client.output;
+        }
+        
+        // Use TileManager to find matching tile
+        if (!Workspace.tilingForScreen) {
+            log('TileManager nicht verfügbar');
+            return null;
+        }
+        
+        let tiling = Workspace.tilingForScreen(output);
+        if (!tiling || !tiling.rootTile) {
+            log('Kein Root Tile gefunden für Screen');
+            return null;
+        }
+        
+        // Recursive function to find the matching tile
+        function findTileRecursive(tile, targetGeometry) {
+            if (!tile) return null;
+            
+            let rel = tile.relativeGeometry;
+            let match = Math.abs(rel.x - targetGeometry.x) < 0.01 &&
+                        Math.abs(rel.y - targetGeometry.y) < 0.01 &&
+                        Math.abs(rel.width - targetGeometry.width) < 0.01 &&
+                        Math.abs(rel.height - targetGeometry.height) < 0.01;
+            
+            if (match) {
+                log('Matching tile gefunden!');
+                return tile;
+            }
+            
+            // search child tiles
+            if (tile.tiles && tile.tiles.length > 0) {
+                for (let i = 0; i < tile.tiles.length; i++) {
+                    let found = findTileRecursive(tile.tiles[i], targetGeometry);
+                    if (found) return found;
+                }
+            }
+            
+            return null;
+        }
+        
+        return findTileRecursive(tiling.rootTile, tileInfo.relativeGeometry);
     }
 
     Component {
