@@ -156,6 +156,8 @@ Item {
             restoreKeepAbove: KWin.readConfig("restoreKeepAbove", true),
             restoreKeepBelow: KWin.readConfig("restoreKeepBelow", true),
             restoreWindowsWithoutCaption: KWin.readConfig("restoreWindowsWithoutCaption", true),
+            restoreTile: KWin.readConfig("restoreTile", true),
+            restoreResizedQuickTile: KWin.readConfig("restoreResizedQuickTile", false),
             ignoreNumbers: KWin.readConfig("ignoreNumbers", true),
             minimumCaptionMatch: KWin.readConfig("minimumCaptionMatch", 0),
             multiMonitorType: KWin.readConfig("multiMonitorType", 0),
@@ -519,9 +521,156 @@ Item {
             keepBelowRestored = true;
         }
 
+        if (saveData.tile && config.restoreTile && (!client.tile || config.restoreResizedQuickTile)) {
+            let tile = saveData.tile;
+            log('Attemptying to restore tile: ' + JSON.stringify(tile));
+            if (tile.quick && config.restoreResizedQuickTile || Math.ceil(client.frameGeometry.left) >= Math.floor(tile.x) && Math.ceil(client.frameGeometry.top) >= Math.floor(tile.y) && Math.floor(client.frameGeometry.right) <= Math.ceil(tile.x + tile.width) && Math.floor(client.frameGeometry.bottom) <= Math.ceil(tile.y + tile.height)) {
+                if (tile.quick) {
+                    let clientArea = Workspace.clientArea(KWin.FullScreenArea, client.output, Workspace.currentDesktop);
+                    let tileX = Math.max(tile.x, clientArea.left);
+                    let tileY = Math.max(tile.y, clientArea.top);
+                    let tileWidth = tile.width - (tileX - tile.x);
+                    if (tileX + tileWidth > clientArea.right) {
+                        tileWidth = clientArea.right - tileX;
+                    }
+                    let tileHeight = tile.height - (tileY - tile.y);
+                    if (tileY + tileHeight > clientArea.bottom) {
+                        tileHeight = clientArea.bottom - tileY;
+                    }
+                    if (
+                        config.restoreResizedQuickTile ||
+                        Math.abs(client.frameGeometry.x - tileX) < 0.001 &&
+                        Math.abs(client.frameGeometry.y - tileY) < 0.001 &&
+                        Math.abs(client.frameGeometry.width - tileWidth) < 0.001 &&
+                        Math.abs(client.frameGeometry.height - tileHeight) < 0.001
+                        ) {
+                        Workspace.activeWindow = client;
+                        if (client.tile) {
+                            client.tile = null;
+                        }
+                        if (tile.left) {
+                            if (tile.top) {
+                                Workspace.slotWindowQuickTileTopLeft();
+                            } else if (tile.bottom) {
+                                Workspace.slotWindowQuickTileBottomLeft();
+                            } else {
+                                Workspace.slotWindowQuickTileLeft();
+                            }
+                        } else if (tile.right) {
+                            if (tile.top) {
+                                Workspace.slotWindowQuickTileTopRight();
+                            } else if (tile.bottom) {
+                                Workspace.slotWindowQuickTileBottomRight();
+                            } else {
+                                Workspace.slotWindowQuickTileRight();
+                            }
+                        } else if (tile.top) {
+                            Workspace.slotWindowQuickTileTop();
+                        } else if (tile.bottom) {
+                            Workspace.slotWindowQuickTileBottom();
+                        }
+                    } else {
+                        log('Unable to restore quick tile position: ' + JSON.stringify(client.frameGeometry) + ' - ' + JSON.stringify(tile));
+                    }
+                } else {
+                    let tiling = Workspace.tilingForScreen(client.output);
+                    let bestTile = tiling.bestTileForPosition(client.x + client.width / 2, client.y + client.height / 2);
+                    if (bestTile) {
+                        let absoluteGeometry = bestTile.absoluteGeometry;
+                        if (Math.abs(absoluteGeometry.x - tile.x) < 0.001 && Math.abs(absoluteGeometry.y - tile.y) < 0.001 && Math.abs(absoluteGeometry.width - tile.width) < 0.001 && Math.abs(absoluteGeometry.height - tile.height) < 0.001) {
+                            client.tile = bestTile;
+                        }
+                    }
+                }
+                log('Restored tile position: ' + JSON.stringify(client.tile.absoluteGeometry));
+            } else {
+                log('Unable to restore tile position: ' + JSON.stringify(client.frameGeometry) + ' ' + JSON.stringify(tile));
+            }
+        }
+
         logE(client.resourceClass + ' restored - z: ' + zRestored + ' positon: ' + positionRestored + ' size: ' + sizeRestored + ' desktop: ' + virtualDesktopRestored + ' minimized: ' + minimizedRestored + ' keepAbove: ' + keepAboveRestored + ' keepBelow: ' + keepBelowRestored + ' caption score: ' + captionScore + ' internalId: ' + client.internalId);
         log('- caption   save: ' + saveData.caption);
         log('- caption window: ' + client.caption);
+    }
+
+    function convertTileData(client) {
+        if (!client.tile) return undefined;
+        let converted = {};
+        let tiling = Workspace.tilingForScreen(client.output);
+        let tile = tiling.bestTileForPosition(client.x + client.width / 2, client.y + client.height / 2);
+        let absoluteGeometry = client.tile.absoluteGeometry;
+        let relativeGeometry = client.tile.relativeGeometry;
+
+        if (tile && absoluteGeometry === tile.absoluteGeometry) {
+            log('convertTileData found matching screen tile: ' + JSON.stringify(tile.absoluteGeometry));
+            converted.quick = false;
+            converted.x = absoluteGeometry.x;
+            converted.y = absoluteGeometry.y;
+            converted.width = absoluteGeometry.width;
+            converted.height = absoluteGeometry.height;
+        } else if (
+            (Math.abs(relativeGeometry.x) < 0.001 || Math.abs(relativeGeometry.x - 0.5) < 0.001) &&
+            (Math.abs(relativeGeometry.y) < 0.001 || Math.abs(relativeGeometry.y - 0.5) < 0.001) &&
+            (Math.abs(relativeGeometry.width - 0.5) < 0.001 || Math.abs(relativeGeometry.width - 1) < 0.001) &&
+            (Math.abs(relativeGeometry.height - 0.5) < 0.001 || Math.abs(relativeGeometry.height - 1) < 0.001)
+            ) {
+            let left = Math.abs(relativeGeometry.left) < 0.001 && relativeGeometry.right < 0.999;
+            let right = relativeGeometry.left >= 0.001 && Math.abs(relativeGeometry.right - 1) < 0.001;
+            let top = Math.abs(relativeGeometry.top) < 0.001 && relativeGeometry.bottom < 0.999;
+            let bottom = relativeGeometry.top >= 0.001 && Math.abs(relativeGeometry.bottom - 1) < 0.001;
+            log('convertTileData found matching edge tile left: ' + left + ' right: ' + right + ' top: ' + top + ' bottom: ' + bottom);
+            converted.quick = true;
+            converted.x = absoluteGeometry.x;
+            converted.y = absoluteGeometry.y;
+            converted.width = absoluteGeometry.width;
+            converted.height = absoluteGeometry.height;
+            converted.left = left;
+            converted.right = right;
+            converted.top = top;
+            converted.bottom = bottom;
+        } else if (
+            config.restoreResizedQuickTile &&
+            (Math.abs(relativeGeometry.left) < 0.001 || Math.abs(relativeGeometry.right - 1) < 0.001) &&
+            (Math.abs(relativeGeometry.top) < 0.001 || Math.abs(relativeGeometry.bottom - 1) < 0.001)
+            ) {
+            let left = Math.abs(relativeGeometry.left) < 0.001 && relativeGeometry.right < 0.999;
+            let right = relativeGeometry.left >= 0.001 && Math.abs(relativeGeometry.right - 1) < 0.001;
+            let top = Math.abs(relativeGeometry.top) < 0.001 && relativeGeometry.bottom < 0.999;
+            let bottom = relativeGeometry.top >= 0.001 && Math.abs(relativeGeometry.bottom - 1) < 0.001;
+            log('convertTileData found matching resized edge tile left: ' + left + ' right: ' + right + ' top: ' + top + ' bottom: ' + bottom);
+            converted.quick = true;
+            converted.x = absoluteGeometry.x;
+            converted.y = absoluteGeometry.y;
+            converted.width = absoluteGeometry.width;
+            converted.height = absoluteGeometry.height;
+            converted.left = left;
+            converted.right = right;
+            converted.top = top;
+            converted.bottom = bottom;
+        } else {
+            log('convertTileData failed to convert! ' + JSON.stringify(relativeGeometry));
+            return undefined;
+        }
+        log('convertTileData converted: ' + JSON.stringify(converted));
+        return converted;
+    }
+
+    function printTilesForRoot(rootTile) {
+        if (rootTile) {
+            let allTiles = [rootTile];
+            var i = 0;
+            do {
+                logE('Tile ' + i + ' children: ' + allTiles[i].tiles.length + ' tile: ' + allTiles[i]);
+                if (allTiles[i].tiles.length > 0) {
+                    allTiles.push(...allTiles[i].tiles);
+                }
+                i++;
+            } while (i < allTiles.length);
+
+            for (i = 0; i < allTiles.length; i++) {
+                logE('Tile ' + i + ' info: ' + allTiles[i] + ' relative: ' + JSON.stringify(allTiles[i].relativeGeometry) + ' ');
+            }
+        }
     }
 
     function twoWayMatch(windowData, confidence, minConfidence) {
@@ -988,8 +1137,13 @@ Item {
                     name: client.output.name
                 },
                 sessionRestore : false,
-                alreadyMatched : false
+                alreadyMatched : false,
+                tile           : convertTileData(client)
             };
+
+            if (debugLogs && client.tile) {
+                printTilesForRoot(client.tile.parent);
+            }
 
             if (currentConfig.rememberAlways) {
                 // Always remember window - save it instantly
@@ -1286,30 +1440,41 @@ Item {
             for (let i = 0; i < window.s.length; i++) {
                 let save = window.s[i];
                 convertedWindows[key].saved.push({
-                    caption          : save.c,      // caption
-                    x                : save.x,      // x
-                    y                : save.y,      // y
-                    width            : save.w,      // width
-                    height           : save.h,      // height
-                    minimized        : save.m == 1, // minimized
-                    keepAbove        : save.k == 1, // keepAbove
-                    keepBelow        : save.b == 1, // keepBelow
-                    stackingOrder    : save.s,      // stackingOrder
-                    desktopNumber    : save.d,      // desktopNumber
-                    activities       : save.a,      // activities
-                    rememberAlways   : save.r == 1, // rememberAlways
-                    singleWindow     : save.n == 1, // singleWindow
-                    position         : save.p ? {   // position
-                        x            : save.p.x,    // x
-                        y            : save.p.y,    // y
-                        serialNumber : save.p.s,    // serialNumber
-                        name         : save.p.n     // name
+                    caption          : save.c,        // caption
+                    x                : save.x,        // x
+                    y                : save.y,        // y
+                    width            : save.w,        // width
+                    height           : save.h,        // height
+                    minimized        : save.m == 1,   // minimized
+                    keepAbove        : save.k == 1,   // keepAbove
+                    keepBelow        : save.b == 1,   // keepBelow
+                    stackingOrder    : save.s,        // stackingOrder
+                    desktopNumber    : save.d,        // desktopNumber
+                    activities       : save.a,        // activities
+                    rememberAlways   : save.r == 1,   // rememberAlways
+                    singleWindow     : save.n == 1,   // singleWindow
+                    position         : save.p ? {     // position
+                        x            : save.p.x,      // x
+                        y            : save.p.y,      // y
+                        serialNumber : save.p.s,      // serialNumber
+                        name         : save.p.n       // name
                     } : undefined,
-                    sessionRestore   : save.z == 1,  // sessionRestore
-                    alreadyMatched   : false         // alreadyMatched
+                    sessionRestore   : save.z == 1,   // sessionRestore
+                    alreadyMatched   : false,         // alreadyMatched
+                    tile             : save.t ? {     // tile
+                        quick        : save.t.q == 1, // quick
+                        x            : save.t.x,      // x
+                        y            : save.t.y,      // y
+                        width        : save.t.w,      // width
+                        height       : save.t.h,      // height
+                        left         : save.t.l,      // left
+                        right        : save.t.r,      // right
+                        top          : save.t.t,      // top
+                        bottom       : save.t.b       // bottom
+                    } : undefined
                     // --- Omitted fields ---
-                    // closeTime  : save.t          // closeTime
-                    // internalId : save.i          // internalId
+                    // closeTime     :                // closeTime
+                    // internalId    : save.i         // internalId
                 });
                 if (save.p) {
                     log('Window ' + i + ' - x: ' + save.p.x + ' y: ' + save.p.y + ' width: ' + save.w + ' height: ' + save.h + ' minimized: ' + (save.m == 1) + ' stackingNumber: ' + save.s + ' desktopNumber: ' + save.d + ' serialNumber: ' + save.p.s + ' name: ' + save.p.n + ' sessionRestore: ' + (save.z == 1));
@@ -1367,9 +1532,20 @@ Item {
                             s: save.position.serialNumber, // serialNumber
                             n: save.position.name          // name
                         } : undefined,
-                        z: save.sessionRestore ? 1 : 0     // sessionRestore
+                        z: save.sessionRestore ? 1 : 0,    // sessionRestore
+                        t: save.tile ? {                   // tile
+                            q: save.tile.quick ? 1 : 0,    // quick
+                            x: save.tile.x,                // x
+                            y: save.tile.y,                // y
+                            w: save.tile.width,            // width
+                            h: save.tile.height,           // height
+                            l: save.tile.left,             // left
+                            r: save.tile.right,            // right
+                            t: save.tile.top,              // top
+                            b: save.tile.bottom            // bottom
+                        } : undefined
                         // --- Omitted fields ---
-                        // t: save.closeTime               // closeTime
+                        //  : save.closeTime               // closeTime
                         // i: save.internalId              // internalId
                         //  : save.alreadyMatched          // alreadyMatched
                     });

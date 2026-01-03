@@ -80,10 +80,9 @@ There are lots of other settings that let you control exactly how and when to re
 
 ### Future ideas (might or might not be implemented)
 
-- Add caption change listener restore trigger
 - Add keyboard shortcut to block restoring of next application started
 - Add override ignores numbers in caption match
-- Figure out resizing adjacent tile (set tile?)
+- Live backup - Makes a backup save of all open windows and monitors caption change + size/position change - if system crashes, can restore from live backup
 
 ## <p id="how"></p>How it works
 
