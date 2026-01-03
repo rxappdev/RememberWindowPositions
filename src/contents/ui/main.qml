@@ -579,10 +579,16 @@ Item {
                         let absoluteGeometry = bestTile.absoluteGeometry;
                         if (Math.abs(absoluteGeometry.x - tile.x) < 0.001 && Math.abs(absoluteGeometry.y - tile.y) < 0.001 && Math.abs(absoluteGeometry.width - tile.width) < 0.001 && Math.abs(absoluteGeometry.height - tile.height) < 0.001) {
                             client.tile = bestTile;
+                        } else {
+                            log('Unable to restore shift tile position: ' + JSON.stringify(client.frameGeometry) + ' ' + JSON.stringify(tile));
                         }
+                    } else {
+                        log('Unable to restore shift tile position no bestTileForPosition: ' + JSON.stringify(client.frameGeometry) + ' ' + JSON.stringify(tile));
                     }
                 }
-                log('Restored tile position: ' + JSON.stringify(client.tile.absoluteGeometry));
+                if (client.tile) {
+                    log('Restored tile position: ' + JSON.stringify(client.tile.absoluteGeometry));
+                }
             } else {
                 log('Unable to restore tile position: ' + JSON.stringify(client.frameGeometry) + ' ' + JSON.stringify(tile));
             }
