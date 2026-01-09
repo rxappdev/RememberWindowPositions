@@ -10,7 +10,7 @@
         "Description": "Save and restore application window positions (such as multi-window browsers)",
         "Icon": "preferences-desktop-virtual",
         "Id": "rememberwindowpositions",
-        "Version": "5.1.1",
+        "Version": "5.1.2",
         "License": "GPLv3",
         "Website": "https://github.com/rxappdev/RememberWindowPositions"
     },

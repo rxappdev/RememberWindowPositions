@@ -181,6 +181,7 @@ Item {
             whitelist: stringListToNormalAndWildcard(KWin.readConfig("whitelist", browserList)),
             printApplicationNameToLog: KWin.readConfig("printApplicationNameToLog", true),
             printMonitorInfoToLog: KWin.readConfig("printMonitorInfoToLog", false),
+            onlySaveOnShutdown: KWin.readConfig("onlySaveOnShutdown", false),
             // confidence
             confidence: [
                 { caption: 100, matchingDimentions: 2, allowHeightShrinking: false }, // Caption and size match
@@ -1186,7 +1187,7 @@ Item {
 
                 if (windowData.windowCount > 0) {
                     // Only save if window count is > 0, because at 0, it will be saved below
-                    saveWindowsToSettings();
+                    saveWindowsToSettings(false);
                 }
 
                 log('Saved single window due to rememberAlways being true');
@@ -1231,7 +1232,7 @@ Item {
                 delete windowData.windowOrder;
 
                 // Save to settings
-                saveWindowsToSettings();
+                saveWindowsToSettings(false);
 
                 if (config.printApplicationNameToLog) logAppInfoOnClose(client.resourceClass, windowData.saved.length);
             }
@@ -1290,7 +1291,7 @@ Item {
                     }
                 }
             }
-            saveWindowsToSettings();
+            saveWindowsToSettings(false);
         }
     }
 
@@ -1338,7 +1339,7 @@ Item {
 
         if (changed) {
             // Save after cleanup
-            saveWindowsToSettings();
+            saveWindowsToSettings(false);
         }
     }
 
@@ -1496,7 +1497,8 @@ Item {
         config.windows = convertedWindows;
     }
 
-    function saveWindowsToSettings() {
+    function saveWindowsToSettings(shutdown) {
+        if (config.onlySaveOnShutdown && !shutdown) return;
         clearSessionRestoreSaves();
 
         // Convert save data to minimize size in storage - omit all data that is not relevant for the save
@@ -1712,7 +1714,7 @@ Item {
     Component.onDestruction: {
         log('Closing...');
         updateSessionRestoreSaves();
-        saveWindowsToSettings();
+        saveWindowsToSettings(true);
         saveOverridesToSettings();
     }
 

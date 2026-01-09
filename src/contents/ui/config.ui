@@ -1100,6 +1100,13 @@ When upgrading from an earlier version, a reboot might be required to enable the
             </property>
            </widget>
           </item>
+          <item>
+           <widget class="QCheckBox" name="kcfg_onlySaveOnShutdown">
+            <property name="text">
+             <string>Only save during shutdown (on script closure) - enable this if you experience lag when using the script - this could by caused by using a harddrive as your /home drive.</string>
+            </property>
+           </widget>
+          </item>
          </layout>
         </widget>
        </item>
