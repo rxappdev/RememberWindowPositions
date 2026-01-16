@@ -143,7 +143,7 @@ Item {
 
     function loadConfig() {
         log('Loading configuration');
-        const browserList = "brave-browser\norg.mozilla.firefox\nvivaldi-stable\nlibrewolf\nchromium-browser\nChromium-browser\ngoogle-chrome\nmicrosoft-edge\nMullvad Browser\nOpera\nio.github.ungoogled_software.ungoogled_chromium\napp.zen_browser.zen\nwaterfox-default";
+        const browserList = "brave-browser\norg.mozilla.firefox\nfirefox\nvivaldi-stable\nlibrewolf\nchromium-browser\nChromium-browser\ngoogle-chrome\nmicrosoft-edge\nMullvad Browser\nOpera\nio.github.ungoogled_software.ungoogled_chromium\napp.zen_browser.zen\nwaterfox-default";
         config = {
             // user settings
             restoreType: KWin.readConfig("restoreType", 2),

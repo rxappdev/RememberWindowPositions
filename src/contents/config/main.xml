@@ -68,6 +68,7 @@
         <entry name="perfectMultiWindowRestoreList" type="String">
             <default>brave-browser
 org.mozilla.firefox
+firefox
 vivaldi-stable
 librewolf
 chromium-browser
@@ -126,6 +127,7 @@ systemsettings</default>
         <entry name="whitelist" type="String">
             <default>brave-browser
 org.mozilla.firefox
+firefox
 vivaldi-stable
 librewolf
 chromium-browser
