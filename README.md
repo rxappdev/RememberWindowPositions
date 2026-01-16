@@ -12,6 +12,7 @@ Remembers and restores the windows position, size, screen and virtual desktop.</
     - Fedora 42 KDE running Wayland and X11 with Plasma version 6.4.5
     - Fedora 42 KDE running Wayland with Plasma version 6.5.4
     - FreeBSD 15.0 running X11 with Plasma version 6.4.5
+    - CachyOS running Plasma version 6.5.5
 
 [![kde-store](https://img.shields.io/badge/KDE%20Store-download-blue?logo=KDE)](https://store.kde.org/p/2324743)
 
