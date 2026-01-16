@@ -972,6 +972,7 @@ Item {
 
         let windowData = config.windows[client.resourceClass];
         windowData.windowCount++;
+        client.rwp_valid = true;
 
         let repeats = config.multiWindowRestoreAttempts;
         if (config.usePerfectMultiWindowRestore && isOnPerfectList(client.resourceClass)) {
@@ -1098,7 +1099,27 @@ Item {
     }
 
     function removeWindow(client) {
-        if (!isValidWindow(client)) return;
+        if (!isValidWindow(client)) {
+            if (client.rwp_valid) {
+                log('A valid window for client: ' + client.resourceClass + ' became invalid - caption: ' + client.caption);
+                let cleanupWindowData = config.windows[client.resourceClass];
+                if (cleanupWindowData) {
+                    if (cleanupWindowData.windowCount > 0) {
+                        cleanupWindowData.windowCount--;
+
+                        if (cleanupWindowData.windowCount == 0) {
+                            saveWindowDataWhenLastWindowClosed(client, cleanupWindowData);
+                        }
+                    }
+
+                    let loadingIndex = cleanupWindowData.loading.findIndex((l) => client.internalId === l.internalId);
+                    if (loadingIndex != -1) {
+                        cleanupWindowData.loading.splice(loadingIndex, 1);
+                    }
+                }
+            }
+            return;
+        }
 
         let windowData = config.windows[client.resourceClass];
         let currentConfig = getCurrentConfig(client);
@@ -1197,46 +1218,50 @@ Item {
             }
 
             if (windowData.windowCount == 0) {
-                clearSavesExceptRememberAlways(client.resourceClass);
-                // clearLoadingExceptRememberAlways(client.resourceClass);
-                windowData.loading = [];
-                windowData.lastAccessTime = Date.now();
-                windowData.windowCountLastSession = 0;
-                windowData.restoredTotal = 0;
-
-                var saving = windowData.closed.pop();
-                var lastValidClosingTime = Date.now();
-
-                while (saving != undefined) {
-                    let index = windowOrder.indexOf(saving.internalId);
-
-                    if (index != -1) {
-                        windowOrder.splice(index, 1);
-                        delete saving.internalId;
-                    }
-
-                    log('Closing - time since last: ' + (lastValidClosingTime - saving.closeTime));
-                    if (lastValidClosingTime - saving.closeTime <= 1200) {
-                        // Valid save
-                        windowData.windowCountLastSession++;
-                        windowData.saved.push(saving);
-                        if (config.sessionRestore) {
-                            sessionRestoreSaves.push(saving);
-                        }
-                        lastValidClosingTime = saving.closeTime;
-                    }
-
-                    saving = windowData.closed.pop();
-                }
-
-                delete windowData.windowOrder;
-
-                // Save to settings
-                saveWindowsToSettings(false);
-
-                if (config.printApplicationNameToLog) logAppInfoOnClose(client.resourceClass, windowData.saved.length);
+                saveWindowDataWhenLastWindowClosed(client, windowData);
             }
         }
+    }
+
+    function saveWindowDataWhenLastWindowClosed(client, windowData) {
+        clearSavesExceptRememberAlways(client.resourceClass);
+        // clearLoadingExceptRememberAlways(client.resourceClass);
+        windowData.loading = [];
+        windowData.lastAccessTime = Date.now();
+        windowData.windowCountLastSession = 0;
+        windowData.restoredTotal = 0;
+
+        var saving = windowData.closed.pop();
+        var lastValidClosingTime = Date.now();
+
+        while (saving != undefined) {
+            let index = windowOrder.indexOf(saving.internalId);
+
+            if (index != -1) {
+                windowOrder.splice(index, 1);
+                delete saving.internalId;
+            }
+
+            log('Closing - time since last: ' + (lastValidClosingTime - saving.closeTime));
+            if (lastValidClosingTime - saving.closeTime <= 1200) {
+                // Valid save
+                windowData.windowCountLastSession++;
+                windowData.saved.push(saving);
+                if (config.sessionRestore) {
+                    sessionRestoreSaves.push(saving);
+                }
+                lastValidClosingTime = saving.closeTime;
+            }
+
+            saving = windowData.closed.pop();
+        }
+
+        delete windowData.windowOrder;
+
+        // Save to settings
+        saveWindowsToSettings(false);
+
+        if (config.printApplicationNameToLog) logAppInfoOnClose(client.resourceClass, windowData.saved.length);
     }
 
     Timer {
