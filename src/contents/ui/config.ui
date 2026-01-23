@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>1188</width>
-    <height>707</height>
+    <height>692</height>
    </rect>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
@@ -28,7 +28,7 @@
        <item>
         <widget class="QLabel" name="label_18">
          <property name="text">
-          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; color:#ff0000;&quot;&gt;If you are using older hardware, have poor internet speed, or are for any other reasons experiencing issues with window restoration - please increase the &lt;/span&gt;&lt;span style=&quot; font-weight:700; color:#ff0000;&quot;&gt;Restore Attempts&lt;/span&gt;&lt;span style=&quot; color:#ff0000;&quot;&gt; and &lt;/span&gt;&lt;span style=&quot; font-weight:700; color:#ff0000;&quot;&gt;Perfect Restore Attempts&lt;/span&gt;&lt;span style=&quot; color:#ff0000;&quot;&gt; in the &lt;/span&gt;&lt;span style=&quot; font-weight:700; color:#ff0000;&quot;&gt;Multi-Window Restore&lt;/span&gt;&lt;span style=&quot; color:#ff0000;&quot;&gt; tab - the default settings should be sufficient for most people with modern hardware and decent internet speeds.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; color:#ff0000;&quot;&gt;If you are using older hardware, have poor internet speed, or are for any other reasons experiencing issues with window restoration - please increase the &lt;/span&gt;&lt;span style=&quot; font-weight:700; color:#ff0000;&quot;&gt;Restore Attempts&lt;/span&gt;&lt;span style=&quot; color:#ff0000;&quot;&gt; and &lt;/span&gt;&lt;span style=&quot; font-weight:700; color:#ff0000;&quot;&gt;Perfect Restore Attempts&lt;/span&gt;&lt;span style=&quot; color:#ff0000;&quot;&gt; in the &lt;/span&gt;&lt;span style=&quot; font-weight:700; color:#ff0000;&quot;&gt;Multi-Window Restore&lt;/span&gt;&lt;span style=&quot; color:#ff0000;&quot;&gt; tab - the default settings should be sufficient for most people with modern hardware and decent internet speeds.&lt;br/&gt;If you use a HDD as your /home drive and experience lag/stutter when closing apps/windows, please enable the &lt;/span&gt;&lt;span style=&quot; font-weight:700; color:#ff0000;&quot;&gt;Only save during shutdown&lt;/span&gt;&lt;span style=&quot; color:#ff0000;&quot;&gt; feature in the &lt;/span&gt;&lt;span style=&quot; font-weight:700; color:#ff0000;&quot;&gt;Debug&lt;/span&gt;&lt;span style=&quot; color:#ff0000;&quot;&gt; tab.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
          </property>
          <property name="wordWrap">
           <bool>true</bool>
@@ -1231,6 +1231,142 @@ When upgrading from an earlier version, a reboot might be required to enable the
           <size>
            <width>0</width>
            <height>0</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+      </layout>
+     </widget>
+     <widget class="QWidget" name="tab_3">
+      <attribute name="icon">
+       <iconset theme="media-floppy"/>
+      </attribute>
+      <attribute name="title">
+       <string>Other</string>
+      </attribute>
+      <layout class="QVBoxLayout" name="verticalLayout_12">
+       <item>
+        <spacer name="verticalSpacer_4">
+         <property name="orientation">
+          <enum>Qt::Orientation::Vertical</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>20</width>
+           <height>40</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+       <item>
+        <layout class="QHBoxLayout" name="horizontalLayout_6">
+         <item>
+          <spacer name="horizontalSpacer_4">
+           <property name="orientation">
+            <enum>Qt::Orientation::Horizontal</enum>
+           </property>
+           <property name="sizeType">
+            <enum>QSizePolicy::Policy::Minimum</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>240</width>
+             <height>20</height>
+            </size>
+           </property>
+          </spacer>
+         </item>
+         <item>
+          <layout class="QVBoxLayout" name="verticalLayout_21">
+           <item>
+            <widget class="Line" name="line_13">
+             <property name="orientation">
+              <enum>Qt::Orientation::Horizontal</enum>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QLabel" name="label_63">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="MinimumExpanding" vsizetype="Minimum">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="text">
+              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p align=&quot;center&quot;&gt;&lt;span style=&quot; font-weight:700; color:#ff0000;&quot;&gt;❤ &amp;nbsp; &lt;/span&gt;Thank you for using this script!&lt;span style=&quot; font-weight:700; color:#ff0000;&quot;&gt; &amp;nbsp; ❤&lt;/span&gt;&lt;/p&gt;&lt;p&gt;If you enjoy it and maybe also &lt;a href=&quot;https://store.kde.org/p/2334027&quot;&gt;&lt;span style=&quot; text-decoration: underline; color:#5294e2;&quot;&gt;Mouse Tiler&lt;/span&gt;&lt;/a&gt;, I would really apreciate if you could support me in one way or another.&lt;/p&gt;&lt;p&gt;I have by now spent around 5 months (full time, 8+ hours of work a day) developing these two scripts, and I need to feed myself, my 4 year old son, and pay rent. Sadly donations are scarce (not even covering a single months rent. I am around $5000 behind by now).&lt;/p&gt;&lt;p&gt;Starting February 1st 2026, I will stop adding new features to the scripts, only fixing bugs. This is because I need to do work that earns money so I do not go bankrupt. If the donations ever take off, I will continue with the script development.&lt;/p&gt;&lt;p align=&quot;center&quot;&gt;&lt;span style=&quot; font-weight:700; color:#ff0000;&quot;&gt;❤ &amp;nbsp; &lt;/span&gt;Thank you - Rafael&lt;span style=&quot; font-weight:700; color:#ff0000;&quot;&gt; &amp;nbsp; ❤&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+             </property>
+             <property name="alignment">
+              <set>Qt::AlignmentFlag::AlignLeading|Qt::AlignmentFlag::AlignLeft|Qt::AlignmentFlag::AlignVCenter</set>
+             </property>
+             <property name="wordWrap">
+              <bool>true</bool>
+             </property>
+             <property name="openExternalLinks">
+              <bool>true</bool>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="Line" name="line_12">
+             <property name="orientation">
+              <enum>Qt::Orientation::Horizontal</enum>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <layout class="QHBoxLayout" name="horizontalLayout_7">
+             <item>
+              <widget class="QLabel" name="label_64">
+               <property name="text">
+                <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;You can support me by:&lt;/p&gt;&lt;ul style=&quot;margin-top: 0px; margin-bottom: 0px; margin-left: 0px; margin-right: 0px; -qt-list-indent: 1;&quot;&gt;&lt;li style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;   Donating - even a small donation goes a long way (links below)&lt;/li&gt;&lt;li style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;   Leaving a &lt;a href=&quot;https://store.kde.org/p/2324743&quot;&gt;&lt;span style=&quot; text-decoration: underline; color:#5294e2;&quot;&gt;review&lt;/span&gt;&lt;/a&gt;&lt;/li&gt;&lt;li style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;   Downloading some of my &lt;a href=&quot;https://rxweb.epizy.com/&quot;&gt;&lt;span style=&quot; text-decoration: underline; color:#5294e2;&quot;&gt;free games&lt;/span&gt;&lt;/a&gt;&lt;/li&gt;&lt;/ul&gt;&lt;/body&gt;&lt;/html&gt;</string>
+               </property>
+               <property name="wordWrap">
+                <bool>true</bool>
+               </property>
+               <property name="openExternalLinks">
+                <bool>true</bool>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </item>
+           <item>
+            <widget class="Line" name="line_14">
+             <property name="orientation">
+              <enum>Qt::Orientation::Horizontal</enum>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </item>
+         <item>
+          <spacer name="horizontalSpacer_5">
+           <property name="orientation">
+            <enum>Qt::Orientation::Horizontal</enum>
+           </property>
+           <property name="sizeType">
+            <enum>QSizePolicy::Policy::Minimum</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>240</width>
+             <height>20</height>
+            </size>
+           </property>
+          </spacer>
+         </item>
+        </layout>
+       </item>
+       <item>
+        <spacer name="verticalSpacer_5">
+         <property name="orientation">
+          <enum>Qt::Orientation::Vertical</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>20</width>
+           <height>40</height>
           </size>
          </property>
         </spacer>
