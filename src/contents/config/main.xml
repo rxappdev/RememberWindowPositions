@@ -38,6 +38,9 @@
         <entry name="restoreResizedQuickTile" type="Bool">
             <default>false</default>
         </entry>
+        <entry name="restoreMouseTiler" type="Bool">
+            <default>true</default>
+        </entry>
         <entry name="minimumCaptionMatch" type="Int">
             <default>0</default>
             <min>0</min>

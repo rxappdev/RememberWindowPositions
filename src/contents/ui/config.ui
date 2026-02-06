@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>1188</width>
-    <height>692</height>
+    <height>738</height>
    </rect>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
@@ -289,6 +289,13 @@
              </widget>
             </item>
            </layout>
+          </item>
+          <item>
+           <widget class="QCheckBox" name="kcfg_restoreMouseTiler">
+            <property name="text">
+             <string>Restore Mouse Tiler auto tiler status. Will remember if a window was auto tiled or not. Make sure to increase the auto tile delay in Mouse Tiler settings to enable the restoration process</string>
+            </property>
+           </widget>
           </item>
          </layout>
         </widget>

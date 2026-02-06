@@ -158,6 +158,7 @@ Item {
             restoreWindowsWithoutCaption: KWin.readConfig("restoreWindowsWithoutCaption", true),
             restoreTile: KWin.readConfig("restoreTile", true),
             restoreResizedQuickTile: KWin.readConfig("restoreResizedQuickTile", false),
+            restoreMouseTiler: KWin.readConfig("restoreMouseTiler", true),
             ignoreNumbers: KWin.readConfig("ignoreNumbers", true),
             minimumCaptionMatch: KWin.readConfig("minimumCaptionMatch", 0),
             multiMonitorType: KWin.readConfig("multiMonitorType", 0),
@@ -499,6 +500,14 @@ Item {
             log('Attempting to restore window z-index');
             Workspace.raiseWindow(client);
             zRestored = true;
+        }
+
+        log('saveData.mouseTilerAuto: ' + saveData.mouseTilerAuto + ' config.restoreMouseTiler: ' + config.restoreMouseTiler + ' client.mt_autoRestore: ' + client.mt_autoRestore);
+        if (saveData.mouseTilerAuto > 0 && config.restoreMouseTiler) {
+            restoreMinimized = false;
+            if (!client.mt_autoRestore) {
+                client.mt_autoRestore = saveData.mouseTilerAuto;
+            }
         }
 
         // Restore minimized
@@ -1166,7 +1175,8 @@ Item {
                 },
                 sessionRestore : false,
                 alreadyMatched : false,
-                tile           : convertTileData(client)
+                tile           : convertTileData(client),
+                mouseTilerAuto : (client.mt_autoRestore ? client.mt_autoRestore : 0)
             };
 
             if (debugLogs && client.tile) {
@@ -1503,7 +1513,8 @@ Item {
                         right        : save.t.r,      // right
                         top          : save.t.t,      // top
                         bottom       : save.t.b       // bottom
-                    } : undefined
+                    } : undefined,
+                    mouseTilerAuto   : save.o         // mouseTilerAuto
                     // --- Omitted fields ---
                     // closeTime     :                // closeTime
                     // internalId    : save.i         // internalId
@@ -1576,7 +1587,8 @@ Item {
                             r: save.tile.right,            // right
                             t: save.tile.top,              // top
                             b: save.tile.bottom            // bottom
-                        } : undefined
+                        } : undefined,
+                        o: save.mouseTilerAuto             // mouseTilerAuto
                         // --- Omitted fields ---
                         //  : save.closeTime               // closeTime
                         // i: save.internalId              // internalId
