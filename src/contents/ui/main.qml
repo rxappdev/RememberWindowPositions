@@ -397,210 +397,223 @@ Item {
         let restoreKeepAbove = restoreSession ? config.sessionRestoreKeepAbove : windowConfig.keepAbove;
         let restoreKeepBelow = restoreSession ? config.sessionRestoreKeepBelow : windowConfig.keepBelow;
 
-        // Restore frame geometry
-        if (config.perScreenRestore && saveData.position) {
-            log('Restoring frame geometry based on screen position');
-            let output = getOutputFromSave(saveData.position.serialNumber, saveData.position.name, client.resourceClass);
-            let positionGlobal = output != null ? output.mapToGlobal(Qt.point(saveData.position.x, saveData.position.y)) : client.pos;
-            log('- positionGlobal: ' + positionGlobal);
-            if (windowConfig.position && restoreSize) {
-                if (client.x != positionGlobal.x || client.y != positionGlobal.y || client.width != saveData.width || client.height != saveData.height) {
-                    log('Attempting to restore window size and position');
-                    positionRestored = client.x != positionGlobal.x || client.y != positionGlobal.y;
-                    sizeRestored = client.width != saveData.width || client.height != saveData.height;
-                    client.frameGeometry = Qt.rect(positionGlobal.x, positionGlobal.y, saveData.width, saveData.height);
-                }
-            } else if (restoreSize) {
-                if (client.width != saveData.width || client.height != saveData.height) {
-                    log('Attempting to restore window size');
-                    client.frameGeometry = Qt.rect(client.x, client.y, saveData.width, saveData.height);
-                    sizeRestored = true;
-                }
-            } else if (windowConfig.position && (client.x != positionGlobal.x || client.y != positionGlobal.y)) {
-                log('Attempting to restore window position');
-                client.frameGeometry = Qt.rect(positionGlobal.x, positionGlobal.y, client.width, client.height);
-                positionRestored = true;
-            }
-        } else {
-            log('Restoring frame geometry based on global position');
-            if (windowConfig.position && restoreSize) {
-                if (client.x != saveData.x || client.y != saveData.y || client.width != saveData.width || client.height != saveData.height) {
-                    log('Attempting to restore window size and position');
-                    positionRestored = client.x != saveData.x || client.y != saveData.y;
-                    sizeRestored = client.width != saveData.width || client.height != saveData.height;
-                    client.frameGeometry = Qt.rect(saveData.x, saveData.y, saveData.width, saveData.height);
-                }
-            } else if (restoreSize) {
-                if (client.width != saveData.width || client.height != saveData.height) {
-                    log('Attempting to restore window size');
-                    client.frameGeometry = Qt.rect(client.x, client.y, saveData.width, saveData.height);
-                    sizeRestored = true;
-                }
-            } else if (windowConfig.position && (client.x != saveData.x || client.y != saveData.y)) {
-                log('Attempting to restore window position');
-                client.frameGeometry = Qt.rect(saveData.x, saveData.y, client.width, client.height);
-                positionRestored = true;
-            }
-        }
-
-        // Restore activities
-        if (restoreActivities) {
-            if (saveData.activities && client.activities) {
-                log('Attempting to restore window activities');
-                let activities = [];
-                let activitiesLength = saveData.activities.length;
-                if (activitiesLength > 0) {
-                    for (let i = 0; i < activitiesLength; i++) {
-                        if (Workspace.activities.includes(saveData.activities[i])) {
-                            activities.push(saveData.activities[i]);
-                        }
-                    }
-                }
-                if (JSON.stringify(client.activities) != JSON.stringify(activities)) {
-                    client.activities = activities;
-                    if (moveActivity && !activities.includes(Workspace.currentActivity)) {
-                        Workspace.currentActivity = activities[0];
-                    }
-                }
-            }
-        }
-
-        // Restore virtual desktop
-        if (restoreDesktop) {
-            let desktopNumber = client.onAllDesktops ? -1 : client.desktops[0].x11DesktopNumber;
-            if (saveData.desktopNumber != desktopNumber) {
-                if (saveData.desktopNumber == -1) {
-                    log('Attempting to restore window on all virtual desktops');
-                    client.onAllDesktops = true;
-                    virtualDesktopRestored = true;
-                } else {
-                    log('Attempting to restore window virtual desktop');
-                    let desktop = Workspace.desktops.find((d) => d.x11DesktopNumber == saveData.desktopNumber);
-                    if (desktop) {
-                        let desktops = [desktop];
-                        if (JSON.stringify(desktops) != JSON.stringify(client.desktops)) {
-                            client.desktops = desktops;
-                            virtualDesktopRestored = true;
-                            if (moveVirtualDesktop) {
-                                Workspace.currentDesktop = desktop;
-                            }
-                        }
-                    } else {
-                        logE('Failed to restore window virtual desktop');
-                    }
-                }
-            }
-        }
-
-        // Restore screen
-        // - this seems to be handled by restoring frame geometry as it spans all screens - if anything changes will have to implement this
-
-        // Restore z-index
-        if (restoreZ) {
-            log('Attempting to restore window z-index');
-            Workspace.raiseWindow(client);
-            zRestored = true;
-        }
+        let mouseTilerAutoTilePreventsRestore = false;
 
         log('saveData.mouseTilerAuto: ' + saveData.mouseTilerAuto + ' config.restoreMouseTiler: ' + config.restoreMouseTiler + ' client.mt_autoRestore: ' + client.mt_autoRestore);
         if (saveData.mouseTilerAuto > 0 && config.restoreMouseTiler) {
-            restoreMinimized = false;
+            if ((saveData.mouseTilerAuto & 512) != 512 && (saveData.mouseTilerAuto & 128) != 128) {
+                // Mouse Auto Tiler was detected last app sessions - prevent restoring minimized
+                restoreMinimized = false;
+                // Prevent second wave restoration
+                saveData.mouseTilerAuto |= 1024;
+            }
             if (!client.mt_autoRestore) {
-                client.mt_autoRestore = saveData.mouseTilerAuto;
+                client.mt_autoRestore = saveData.mouseTilerAuto | 512;
+            } else if ((saveData.mouseTilerAuto & 1024) == 1024) {
+                // Mouse Auto Tiler was detected last app session - do not restore anything again
+                client.mt_autoRestore &= ~1024;
+                mouseTilerAutoTilePreventsRestore = true;
             }
         }
 
-        // Restore minimized
-        if (saveData.minimized && restoreMinimized) {
-            log('Attempting to restore window minimized');
-            client.minimized = true;
-            minimizedRestored = true;
-        }
-
-        // Restore keepAbove
-        if (saveData.keepAbove && restoreKeepAbove) {
-            log('Attempting to restore window keepAbove');
-            client.keepAbove = true;
-            keepAboveRestored = true;
-        }
-
-        // Restore keepBelow
-        if (saveData.keepBelow && restoreKeepBelow) {
-            log('Attempting to restore window keepBelow');
-            client.keepBelow = true;
-            keepBelowRestored = true;
-        }
-
-        if (saveData.tile && config.restoreTile && (!client.tile || config.restoreResizedQuickTile)) {
-            let tile = saveData.tile;
-            log('Attemptying to restore tile: ' + JSON.stringify(tile));
-            if (tile.quick && config.restoreResizedQuickTile || Math.ceil(client.frameGeometry.left) >= Math.floor(tile.x) && Math.ceil(client.frameGeometry.top) >= Math.floor(tile.y) && Math.floor(client.frameGeometry.right) <= Math.ceil(tile.x + tile.width) && Math.floor(client.frameGeometry.bottom) <= Math.ceil(tile.y + tile.height)) {
-                if (tile.quick) {
-                    let clientArea = Workspace.clientArea(KWin.FullScreenArea, client.output, Workspace.currentDesktop);
-                    let tileX = Math.max(tile.x, clientArea.left);
-                    let tileY = Math.max(tile.y, clientArea.top);
-                    let tileWidth = tile.width - (tileX - tile.x);
-                    if (tileX + tileWidth > clientArea.right) {
-                        tileWidth = clientArea.right - tileX;
+        if (!mouseTilerAutoTilePreventsRestore) {
+            // Restore frame geometry
+            if (config.perScreenRestore && saveData.position) {
+                log('Restoring frame geometry based on screen position');
+                let output = getOutputFromSave(saveData.position.serialNumber, saveData.position.name, client.resourceClass);
+                let positionGlobal = output != null ? output.mapToGlobal(Qt.point(saveData.position.x, saveData.position.y)) : client.pos;
+                log('- positionGlobal: ' + positionGlobal);
+                if (windowConfig.position && restoreSize) {
+                    if (client.x != positionGlobal.x || client.y != positionGlobal.y || client.width != saveData.width || client.height != saveData.height) {
+                        log('Attempting to restore window size and position');
+                        positionRestored = client.x != positionGlobal.x || client.y != positionGlobal.y;
+                        sizeRestored = client.width != saveData.width || client.height != saveData.height;
+                        client.frameGeometry = Qt.rect(positionGlobal.x, positionGlobal.y, saveData.width, saveData.height);
                     }
-                    let tileHeight = tile.height - (tileY - tile.y);
-                    if (tileY + tileHeight > clientArea.bottom) {
-                        tileHeight = clientArea.bottom - tileY;
+                } else if (restoreSize) {
+                    if (client.width != saveData.width || client.height != saveData.height) {
+                        log('Attempting to restore window size');
+                        client.frameGeometry = Qt.rect(client.x, client.y, saveData.width, saveData.height);
+                        sizeRestored = true;
                     }
-                    if (
-                        config.restoreResizedQuickTile ||
-                        Math.abs(client.frameGeometry.x - tileX) < 0.001 &&
-                        Math.abs(client.frameGeometry.y - tileY) < 0.001 &&
-                        Math.abs(client.frameGeometry.width - tileWidth) < 0.001 &&
-                        Math.abs(client.frameGeometry.height - tileHeight) < 0.001
-                        ) {
-                        Workspace.activeWindow = client;
-                        if (client.tile) {
-                            client.tile = null;
-                        }
-                        if (tile.left) {
-                            if (tile.top) {
-                                Workspace.slotWindowQuickTileTopLeft();
-                            } else if (tile.bottom) {
-                                Workspace.slotWindowQuickTileBottomLeft();
-                            } else {
-                                Workspace.slotWindowQuickTileLeft();
-                            }
-                        } else if (tile.right) {
-                            if (tile.top) {
-                                Workspace.slotWindowQuickTileTopRight();
-                            } else if (tile.bottom) {
-                                Workspace.slotWindowQuickTileBottomRight();
-                            } else {
-                                Workspace.slotWindowQuickTileRight();
-                            }
-                        } else if (tile.top) {
-                            Workspace.slotWindowQuickTileTop();
-                        } else if (tile.bottom) {
-                            Workspace.slotWindowQuickTileBottom();
-                        }
-                    } else {
-                        log('Unable to restore quick tile position: ' + JSON.stringify(client.frameGeometry) + ' - ' + JSON.stringify(tile));
-                    }
-                } else {
-                    let tiling = Workspace.tilingForScreen(client.output);
-                    let bestTile = tiling.bestTileForPosition(client.x + client.width / 2, client.y + client.height / 2);
-                    if (bestTile) {
-                        let absoluteGeometry = bestTile.absoluteGeometry;
-                        if (Math.abs(absoluteGeometry.x - tile.x) < 0.001 && Math.abs(absoluteGeometry.y - tile.y) < 0.001 && Math.abs(absoluteGeometry.width - tile.width) < 0.001 && Math.abs(absoluteGeometry.height - tile.height) < 0.001) {
-                            client.tile = bestTile;
-                        } else {
-                            log('Unable to restore shift tile position: ' + JSON.stringify(client.frameGeometry) + ' ' + JSON.stringify(tile));
-                        }
-                    } else {
-                        log('Unable to restore shift tile position no bestTileForPosition: ' + JSON.stringify(client.frameGeometry) + ' ' + JSON.stringify(tile));
-                    }
-                }
-                if (client.tile) {
-                    log('Restored tile position: ' + JSON.stringify(client.tile.absoluteGeometry));
+                } else if (windowConfig.position && (client.x != positionGlobal.x || client.y != positionGlobal.y)) {
+                    log('Attempting to restore window position');
+                    client.frameGeometry = Qt.rect(positionGlobal.x, positionGlobal.y, client.width, client.height);
+                    positionRestored = true;
                 }
             } else {
-                log('Unable to restore tile position: ' + JSON.stringify(client.frameGeometry) + ' ' + JSON.stringify(tile));
+                log('Restoring frame geometry based on global position');
+                if (windowConfig.position && restoreSize) {
+                    if (client.x != saveData.x || client.y != saveData.y || client.width != saveData.width || client.height != saveData.height) {
+                        log('Attempting to restore window size and position');
+                        positionRestored = client.x != saveData.x || client.y != saveData.y;
+                        sizeRestored = client.width != saveData.width || client.height != saveData.height;
+                        client.frameGeometry = Qt.rect(saveData.x, saveData.y, saveData.width, saveData.height);
+                    }
+                } else if (restoreSize) {
+                    if (client.width != saveData.width || client.height != saveData.height) {
+                        log('Attempting to restore window size');
+                        client.frameGeometry = Qt.rect(client.x, client.y, saveData.width, saveData.height);
+                        sizeRestored = true;
+                    }
+                } else if (windowConfig.position && (client.x != saveData.x || client.y != saveData.y)) {
+                    log('Attempting to restore window position');
+                    client.frameGeometry = Qt.rect(saveData.x, saveData.y, client.width, client.height);
+                    positionRestored = true;
+                }
+            }
+
+            // Restore activities
+            if (restoreActivities) {
+                if (saveData.activities && client.activities) {
+                    log('Attempting to restore window activities');
+                    let activities = [];
+                    let activitiesLength = saveData.activities.length;
+                    if (activitiesLength > 0) {
+                        for (let i = 0; i < activitiesLength; i++) {
+                            if (Workspace.activities.includes(saveData.activities[i])) {
+                                activities.push(saveData.activities[i]);
+                            }
+                        }
+                    }
+                    if (JSON.stringify(client.activities) != JSON.stringify(activities)) {
+                        client.activities = activities;
+                        if (moveActivity && !activities.includes(Workspace.currentActivity)) {
+                            Workspace.currentActivity = activities[0];
+                        }
+                    }
+                }
+            }
+
+            // Restore virtual desktop
+            if (restoreDesktop) {
+                let desktopNumber = client.onAllDesktops ? -1 : client.desktops[0].x11DesktopNumber;
+                if (saveData.desktopNumber != desktopNumber) {
+                    if (saveData.desktopNumber == -1) {
+                        log('Attempting to restore window on all virtual desktops');
+                        client.onAllDesktops = true;
+                        virtualDesktopRestored = true;
+                    } else {
+                        log('Attempting to restore window virtual desktop');
+                        let desktop = Workspace.desktops.find((d) => d.x11DesktopNumber == saveData.desktopNumber);
+                        if (desktop) {
+                            let desktops = [desktop];
+                            if (JSON.stringify(desktops) != JSON.stringify(client.desktops)) {
+                                client.desktops = desktops;
+                                virtualDesktopRestored = true;
+                                if (moveVirtualDesktop) {
+                                    Workspace.currentDesktop = desktop;
+                                }
+                            }
+                        } else {
+                            logE('Failed to restore window virtual desktop');
+                        }
+                    }
+                }
+            }
+
+            // Restore screen
+            // - this seems to be handled by restoring frame geometry as it spans all screens - if anything changes will have to implement this
+
+            // Restore z-index
+            if (restoreZ) {
+                log('Attempting to restore window z-index');
+                Workspace.raiseWindow(client);
+                zRestored = true;
+            }
+
+            // Restore minimized
+            if (saveData.minimized && restoreMinimized) {
+                log('Attempting to restore window minimized');
+                client.minimized = true;
+                minimizedRestored = true;
+            }
+
+            // Restore keepAbove
+            if (saveData.keepAbove && restoreKeepAbove) {
+                log('Attempting to restore window keepAbove');
+                client.keepAbove = true;
+                keepAboveRestored = true;
+            }
+
+            // Restore keepBelow
+            if (saveData.keepBelow && restoreKeepBelow) {
+                log('Attempting to restore window keepBelow');
+                client.keepBelow = true;
+                keepBelowRestored = true;
+            }
+
+            if (saveData.tile && config.restoreTile && (!client.tile || config.restoreResizedQuickTile)) {
+                let tile = saveData.tile;
+                log('Attemptying to restore tile: ' + JSON.stringify(tile));
+                if (tile.quick && config.restoreResizedQuickTile || Math.ceil(client.frameGeometry.left) >= Math.floor(tile.x) && Math.ceil(client.frameGeometry.top) >= Math.floor(tile.y) && Math.floor(client.frameGeometry.right) <= Math.ceil(tile.x + tile.width) && Math.floor(client.frameGeometry.bottom) <= Math.ceil(tile.y + tile.height)) {
+                    if (tile.quick) {
+                        let clientArea = Workspace.clientArea(KWin.FullScreenArea, client.output, Workspace.currentDesktop);
+                        let tileX = Math.max(tile.x, clientArea.left);
+                        let tileY = Math.max(tile.y, clientArea.top);
+                        let tileWidth = tile.width - (tileX - tile.x);
+                        if (tileX + tileWidth > clientArea.right) {
+                            tileWidth = clientArea.right - tileX;
+                        }
+                        let tileHeight = tile.height - (tileY - tile.y);
+                        if (tileY + tileHeight > clientArea.bottom) {
+                            tileHeight = clientArea.bottom - tileY;
+                        }
+                        if (
+                            config.restoreResizedQuickTile ||
+                            Math.abs(client.frameGeometry.x - tileX) < 0.001 &&
+                            Math.abs(client.frameGeometry.y - tileY) < 0.001 &&
+                            Math.abs(client.frameGeometry.width - tileWidth) < 0.001 &&
+                            Math.abs(client.frameGeometry.height - tileHeight) < 0.001
+                            ) {
+                            Workspace.activeWindow = client;
+                            if (client.tile) {
+                                client.tile = null;
+                            }
+                            if (tile.left) {
+                                if (tile.top) {
+                                    Workspace.slotWindowQuickTileTopLeft();
+                                } else if (tile.bottom) {
+                                    Workspace.slotWindowQuickTileBottomLeft();
+                                } else {
+                                    Workspace.slotWindowQuickTileLeft();
+                                }
+                            } else if (tile.right) {
+                                if (tile.top) {
+                                    Workspace.slotWindowQuickTileTopRight();
+                                } else if (tile.bottom) {
+                                    Workspace.slotWindowQuickTileBottomRight();
+                                } else {
+                                    Workspace.slotWindowQuickTileRight();
+                                }
+                            } else if (tile.top) {
+                                Workspace.slotWindowQuickTileTop();
+                            } else if (tile.bottom) {
+                                Workspace.slotWindowQuickTileBottom();
+                            }
+                        } else {
+                            log('Unable to restore quick tile position: ' + JSON.stringify(client.frameGeometry) + ' - ' + JSON.stringify(tile));
+                        }
+                    } else {
+                        let tiling = Workspace.tilingForScreen(client.output);
+                        let bestTile = tiling.bestTileForPosition(client.x + client.width / 2, client.y + client.height / 2);
+                        if (bestTile) {
+                            let absoluteGeometry = bestTile.absoluteGeometry;
+                            if (Math.abs(absoluteGeometry.x - tile.x) < 0.001 && Math.abs(absoluteGeometry.y - tile.y) < 0.001 && Math.abs(absoluteGeometry.width - tile.width) < 0.001 && Math.abs(absoluteGeometry.height - tile.height) < 0.001) {
+                                client.tile = bestTile;
+                            } else {
+                                log('Unable to restore shift tile position: ' + JSON.stringify(client.frameGeometry) + ' ' + JSON.stringify(tile));
+                            }
+                        } else {
+                            log('Unable to restore shift tile position no bestTileForPosition: ' + JSON.stringify(client.frameGeometry) + ' ' + JSON.stringify(tile));
+                        }
+                    }
+                    if (client.tile) {
+                        log('Restored tile position: ' + JSON.stringify(client.tile.absoluteGeometry));
+                    }
+                } else {
+                    log('Unable to restore tile position: ' + JSON.stringify(client.frameGeometry) + ' ' + JSON.stringify(tile));
+                }
             }
         }
 
