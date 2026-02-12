@@ -82,11 +82,16 @@ Can operate in one of four modes where it remembers:
 
 There are lots of other settings that let you control exactly how and when to restore windows to their previous state.
 
-### Future ideas (might or might not be implemented)
+### Future ideas
 
-- Add keyboard shortcut to block restoring of next application started
-- Add override ignores numbers in caption match
-- Live backup - Makes a backup save of all open windows and monitors caption change + size/position change - if system crashes, can restore from live backup
+The future features depend on you.
+
+Read this for details:
+[Planned features and donation goals](https://github.com/rxappdev/MouseTiler/blob/main/PLANNEDFEATURES.md)
+
+Voting and current results:
+
+[![poll](https://wakatime.com/polls/0e8054f0-e168-4f00-b31b-ed6c17bd51af.png)](https://wakatime.com/polls/0e8054f0-e168-4f00-b31b-ed6c17bd51af)
 
 ## <p id="how"></p>How it works
 
