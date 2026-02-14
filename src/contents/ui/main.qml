@@ -388,6 +388,8 @@ Item {
         let keepBelowRestored = false;
         let zRestored = false;
 
+        let previousActiveWindow = Workspace.activeWindow;
+
         let restoreSession = saveData.sessionRestore ? config.loginOverride : false;
         log('restoreWindowPlacement restoreSession: ' + restoreSession + ' saveData.sessionRestore: ' + saveData.sessionRestore + ' config.loginOverride: ' + config.loginOverride);
         let restoreSize = restoreSession ? config.sessionRestoreSize : windowConfig.size;
@@ -520,6 +522,10 @@ Item {
                 log('Attempting to restore window z-index');
                 Workspace.raiseWindow(client);
                 zRestored = true;
+                if (previousActiveWindow != null && previousActiveWindow != client) {
+                    log('Raising z of active window!');
+                    Workspace.raiseWindow(previousActiveWindow);
+                }
             }
 
             // Restore minimized
@@ -615,6 +621,13 @@ Item {
                     log('Unable to restore tile position: ' + JSON.stringify(client.frameGeometry) + ' ' + JSON.stringify(tile));
                 }
             }
+        }
+
+        if (previousActiveWindow != Workspace.activeWindow) {
+            Workspace.activeWindow = previousActiveWindow;
+            log('Current active window CHANGED previous class: ' + (previousActiveWindow ? previousActiveWindow.resourceClass : '')  + ' caption: ' + (previousActiveWindow ? previousActiveWindow.caption : ''));
+        } else {
+            log('Current active window SAME class: ' + (previousActiveWindow ? previousActiveWindow.resourceClass : '')  + ' caption: ' + (previousActiveWindow ? previousActiveWindow.caption : ''));
         }
 
         logE(client.resourceClass + ' restored - z: ' + zRestored + ' positon: ' + positionRestored + ' size: ' + sizeRestored + ' desktop: ' + virtualDesktopRestored + ' minimized: ' + minimizedRestored + ' keepAbove: ' + keepAboveRestored + ' keepBelow: ' + keepBelowRestored + ' caption score: ' + captionScore + ' internalId: ' + client.internalId);
@@ -1617,6 +1630,80 @@ Item {
         log('Windows saved!');
     }
 
+    function addDefaultOverrides() {
+        // settings.rememberwindowpositions_currentDefaultOverrideCount = 0;
+        const defaultOverrides = [
+            { add: true, application: 'gimp', window: 'GIMP Startup' },           // Gimp splash screen
+            { add: true, application: 'org.shotcut.Shotcut', window: 'Shotcut' }, // Shotcut splash screen
+            { add: true, application: 'brave-browser', window: 'Brave' }          // Brave profile selector
+        ];
+        let modified = false;
+
+        log('Updating default overrides. Current count: ' + settings.rememberwindowpositions_currentDefaultOverrideCount);
+
+        for (let i = settings.rememberwindowpositions_currentDefaultOverrideCount; i < defaultOverrides.length; i++) {
+            let application = defaultOverrides[i].application;
+            let window = defaultOverrides[i].window;
+            if (defaultOverrides[i].add) {
+                log('Want to add application: ' + application + ' window: ' + window);
+                if (!config.overrides[application]) {
+                    config.overrides[application] = {
+                        config: {
+                            override: false,
+                            rememberOnClose: defaultConfig.rememberOnClose,
+                            rememberNever: defaultConfig.rememberNever,
+                            rememberAlways: defaultConfig.rememberAlways,
+                            position: defaultConfig.position,
+                            size: defaultConfig.size,
+                            desktop: defaultConfig.desktop,
+                            activity: defaultConfig.activity,
+                            minimized: defaultConfig.minimized,
+                            keepAbove: defaultConfig.keepAbove,
+                            keepBelow: defaultConfig.keepBelow
+                        },
+                        windows: {}
+                    };
+                }
+
+                if (!config.overrides[application].windows[window]) {
+                    log('Adding...');
+                    config.overrides[application].windows[window] = {
+                        override: true,
+                        rememberOnClose: false,
+                        rememberNever: true,
+                        rememberAlways: false,
+                        position: defaultConfig.position,
+                        size: defaultConfig.size,
+                        desktop: defaultConfig.desktop,
+                        activity: defaultConfig.activity,
+                        minimized: defaultConfig.minimized,
+                        keepAbove: defaultConfig.keepAbove,
+                        keepBelow: defaultConfig.keepBelow
+                    };
+                    modified = true;
+                }
+            } else {
+                log('Deleting...');
+                if (config.overrides[application]) {
+                    if (config.overrides[application].windows[window] && config.overrides[application].windows[window].override && config.overrides[application].windows[window].rememberNever) {
+                        delete config.overrides[application].windows[window];
+                        modified = true;
+                    }
+                    if (!config.overrides[application].config.override && Object.keys(config.overrides[application].windows).length == 0) {
+                        delete config.overrides[application];
+                        modified = true;
+                    }
+                }
+            }
+            settings.rememberwindowpositions_currentDefaultOverrideCount++;
+        }
+
+        if (modified) {
+            log('Overrides modified! Save...');
+            saveOverridesToSettings();
+        }
+    }
+
     function loadOverridesFromSettings() {
         let savedOverrides = JSON.parse(settings.rememberwindowpositions_configOverrides);
         let convertedOverrides = {};
@@ -1716,6 +1803,7 @@ Item {
         id: settings
         property string rememberwindowpositions_windows: "{}"
         property string rememberwindowpositions_configOverrides: "{}"
+        property int rememberwindowpositions_currentDefaultOverrideCount: 0
         // property bool rememberwindowpositions_autoShowMainMenu: true
     }
 
@@ -1744,6 +1832,7 @@ Item {
         loadConfig();
         loadOverridesFromSettings();
         loadWindowsFromSettings();
+        addDefaultOverrides();
 
         sessionStartedTimer.setTimeout(2 * 60 * 1000); // 2 minute session start countdown
 
