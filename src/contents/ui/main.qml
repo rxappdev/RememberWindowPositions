@@ -22,6 +22,8 @@ Item {
 
     property var defaultConfig: {}
 
+    property int restoreMode: 0
+
     function log(string) {
         if (!debugLogs) return;
         console.warn('RememberWindowPositions: ' + string);
@@ -378,6 +380,7 @@ Item {
         if (!client) return;
         if (client.deleted) return;
         if (!saveData) return;
+        if (client.rwp_restoreBlocked) return;
         if (captionScore < config.minimumCaptionMatch) return;
         if (!config.restoreWindowsWithoutCaption && (!client.caption || client.caption.trim().length == 0)) return;
         let positionRestored = false;
@@ -950,6 +953,15 @@ Item {
 
     function addWindow(client, restore) {
         if (!isValidWindow(client)) return;
+
+        switch (restoreMode) {
+            case 1: // Block restoration of next window only
+                restoreMode = 0;
+            case 2: // Block restoration until disabled
+                client.rwp_restoreBlocked = true;
+                break;
+        }
+
         let currentConfig = getCurrentConfig(client);
         if (config.printApplicationNameToLog) logAppInfo(client.resourceClass, currentConfig.override);
         if (currentConfig.listenToCaptionChange) {
@@ -1906,6 +1918,40 @@ Item {
             } else {
                 showMainMenu();
             }
+        }
+    }
+
+    ShortcutHandler {
+        name: "Remember Window Positions: Block Restore"
+        text: "Remember Window Positions: Block Restoration Toggle"
+        sequence: "Meta+X"
+        onActivated: {
+            switch (restoreMode) {
+                case 0:
+                    restoreMode++;
+                    onScreenDisplay.show('Blocking restoration of NEXT window!', 'emblem-unreadable');
+                    break;
+                case 1:
+                    restoreMode++;
+                    onScreenDisplay.show('Blocking restoration of ALL windows!', 'emblem-readonly');
+                    break;
+                case 2:
+                    restoreMode = 0;
+                    onScreenDisplay.show('Restoring ALL saved windows!', 'emblem-default');
+                    break;
+            }
+        }
+    }
+
+    DBusCall {
+        id: onScreenDisplay
+        service: "org.kde.plasmashell"
+        path: "/org/kde/osdService"
+        method: "showText"
+
+        function show(message, icon) {
+            this.arguments = [icon, message];
+            this.call();
         }
     }
 }
