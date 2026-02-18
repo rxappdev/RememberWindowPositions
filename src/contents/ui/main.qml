@@ -854,7 +854,7 @@ Item {
                 }
             }
 
-            if (previousActiveWindow.resourceClass == clientName && validRestoredWindow != null && Workspace.activeWindow != validRestoredWindow) {
+            if (previousActiveWindow && previousActiveWindow.resourceClass == clientName && validRestoredWindow != null && Workspace.activeWindow != validRestoredWindow) {
                 if (previousActiveWindow != validRestoredWindow) {
                     log('Set active window - reason WINDOW DIFFERS!');
                     Workspace.activeWindow = validRestoredWindow;
@@ -862,7 +862,7 @@ Item {
                     log('Raise window - reason WINDOW DIFFERS!');
                     Workspace.raiseWindow(Workspace.activeWindow);
                 }
-            } else if (Workspace.activeWindow.resourceClass != clientName) {
+            } else if (Workspace.activeWindow && Workspace.activeWindow.resourceClass != clientName) {
                 log('Raise window - reason CLASS DIFFERS!');
                 Workspace.raiseWindow(previousActiveWindow);
             }
