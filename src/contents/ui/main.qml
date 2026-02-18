@@ -421,7 +421,7 @@ Item {
                     mouseTilerAutoTilePreventsRestore = true;
                 }
             } else if (!client.mt_autoRestore) {
-                client.mt_autoRestore = 2048;
+                client.mt_autoRestore = 512;
             }
         }
 
@@ -1004,7 +1004,7 @@ Item {
                 delete client.rwp_captionListenerAdded;
                 addWindow(client, false);
                 if (!client.mt_autoRestore) {
-                    client.mt_autoRestore = 2048;
+                    client.mt_autoRestore = 512;
                 }
             }
         }
@@ -1063,7 +1063,7 @@ Item {
                 }
             }
             if (!client.mt_autoRestore) {
-                client.mt_autoRestore = 2048;
+                client.mt_autoRestore = 512;
             }
         }
 
@@ -1153,7 +1153,7 @@ Item {
                 }
             }
         } else if (windowData.saved.length == 0 && !client.mt_autoRestore) {
-            client.mt_autoRestore = 2048;
+            client.mt_autoRestore = 512;
         }
     }
 
