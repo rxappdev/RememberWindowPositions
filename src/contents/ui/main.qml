@@ -405,19 +405,23 @@ Item {
         let mouseTilerAutoTilePreventsRestore = false;
 
         log('saveData.mouseTilerAuto: ' + saveData.mouseTilerAuto + ' config.restoreMouseTiler: ' + config.restoreMouseTiler + ' client.mt_autoRestore: ' + client.mt_autoRestore);
-        if (saveData.mouseTilerAuto > 0 && config.restoreMouseTiler) {
-            if ((saveData.mouseTilerAuto & 512) != 512 && (saveData.mouseTilerAuto & 128) != 128) {
-                // Mouse Auto Tiler was detected last app sessions - prevent restoring minimized
-                restoreMinimized = false;
-                // Prevent second wave restoration
-                saveData.mouseTilerAuto |= 1024;
-            }
-            if (!client.mt_autoRestore) {
-                client.mt_autoRestore = saveData.mouseTilerAuto | 512;
-            } else if ((saveData.mouseTilerAuto & 1024) == 1024) {
-                // Mouse Auto Tiler was detected last app session - do not restore anything again
-                client.mt_autoRestore &= ~1024;
-                mouseTilerAutoTilePreventsRestore = true;
+        if (config.restoreMouseTiler) {
+            if (saveData.mouseTilerAuto > 0) {
+                if ((saveData.mouseTilerAuto & 512) != 512 && (saveData.mouseTilerAuto & 128) != 128) {
+                    // Mouse Auto Tiler was detected last app sessions - prevent restoring minimized
+                    restoreMinimized = false;
+                    // Prevent second wave restoration
+                    saveData.mouseTilerAuto |= 1024;
+                }
+                if (!client.mt_autoRestore) {
+                    client.mt_autoRestore = saveData.mouseTilerAuto | 512;
+                } else if ((saveData.mouseTilerAuto & 1024) == 1024) {
+                    // Mouse Auto Tiler was detected last app session - do not restore anything again
+                    client.mt_autoRestore &= ~1024;
+                    mouseTilerAutoTilePreventsRestore = true;
+                }
+            } else if (!client.mt_autoRestore) {
+                client.mt_autoRestore = 2048;
             }
         }
 
@@ -999,6 +1003,9 @@ Item {
             } else {
                 delete client.rwp_captionListenerAdded;
                 addWindow(client, false);
+                if (!client.mt_autoRestore) {
+                    client.mt_autoRestore = 2048;
+                }
             }
         }
 
@@ -1054,6 +1061,9 @@ Item {
                         }
                     }
                 }
+            }
+            if (!client.mt_autoRestore) {
+                client.mt_autoRestore = 2048;
             }
         }
 
@@ -1142,6 +1152,8 @@ Item {
                     windowData.instantMatchRestored = 0;
                 }
             }
+        } else if (windowData.saved.length == 0 && !client.mt_autoRestore) {
+            client.mt_autoRestore = 2048;
         }
     }
 
