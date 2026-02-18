@@ -391,8 +391,6 @@ Item {
         let keepBelowRestored = false;
         let zRestored = false;
 
-        let previousActiveWindow = Workspace.activeWindow;
-
         let restoreSession = saveData.sessionRestore ? config.loginOverride : false;
         log('restoreWindowPlacement restoreSession: ' + restoreSession + ' saveData.sessionRestore: ' + saveData.sessionRestore + ' config.loginOverride: ' + config.loginOverride);
         let restoreSize = restoreSession ? config.sessionRestoreSize : windowConfig.size;
@@ -528,11 +526,8 @@ Item {
             if (restoreZ) {
                 log('Attempting to restore window z-index');
                 Workspace.raiseWindow(client);
+                client.demandsAttention = false;
                 zRestored = true;
-                if (previousActiveWindow != null && previousActiveWindow != client) {
-                    log('Raising z of active window!');
-                    Workspace.raiseWindow(previousActiveWindow);
-                }
             }
 
             // Restore minimized
@@ -628,13 +623,6 @@ Item {
                     log('Unable to restore tile position: ' + JSON.stringify(client.frameGeometry) + ' ' + JSON.stringify(tile));
                 }
             }
-        }
-
-        if (previousActiveWindow != Workspace.activeWindow) {
-            Workspace.activeWindow = previousActiveWindow;
-            log('Current active window CHANGED previous class: ' + (previousActiveWindow ? previousActiveWindow.resourceClass : '')  + ' caption: ' + (previousActiveWindow ? previousActiveWindow.caption : ''));
-        } else {
-            log('Current active window SAME class: ' + (previousActiveWindow ? previousActiveWindow.resourceClass : '')  + ' caption: ' + (previousActiveWindow ? previousActiveWindow.caption : ''));
         }
 
         logE(client.resourceClass + ' restored - z: ' + zRestored + ' positon: ' + positionRestored + ' size: ' + sizeRestored + ' desktop: ' + virtualDesktopRestored + ' minimized: ' + minimizedRestored + ' keepAbove: ' + keepAboveRestored + ' keepBelow: ' + keepBelowRestored + ' caption score: ' + captionScore + ' internalId: ' + client.internalId);
@@ -856,8 +844,27 @@ Item {
 
             results.sort((a, b) => a.saved.stackingOrder - b.saved.stackingOrder);
 
+            let previousActiveWindow = Workspace.activeWindow;
+            let validRestoredWindow = null;
+
             for (let i = 0; i < results.length; i++) {
                 restoreWindowPlacement(results[i].saved, results[i].loading, results[i].captionScore, getCurrentConfig(results[i].loading));
+                if (!results[i].loading.minimized) {
+                    validRestoredWindow = results[i].loading;
+                }
+            }
+
+            if (previousActiveWindow.resourceClass == clientName && validRestoredWindow != null && Workspace.activeWindow != validRestoredWindow) {
+                if (previousActiveWindow != validRestoredWindow) {
+                    log('Set active window - reason WINDOW DIFFERS!');
+                    Workspace.activeWindow = validRestoredWindow;
+                } else {
+                    log('Raise window - reason WINDOW DIFFERS!');
+                    Workspace.raiseWindow(Workspace.activeWindow);
+                }
+            } else if (Workspace.activeWindow.resourceClass != clientName) {
+                log('Raise window - reason CLASS DIFFERS!');
+                Workspace.raiseWindow(previousActiveWindow);
             }
 
             clearSavesExceptRememberAlways(clientName);
