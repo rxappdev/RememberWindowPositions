@@ -125,7 +125,11 @@ steam*
 org.kde.plasmashell
 kwin
 ksmserver
-systemsettings</default>
+systemsettings
+kcm_kwinrules
+org.kde.kmenuedit
+org.kde.ark
+org.kde.plasma.emojier</default>
         </entry>
         <entry name="whitelist" type="String">
             <default>brave-browser

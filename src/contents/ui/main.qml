@@ -180,7 +180,7 @@ Item {
             sessionRestoreKeepAbove: KWin.readConfig("sessionRestoreKeepAbove", true),
             sessionRestoreKeepBelow: KWin.readConfig("sessionRestoreKeepBelow", true),
             sessionRestoreTime: KWin.readConfig("sessionRestoreTime", 25),
-            blacklist: stringListToNormalAndWildcard(KWin.readConfig("blacklist", "org.kde.spectacle\norg.kde.polkit-kde-authentication-agent-1\nsteam*\norg.kde.plasmashell\nkwin\nksmserver\nsystemsettings")),
+            blacklist: stringListToNormalAndWildcard(KWin.readConfig("blacklist", "org.kde.spectacle\norg.kde.polkit-kde-authentication-agent-1\nsteam*\norg.kde.plasmashell\nkwin\nksmserver\nsystemsettings\nkcm_kwinrules\norg.kde.kmenuedit\norg.kde.ark\norg.kde.plasma.emojier")),
             whitelist: stringListToNormalAndWildcard(KWin.readConfig("whitelist", browserList)),
             printApplicationNameToLog: KWin.readConfig("printApplicationNameToLog", true),
             printMonitorInfoToLog: KWin.readConfig("printMonitorInfoToLog", false),
