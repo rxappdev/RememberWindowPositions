@@ -43,6 +43,7 @@ ApplicationWindow {
 
     id: mainMenuRoot
     width: 1000
+    maximumWidth: 1000
     height: 734
     minimumWidth: Math.min(editSaved.implicitWidth, Workspace.virtualScreenSize.width);
     minimumHeight: Math.min(editSaved.implicitHeight + header.height + 1, Workspace.virtualScreenSize.height);
@@ -507,8 +508,21 @@ ApplicationWindow {
 
                     Label {
                         Layout.fillWidth: true
-                        text: "It is highly recommended to create a good default configuration in the \"<b>System Settings > Window Management > KWin Scripts > Remember Window Positions</b>\" configuration dialog intead of relying on application/window specifiy overrides."
+                        text: "<font color='#ffaa00'><b>IMPORTANT</b></font> It is highly recommended to create a good default configuration in the \"<b>System Settings > Window Management > KWin Scripts > Remember Window Positions</b>\" configuration dialog intead of relying on application/window specifiy overrides."
                         wrapMode: Text.WordWrap
+                    }
+
+                    Label {
+                        Layout.fillWidth: true
+                        text: "<font color='#ffaa00'>WARNING</font> Using individual window overrides might increase restoration times for other windows for that application."
+                        wrapMode: Text.WordWrap
+                    }
+
+                    Label {
+                        Layout.fillWidth: true
+                        text: "You can view examples of how to configure different overrides <a href='https://github.com/rxappdev/RememberWindowPositions?tab=readme-ov-file#use'>here</a>. These are just a few examples of what you can achieve, so feel free to experiment."
+                        wrapMode: Text.WordWrap
+                        onLinkActivated: Qt.openUrlExternally(link)
                     }
                 }
             }
@@ -523,7 +537,7 @@ ApplicationWindow {
                     Label {
                         Layout.fillWidth: true
                         horizontalAlignment: Text.AlignHCenter
-                        text: "Click the \"Select Application/Window\" button then click on an open window to edit its properties."
+                        text: "Click the \"Select Application/Window\" button then click on an open window (or open a new window) to edit its properties."
                         wrapMode: Text.WordWrap
                     }
 
@@ -603,7 +617,7 @@ ApplicationWindow {
 
                         Button {
                             id: deleteSavedApplicationWindows
-                            text: "Remove All Windows From Savefile (Cannot Be Undone)"
+                            text: "Remove All Windows For Selected App From Savefile (Cannot Be Undone)"
                             Layout.fillWidth: true
 
                             onClicked: deleteSavedApplicationWindowsForSelected()
@@ -660,7 +674,7 @@ ApplicationWindow {
 
                         Button {
                             id: deleteSavedWindows
-                            text: "Remove All Window Instances From Savefile (Cannot Be Undone)"
+                            text: "Remove Selected Window From Savefile (Cannot Be Undone)"
                             Layout.fillWidth: true
 
                             onClicked: deleteSavedWindowsForSelected()

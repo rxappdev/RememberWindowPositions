@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1188</width>
-    <height>738</height>
+    <width>1189</width>
+    <height>792</height>
    </rect>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
@@ -28,7 +28,7 @@
        <item>
         <widget class="QLabel" name="label_18">
          <property name="text">
-          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; color:#ff0000;&quot;&gt;If you are using older hardware, have poor internet speed, or are for any other reasons experiencing issues with window restoration - please increase the &lt;/span&gt;&lt;span style=&quot; font-weight:700; color:#ff0000;&quot;&gt;Restore Attempts&lt;/span&gt;&lt;span style=&quot; color:#ff0000;&quot;&gt; and &lt;/span&gt;&lt;span style=&quot; font-weight:700; color:#ff0000;&quot;&gt;Perfect Restore Attempts&lt;/span&gt;&lt;span style=&quot; color:#ff0000;&quot;&gt; in the &lt;/span&gt;&lt;span style=&quot; font-weight:700; color:#ff0000;&quot;&gt;Multi-Window Restore&lt;/span&gt;&lt;span style=&quot; color:#ff0000;&quot;&gt; tab - the default settings should be sufficient for most people with modern hardware and decent internet speeds.&lt;br/&gt;If you use a HDD as your /home drive and experience lag/stutter when closing apps/windows, please enable the &lt;/span&gt;&lt;span style=&quot; font-weight:700; color:#ff0000;&quot;&gt;Only save during shutdown&lt;/span&gt;&lt;span style=&quot; color:#ff0000;&quot;&gt; feature in the &lt;/span&gt;&lt;span style=&quot; font-weight:700; color:#ff0000;&quot;&gt;Debug&lt;/span&gt;&lt;span style=&quot; color:#ff0000;&quot;&gt; tab.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:700; color:#ffaa00;&quot;&gt;IMPORTANT&lt;/span&gt; If you are using older hardware, have poor internet speed, or are for any other reasons experiencing issues with window restoration - please increase the &lt;span style=&quot; font-weight:700;&quot;&gt;Restore Attempts&lt;/span&gt; and &lt;span style=&quot; font-weight:700;&quot;&gt;Perfect Restore Attempts&lt;/span&gt; in the &lt;span style=&quot; font-weight:700;&quot;&gt;Multi-Window Restore&lt;/span&gt; tab - the default settings should be sufficient for most people with modern hardware and decent internet speeds.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
          </property>
          <property name="wordWrap">
           <bool>true</bool>
@@ -36,9 +36,36 @@
         </widget>
        </item>
        <item>
+        <widget class="QLabel" name="label_24">
+         <property name="text">
+          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:700; color:#ffaa00;&quot;&gt;IMPORTANT&lt;/span&gt; If you use a &lt;span style=&quot; font-weight:700;&quot;&gt;HDD&lt;/span&gt; as your /home drive and experience lag/stutter when closing apps/windows, please enable &lt;span style=&quot; font-weight:700;&quot;&gt;Only save during shutdown&lt;/span&gt; in the &lt;span style=&quot; font-weight:700;&quot;&gt;Debug / Experimental&lt;/span&gt; tab.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+         </property>
+         <property name="wordWrap">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QLabel" name="label_25">
+         <property name="text">
+          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:700; color:#ffaa00;&quot;&gt;IMPORTANT&lt;/span&gt; You can block restoration of a single window, or disable restoring temporarily by toggling restoration mode (&lt;span style=&quot; font-weight:700; color:#ffaa00;&quot;&gt;Meta+X&lt;/span&gt;).&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+         </property>
+         <property name="wordWrap">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QLabel" name="label_26">
+         <property name="text">
+          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:700; color:#ffaa00;&quot;&gt;IMPORTANT&lt;/span&gt; You can override a single app/window configuration (such as a splash screen or a dialog) in the &amp;quot;Per Application/Window Override&amp;quot; (&lt;span style=&quot; font-weight:700; color:#ffaa00;&quot;&gt;Ctrl+Meta+W&lt;/span&gt;).&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+         </property>
+        </widget>
+       </item>
+       <item>
         <widget class="QLabel" name="label_16">
          <property name="text">
-          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;WARNING - Window Rules might interfere with this script. If you want to use Window Rules with a certain application, please add it to Blacklist or ignore it in Per Appplication/Window Override (&lt;span style=&quot; font-weight:700;&quot;&gt;Ctrl+Meta+W&lt;/span&gt; by default). You can also delete your old Window Rules and use this script instead. Thank you.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; color:#ffaa00;&quot;&gt;WARNING&lt;/span&gt; Window Rules might interfere with this script. If you want to use Window Rules with a certain application, please add it to Blacklist or ignore it in Per Appplication/Window Override (&lt;span style=&quot; font-weight:700;&quot;&gt;Ctrl+Meta+W&lt;/span&gt; by default). You can also delete your old Window Rules and use this script instead. Thank you.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
          </property>
          <property name="wordWrap">
           <bool>true</bool>
@@ -377,6 +404,9 @@
       <zorder>groupBox</zorder>
       <zorder>label_16</zorder>
       <zorder>label_18</zorder>
+      <zorder>label_24</zorder>
+      <zorder>label_25</zorder>
+      <zorder>label_26</zorder>
      </widget>
      <widget class="QWidget" name="tab">
       <attribute name="icon">
@@ -932,9 +962,25 @@ When upgrading from an earlier version, a reboot might be required to enable the
          </property>
          <layout class="QVBoxLayout" name="verticalLayout_applicationBlacklist">
           <item>
-           <widget class="QLabel" name="label_blacklistDisclaimer">
+           <widget class="QLabel" name="label_20">
             <property name="text">
-             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; color:#aa0000;&quot;&gt;This list will only apply if &amp;quot;Application Settings - Remember&amp;quot; in the &amp;quot;General&amp;quot; settings tab is set to &amp;quot;All except blacklisted applications&amp;quot;&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:700; color:#ffaa00;&quot;&gt;IMPORTANT&lt;/span&gt; This list will only apply if &amp;quot;Application Settings - Remember&amp;quot; in the &amp;quot;General&amp;quot; settings tab is set to &amp;quot;All except blacklisted applications&amp;quot;.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+            </property>
+            <property name="wordWrap">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLabel" name="label_22">
+            <property name="text">
+             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:700; color:#ffaa00;&quot;&gt;IMPORTANT&lt;/span&gt; You can blacklist individual windows (overrides all other settings) such as splash screens or dialogs in the &amp;quot;Per Application/Window Configuration&amp;quot; (&lt;span style=&quot; font-weight:700; color:#ffaa00;&quot;&gt;Ctrl+Meta+W&lt;/span&gt;).&lt;/p&gt;&lt;p&gt;&lt;a href=&quot;https://github.com/rxappdev/RememberWindowPositions?tab=readme-ov-file#single-window-blacklist&quot;&gt;&lt;span style=&quot; text-decoration: underline; color:#5294e2;&quot;&gt;Here&lt;/span&gt;&lt;/a&gt; you can see a step-by-step example of how to blacklist a splash screen.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+            </property>
+            <property name="wordWrap">
+             <bool>true</bool>
+            </property>
+            <property name="openExternalLinks">
+             <bool>true</bool>
             </property>
            </widget>
           </item>
@@ -982,9 +1028,25 @@ When upgrading from an earlier version, a reboot might be required to enable the
          </property>
          <layout class="QVBoxLayout" name="verticalLayout_applicationWhitelist">
           <item>
-           <widget class="QLabel" name="label_whitelistDisclaimer">
+           <widget class="QLabel" name="label_21">
             <property name="text">
-             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; color:#aa0000;&quot;&gt;This list will only apply if &amp;quot;Application Settings - Remember&amp;quot; in the &amp;quot;General&amp;quot; settings tab is set to &amp;quot;Only whitelisted applications&amp;quot;&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:700; color:#ffaa00;&quot;&gt;IMPORTANT&lt;/span&gt; This list will only apply if &amp;quot;Application Settings - Remember&amp;quot; in the &amp;quot;General&amp;quot; settings tab is set to &amp;quot;Only whitelisted applications&amp;quot;.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+            </property>
+            <property name="wordWrap">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLabel" name="label_23">
+            <property name="text">
+             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:700; color:#ffaa00;&quot;&gt;IMPORTANT&lt;/span&gt; You can whitelist individual windows (overrides all other settings) in the &amp;quot;Per Application/Window Configuration&amp;quot; (&lt;span style=&quot; font-weight:700; color:#ffaa00;&quot;&gt;Ctrl+Meta+W&lt;/span&gt;).&lt;/p&gt;&lt;p&gt;&lt;a href=&quot;https://github.com/rxappdev/RememberWindowPositions?tab=readme-ov-file#firefox&quot;&gt;&lt;span style=&quot; text-decoration: underline; color:#5294e2;&quot;&gt;Here&lt;/span&gt;&lt;/a&gt; you can see a step-by-step example of how to override an individual window.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+            </property>
+            <property name="wordWrap">
+             <bool>true</bool>
+            </property>
+            <property name="openExternalLinks">
+             <bool>true</bool>
             </property>
            </widget>
           </item>
@@ -1018,7 +1080,7 @@ When upgrading from an earlier version, a reboot might be required to enable the
        <iconset theme="applications-development"/>
       </attribute>
       <attribute name="title">
-       <string>Debug</string>
+       <string>Debug / Experimental</string>
       </attribute>
       <layout class="QVBoxLayout" name="verticalLayout_3">
        <item>
@@ -1114,81 +1176,81 @@ When upgrading from an earlier version, a reboot might be required to enable the
             </property>
            </widget>
           </item>
-         </layout>
-        </widget>
-       </item>
-       <item>
-        <widget class="QGroupBox" name="groupBox_minimumCaptionMatch">
-         <property name="title">
-          <string>Minimum Caption Match Percentage</string>
-         </property>
-         <layout class="QVBoxLayout" name="verticalLayout_minimumCaptionMatch" stretch="0,0,0,0">
           <item>
-           <widget class="QLabel" name="label_17">
-            <property name="text">
-             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; color:#ff0000;&quot;&gt;WARNING - this used to be a valid way to filter windows, but is now considered obsolete. You can still use it if you need it, but it is recommended to be left at 0 for almost everyone.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+           <widget class="QGroupBox" name="groupBox_minimumCaptionMatch">
+            <property name="title">
+             <string>Minimum Caption Match Percentage</string>
             </property>
-            <property name="wordWrap">
-             <bool>true</bool>
-            </property>
+            <layout class="QVBoxLayout" name="verticalLayout_minimumCaptionMatch" stretch="0,0,0,0">
+             <item>
+              <widget class="QLabel" name="label_17">
+               <property name="text">
+                <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; color:#ffaa00;&quot;&gt;WARNING&lt;/span&gt; This used to be a valid way to filter windows, but is now considered obsolete. You can still use it if you need it, but it is recommended to be left at 0 for almost everyone.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+               </property>
+               <property name="wordWrap">
+                <bool>true</bool>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QLabel" name="label_minimumCaptionMatchExplanation">
+               <property name="text">
+                <string>Restore only windows that reach this level of caption (window title) match percentage. If a re-opened windows caption match does not reach this level, it will not be restored at all (left with default size and position). Set to 0 to restore all windows to best ability. Some window captions contain information such as number of messages - this means the caption won't match 100%. Because of this, it is not recommended to set this value higher than 85%.</string>
+               </property>
+               <property name="wordWrap">
+                <bool>true</bool>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QSlider" name="kcfg_minimumCaptionMatch">
+               <property name="maximum">
+                <number>100</number>
+               </property>
+               <property name="orientation">
+                <enum>Qt::Orientation::Horizontal</enum>
+               </property>
+               <property name="tickPosition">
+                <enum>QSlider::TickPosition::TicksBelow</enum>
+               </property>
+               <property name="tickInterval">
+                <number>2</number>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <layout class="QHBoxLayout" name="hBoxLayout_minimumCaptionMatch">
+               <item>
+                <widget class="QLabel" name="label_minimumCaptionMatchMin">
+                 <property name="text">
+                  <string>  0</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QLabel" name="label_minimumCpationMatchInfo">
+                 <property name="text">
+                  <string>%</string>
+                 </property>
+                 <property name="alignment">
+                  <set>Qt::AlignmentFlag::AlignCenter</set>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QLabel" name="label_minimumCaptionMatchMax">
+                 <property name="text">
+                  <string>100</string>
+                 </property>
+                 <property name="alignment">
+                  <set>Qt::AlignmentFlag::AlignRight|Qt::AlignmentFlag::AlignTrailing|Qt::AlignmentFlag::AlignVCenter</set>
+                 </property>
+                </widget>
+               </item>
+              </layout>
+             </item>
+            </layout>
            </widget>
-          </item>
-          <item>
-           <widget class="QLabel" name="label_minimumCaptionMatchExplanation">
-            <property name="text">
-             <string>Restore only windows that reach this level of caption (window title) match percentage. If a re-opened windows caption match does not reach this level, it will not be restored at all (left with default size and position). Set to 0 to restore all windows to best ability. Some window captions contain information such as number of messages - this means the caption won't match 100%. Because of this, it is not recommended to set this value higher than 85%.</string>
-            </property>
-            <property name="wordWrap">
-             <bool>true</bool>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QSlider" name="kcfg_minimumCaptionMatch">
-            <property name="maximum">
-             <number>100</number>
-            </property>
-            <property name="orientation">
-             <enum>Qt::Orientation::Horizontal</enum>
-            </property>
-            <property name="tickPosition">
-             <enum>QSlider::TickPosition::TicksBelow</enum>
-            </property>
-            <property name="tickInterval">
-             <number>2</number>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <layout class="QHBoxLayout" name="hBoxLayout_minimumCaptionMatch">
-            <item>
-             <widget class="QLabel" name="label_minimumCaptionMatchMin">
-              <property name="text">
-               <string>  0</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QLabel" name="label_minimumCpationMatchInfo">
-              <property name="text">
-               <string>%</string>
-              </property>
-              <property name="alignment">
-               <set>Qt::AlignmentFlag::AlignCenter</set>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QLabel" name="label_minimumCaptionMatchMax">
-              <property name="text">
-               <string>100</string>
-              </property>
-              <property name="alignment">
-               <set>Qt::AlignmentFlag::AlignRight|Qt::AlignmentFlag::AlignTrailing|Qt::AlignmentFlag::AlignVCenter</set>
-              </property>
-             </widget>
-            </item>
-           </layout>
           </item>
          </layout>
         </widget>
