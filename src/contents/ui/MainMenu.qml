@@ -42,8 +42,8 @@ ApplicationWindow {
     }
 
     id: mainMenuRoot
-    width: 1000
-    maximumWidth: 1000
+    width: 1200
+    maximumWidth: 1200
     height: 734
     minimumWidth: Math.min(editSaved.implicitWidth, Workspace.virtualScreenSize.width);
     minimumHeight: Math.min(editSaved.implicitHeight + header.height + 1, Workspace.virtualScreenSize.height);
