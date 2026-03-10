@@ -129,7 +129,8 @@ systemsettings
 kcm_kwinrules
 org.kde.kmenuedit
 org.kde.ark
-org.kde.plasma.emojier</default>
+org.kde.plasma.emojier
+org.freedesktop.impl.portal.desktop.kde</default>
         </entry>
         <entry name="whitelist" type="String">
             <default>brave-browser
