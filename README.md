@@ -44,6 +44,7 @@ Remembers and restores the windows position, size, screen and virtual desktop.</
 <li><a href="#remove-settings">Manually erasing settings</a></li>
 <li><a href="#use">Use case examples</a>
     <ul>
+        <li><a href="#single-window-blacklist">Block a splash screen/dialog</a></li>
         <li><a href="#firefox">Remember Firefox/LibreWolf/Waterfox Picture-in-Picture position</a></li>
         <li><a href="#browser">Only restore my browser - let other application use system default behavior</a></li>
         <li><a href="#desktop">Do not restore virtual desktop for Konsole</a></li>
@@ -205,6 +206,19 @@ The application/window data is stored in `~/.config/kde.org/kwin.conf` under the
 The system user settings data is stored in `~/.config/kwinrc` under `[Script-krestorewindowpositions]`.
 
 ## <p id="use"></p>Use case examples
+
+### <p id="single-window-blacklist"></p>Block a splash screen/dialog
+
+1) Open Per Application/Window Configuration (**Ctrl+Meta+W**)
+2) Click the `Select Application/Window` button<br>
+![](./assets/block_splash_screen_1.png)<br>
+3) Click the application to block splash screen for (launch from Destkop or Task Manager)<br>
+![](./assets/block_splash_screen_2.png)<br>
+![](./assets/block_splash_screen_0.png)<br>
+4) Make sure the "`Window`" is checked, "`Never`" is selected and click the "`Save Override Settings`"<br>
+![](./assets/block_splash_screen_3.png)<br>
+
+A dialog can be blocked in similar way, except you can just open the dialog first before selecting it.
 
 ### <p id="firefox"></p>Remember Firefox/LibreWolf/Waterfox Picture-in-Picture position
 
