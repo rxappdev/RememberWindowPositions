@@ -712,7 +712,7 @@ ApplicationWindow {
                         TextField {
                             id: applicationName
                             Layout.fillWidth: true
-                            enabled: false
+                            readOnly: true
                         }
 
                         RowLayout {
@@ -757,7 +757,7 @@ ApplicationWindow {
                         TextField {
                             id: windowCaption
                             Layout.fillWidth: true
-                            enabled: false
+                            readOnly: true
                         }
 
                         Label {
