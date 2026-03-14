@@ -554,7 +554,7 @@ Item {
             if (saveData.tile && config.restoreTile && (!client.tile || config.restoreResizedQuickTile)) {
                 let tile = saveData.tile;
                 log('Attemptying to restore tile: ' + JSON.stringify(tile));
-                if (tile.quick && config.restoreResizedQuickTile || Math.ceil(client.frameGeometry.left) >= Math.floor(tile.x) && Math.ceil(client.frameGeometry.top) >= Math.floor(tile.y) && Math.floor(client.frameGeometry.right) <= Math.ceil(tile.x + tile.width) && Math.floor(client.frameGeometry.bottom) <= Math.ceil(tile.y + tile.height)) {
+                if (tile.quick && config.restoreResizedQuickTile || Math.ceil(client.frameGeometry.x) >= Math.floor(tile.x) && Math.ceil(client.frameGeometry.y) >= Math.floor(tile.y) && Math.floor(client.frameGeometry.x + client.frameGeometry.width) <= Math.ceil(tile.x + tile.width) && Math.floor(client.frameGeometry.y + client.frameGeometry.height) <= Math.ceil(tile.y + tile.height)) {
                     if (tile.quick) {
                         let clientArea = Workspace.clientArea(KWin.FullScreenArea, client.output, Workspace.currentDesktop);
                         let tileX = Math.max(tile.x, clientArea.left);
@@ -651,10 +651,10 @@ Item {
             (Math.abs(relativeGeometry.width - 0.5) < 0.001 || Math.abs(relativeGeometry.width - 1) < 0.001) &&
             (Math.abs(relativeGeometry.height - 0.5) < 0.001 || Math.abs(relativeGeometry.height - 1) < 0.001)
             ) {
-            let left = Math.abs(relativeGeometry.left) < 0.001 && relativeGeometry.right < 0.999;
-            let right = relativeGeometry.left >= 0.001 && Math.abs(relativeGeometry.right - 1) < 0.001;
-            let top = Math.abs(relativeGeometry.top) < 0.001 && relativeGeometry.bottom < 0.999;
-            let bottom = relativeGeometry.top >= 0.001 && Math.abs(relativeGeometry.bottom - 1) < 0.001;
+            let left = Math.abs(relativeGeometry.x) < 0.001 && (relativeGeometry.x + relativeGeometry.width) < 0.999;
+            let right = relativeGeometry.x >= 0.001 && Math.abs(relativeGeometry.x + relativeGeometry.width - 1) < 0.001;
+            let top = Math.abs(relativeGeometry.y) < 0.001 && (relativeGeometry.y + relativeGeometry.height) < 0.999;
+            let bottom = relativeGeometry.y >= 0.001 && Math.abs(relativeGeometry.y + relativeGeometry.height - 1) < 0.001;
             log('convertTileData found matching edge tile left: ' + left + ' right: ' + right + ' top: ' + top + ' bottom: ' + bottom);
             converted.quick = true;
             converted.x = absoluteGeometry.x;
@@ -667,13 +667,13 @@ Item {
             converted.bottom = bottom;
         } else if (
             config.restoreResizedQuickTile &&
-            (Math.abs(relativeGeometry.left) < 0.001 || Math.abs(relativeGeometry.right - 1) < 0.001) &&
-            (Math.abs(relativeGeometry.top) < 0.001 || Math.abs(relativeGeometry.bottom - 1) < 0.001)
+            (Math.abs(relativeGeometry.x) < 0.001 || Math.abs(relativeGeometry.x + relativeGeometry.width - 1) < 0.001) &&
+            (Math.abs(relativeGeometry.y) < 0.001 || Math.abs(relativeGeometry.y + relativeGeometry.height - 1) < 0.001)
             ) {
-            let left = Math.abs(relativeGeometry.left) < 0.001 && relativeGeometry.right < 0.999;
-            let right = relativeGeometry.left >= 0.001 && Math.abs(relativeGeometry.right - 1) < 0.001;
-            let top = Math.abs(relativeGeometry.top) < 0.001 && relativeGeometry.bottom < 0.999;
-            let bottom = relativeGeometry.top >= 0.001 && Math.abs(relativeGeometry.bottom - 1) < 0.001;
+            let left = Math.abs(relativeGeometry.x) < 0.001 && (relativeGeometry.x + relativeGeometry.width) < 0.999;
+            let right = relativeGeometry.x >= 0.001 && Math.abs(relativeGeometry.x + relativeGeometry.width - 1) < 0.001;
+            let top = Math.abs(relativeGeometry.y) < 0.001 && (relativeGeometry.y + relativeGeometry.height) < 0.999;
+            let bottom = relativeGeometry.y >= 0.001 && Math.abs(relativeGeometry.y + relativeGeometry.height - 1) < 0.001;
             log('convertTileData found matching resized edge tile left: ' + left + ' right: ' + right + ' top: ' + top + ' bottom: ' + bottom);
             converted.quick = true;
             converted.x = absoluteGeometry.x;
