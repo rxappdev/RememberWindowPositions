@@ -324,6 +324,20 @@
             </property>
            </widget>
           </item>
+          <item>
+           <widget class="QCheckBox" name="kcfg_restoreTransient">
+            <property name="text">
+             <string>Restore transient windows (some dialogs, popup windows and other sub-windows - recommended to keep disabled unless you need it)</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QCheckBox" name="kcfg_restoreModal">
+            <property name="text">
+             <string>Restore modal windows (some dialogs, popup windows and other sub-windows - recommended to keep disabled unless you need it)</string>
+            </property>
+           </widget>
+          </item>
          </layout>
         </widget>
        </item>

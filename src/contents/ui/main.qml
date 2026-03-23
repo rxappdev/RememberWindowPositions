@@ -20,7 +20,7 @@ Item {
     property bool identifyWindow: false
     property var sessionRestoreSaves: []
 
-    property var defaultConfig: {}
+    property var defaultConfig: ({})
 
     property int restoreMode: 0
 
@@ -161,6 +161,8 @@ Item {
             restoreTile: KWin.readConfig("restoreTile", true),
             restoreResizedQuickTile: KWin.readConfig("restoreResizedQuickTile", false),
             restoreMouseTiler: KWin.readConfig("restoreMouseTiler", true),
+            restoreTransient: KWin.readConfig("restoreTransient", false),
+            restoreModal: KWin.readConfig("restoreModal", false),
             ignoreNumbers: KWin.readConfig("ignoreNumbers", true),
             minimumCaptionMatch: KWin.readConfig("minimumCaptionMatch", 0),
             multiMonitorType: KWin.readConfig("multiMonitorType", 0),
@@ -237,7 +239,8 @@ Item {
     function isValidWindow(client) {
         if (!client) return false;
         if (!client.normalWindow) return false;
-        if (client.transient) return false;
+        if (!config.restoreModal && client.modal) return false;
+        if (!config.restoreTransient && client.transient) return false;
         if (client.popupWindow) return false;
         if (client.skipTaskbar) return false;
         if (!client.resourceClass) return false;

@@ -5,11 +5,11 @@ import org.kde.kwin
 import org.kde.kirigami as Kirigami
 
 ApplicationWindow {
-    property var overrides: {}
-    property var currentOverrides: {}
+    property var overrides: ({})
+    property var currentOverrides: ({})
     property var currentApplications: []
     property var currentWindows: []
-    property var defaultConfig: {}
+    property var defaultConfig: ({})
     property var currentApplicationIndex: -1
     property var currentWindowIndex: -1
     // property var isX11: Qt.platform.pluginName == 'xcb'
