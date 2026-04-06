@@ -379,6 +379,14 @@ Item {
         return null;
     }
 
+    function setAutoTilerRestoredFlag(client) {
+        if (!client.mt_autoRestore) {
+            client.mt_autoRestore = 512;
+        } else if ((client.mt_autoRestore & 512) != 512) {
+            client.mt_autoRestore |= 512;
+        }
+    }
+
     function restoreWindowPlacement(saveData, client, captionScore, windowConfig, restoreZ = true, moveVirtualDesktop = false, moveActivity = false) {
         if (!client) return;
         if (client.deleted) return;
@@ -421,10 +429,10 @@ Item {
                     client.mt_autoRestore &= ~1024;
                     mouseTilerAutoTilePreventsRestore = true;
                 }
-            } else if (!client.mt_autoRestore) {
-                client.mt_autoRestore = 512;
             }
         }
+
+        setAutoTilerRestoredFlag(client);
 
         if (!mouseTilerAutoTilePreventsRestore) {
             // Restore frame geometry
@@ -971,6 +979,7 @@ Item {
         switch (restoreMode) {
             case 1: // Block restoration of next window only
                 restoreMode = 0;
+                // Intentional fall-through
             case 2: // Block restoration until disabled
                 client.rwp_restoreBlocked = true;
                 break;
@@ -1013,9 +1022,7 @@ Item {
             } else {
                 delete client.rwp_captionListenerAdded;
                 addWindow(client, false);
-                if (!client.mt_autoRestore) {
-                    client.mt_autoRestore = 512;
-                }
+                setAutoTilerRestoredFlag(client);
             }
         }
 
@@ -1072,9 +1079,7 @@ Item {
                     }
                 }
             }
-            if (!client.mt_autoRestore) {
-                client.mt_autoRestore = 512;
-            }
+            setAutoTilerRestoredFlag(client);
         }
 
         if (restore && windowData.saved.length > 0) {
@@ -1162,8 +1167,8 @@ Item {
                     windowData.instantMatchRestored = 0;
                 }
             }
-        } else if (windowData.saved.length == 0 && !client.mt_autoRestore) {
-            client.mt_autoRestore = 512;
+        } else if (windowData.saved.length == 0) {
+            setAutoTilerRestoredFlag(client);
         }
     }
 
