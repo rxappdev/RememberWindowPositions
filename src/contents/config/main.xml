@@ -169,5 +169,10 @@ waterfox-default</default>
         <entry name="printMonitorInfoToLog" type="Bool">
             <default>false</default>
         </entry>
+        <entry name="liveBackupInterval" type="Int">
+            <default>30</default>
+            <min>0</min>
+            <max>3600</max>
+        </entry>
     </group>
 </kcfg>
