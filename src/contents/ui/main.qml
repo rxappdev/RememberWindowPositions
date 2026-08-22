@@ -1674,7 +1674,8 @@ Item {
         const defaultOverrides = [
             { add: true, application: 'gimp', window: 'GIMP Startup' },           // Gimp splash screen
             { add: true, application: 'org.shotcut.Shotcut', window: 'Shotcut' }, // Shotcut splash screen
-            { add: true, application: 'brave-browser', window: 'Brave' }          // Brave profile selector
+            { add: true, application: 'brave-browser', window: 'Brave' },         // Brave profile selector
+            { add: true, application: 'discord', window: 'Discord Updater' }      // Discord updater splash screen
         ];
         let modified = false;
 
