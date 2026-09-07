@@ -313,7 +313,7 @@ Item {
             }
         }
 
-        log('getHighestCaptionScore highestScore: ' + highestScore + ' caption client: ' + client.caption + ' caption save: ' + windowData.saved[highestIndex].caption);
+        log('getHighestCaptionScore highestScore: ' + highestScore + ' caption client: ' + client.caption + ' caption save: ' + (highestIndex >= 0 ? windowData.saved[highestIndex].caption : 'none'));
 
         return returnIndex ? [highestScore, highestIndex] : highestScore;
     }
