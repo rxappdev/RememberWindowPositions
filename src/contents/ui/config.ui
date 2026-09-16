@@ -1183,13 +1183,85 @@ When upgrading from an earlier version, a reboot might be required to enable the
             </property>
            </widget>
           </item>
-          <item>
-           <widget class="QCheckBox" name="kcfg_onlySaveOnShutdown">
-            <property name="text">
-             <string>Only save during shutdown (on script closure) - enable this if you experience lag when using the script - this could be caused by using a hard disk drive (HDD) as your /home drive</string>
-            </property>
-           </widget>
-          </item>
+           <item>
+            <widget class="QCheckBox" name="kcfg_onlySaveOnShutdown">
+             <property name="text">
+              <string>Only save during shutdown (on script closure) - enable this if you experience lag when using the script - this could be caused by using a hard disk drive (HDD) as your /home drive</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QGroupBox" name="groupBox_liveBackup">
+             <property name="title">
+              <string>Live Window Position Backup</string>
+             </property>
+             <layout class="QVBoxLayout" name="verticalLayout_liveBackup">
+              <item>
+               <widget class="QLabel" name="label_liveBackupExplanation">
+                <property name="text">
+                 <string>Periodically saves the current positions of all open windows to disk. If the system shuts down unexpectedly (battery runs out, power button forced shutdown), window positions can still be restored from the last backup. Set to 0 to disable. Higher values reduce disk writes but increase the risk of losing recent window changes.</string>
+                </property>
+                <property name="wordWrap">
+                 <bool>true</bool>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QSlider" name="kcfg_liveBackupInterval">
+                <property name="minimum">
+                 <number>0</number>
+                </property>
+                <property name="maximum">
+                 <number>3600</number>
+                </property>
+                <property name="value">
+                 <number>30</number>
+                </property>
+                <property name="orientation">
+                 <enum>Qt::Orientation::Horizontal</enum>
+                </property>
+                <property name="tickPosition">
+                 <enum>QSlider::TickPosition::TicksBelow</enum>
+                </property>
+                <property name="tickInterval">
+                 <number>5</number>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <layout class="QHBoxLayout" name="hBoxLayout_liveBackupInterval">
+                <item>
+                 <widget class="QLabel" name="label_liveBackupIntervalMin">
+                  <property name="text">
+                   <string>  0 (off)</string>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QLabel" name="label_liveBackupIntervalInfo">
+                  <property name="text">
+                   <string>seconds between backups</string>
+                  </property>
+                  <property name="alignment">
+                   <set>Qt::AlignmentFlag::AlignCenter</set>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QLabel" name="label_liveBackupIntervalMax">
+                  <property name="text">
+                   <string>3600 </string>
+                  </property>
+                  <property name="alignment">
+                   <set>Qt::AlignmentFlag::AlignRight|Qt::AlignmentFlag::AlignTrailing|Qt::AlignmentFlag::AlignVCenter</set>
+                  </property>
+                 </widget>
+                </item>
+               </layout>
+              </item>
+             </layout>
+            </widget>
+           </item>
           <item>
            <widget class="QGroupBox" name="groupBox_minimumCaptionMatch">
             <property name="title">
