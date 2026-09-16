@@ -187,6 +187,7 @@ Item {
             printApplicationNameToLog: KWin.readConfig("printApplicationNameToLog", true),
             printMonitorInfoToLog: KWin.readConfig("printMonitorInfoToLog", false),
             onlySaveOnShutdown: KWin.readConfig("onlySaveOnShutdown", false),
+            liveBackup: KWin.readConfig("liveBackup", true),
             liveBackupInterval: KWin.readConfig("liveBackupInterval", 30),
             // confidence
             confidence: [
@@ -339,7 +340,9 @@ Item {
             }
         }
 
-        log('getHighestCaptionScoreIgnoreNumbers highestScore: ' + highestScore + ' caption client: ' + client.caption + ' caption save: ' + windowData.saved[highestIndex].caption);
+        if (highestIndex >= 0) {
+            log('getHighestCaptionScoreIgnoreNumbers highestScore: ' + highestScore + ' caption client: ' + client.caption + ' caption save: ' + windowData.saved[highestIndex].caption);
+        }
 
         return returnIndex ? [highestScore, highestIndex] : highestScore;
     }
@@ -1605,70 +1608,89 @@ Item {
 
         logE('Loaded ' + Object.keys(convertedWindows).length + ' apps from settings');
 
+        let liveBackupExtras = JSON.parse(settings.rememberwindowpositions_liveBackupsExtras);
         let liveBackups = JSON.parse(settings.rememberwindowpositions_liveBackups);
         let liveCount = 0;
-        for (let key in liveBackups) {
-            let liveBackupIsNewer = liveBackups[key].l && (!convertedWindows[key] || liveBackups[key].l >= convertedWindows[key].lastAccessTime);
-            if (!convertedWindows[key] || convertedWindows[key].saved.length === 0 || liveBackupIsNewer) {
-                let live = liveBackups[key];
-                if (convertedWindows[key] && convertedWindows[key].saved.length > 0 && liveBackupIsNewer) {
-                    logE('Live backup is newer than saved data for: ' + key + ' - using live backup');
-                } else {
-                    logE('Using live backup for: ' + key + ' windowCountLastSession: ' + live.w);
+        if (config.liveBackup && liveBackupExtras.lastAccessTime) {
+            for (let key in liveBackups) {
+                let liveBackupIsNewer = (!convertedWindows[key] || liveBackupExtras.lastAccessTime >= convertedWindows[key].lastAccessTime);
+                if (!convertedWindows[key] || convertedWindows[key].saved.length === 0 || liveBackupIsNewer) {
+                    let live = liveBackups[key];
+                    if (convertedWindows[key] && convertedWindows[key].saved.length > 0 && liveBackupIsNewer) {
+                        logE('Live backup is newer than saved data for: ' + key + ' - using live backup');
+                    } else {
+                        logE('Using live backup for: ' + key + ' windowCountLastSession: ' + live.w);
+                    }
+                    let liveConverted = {
+                        saved                  : [],
+                        lastAccessTime         : liveBackupExtras.lastAccessTime,
+                        windowCountLastSession : live.w,
+                        windowCount            : 0,
+                        instantMatchRestored   : 0,
+                        restoredTotal          : 0,
+                        loading                : [],
+                        closed                 : []
+                    };
+                    for (let i = 0; i < live.s.length; i++) {
+                        let save = live.s[i];
+                        liveConverted.saved.push({
+                            caption          : save.c,
+                            x                : save.x,
+                            y                : save.y,
+                            width            : save.w,
+                            height           : save.h,
+                            minimized        : save.m == 1,
+                            keepAbove        : save.k == 1,
+                            keepBelow        : save.b == 1,
+                            stackingOrder    : save.s,
+                            desktopNumber    : save.d,
+                            activities       : save.a,
+                            rememberAlways   : save.r == 1,
+                            singleWindow     : save.n == 1,
+                            position         : save.p ? {
+                                x            : save.p.x,
+                                y            : save.p.y,
+                                serialNumber : save.p.s,
+                                name         : save.p.n
+                            } : undefined,
+                            sessionRestore   : save.z == 1,
+                            alreadyMatched   : false,
+                            tile             : save.t ? {
+                                quick        : save.t.q == 1,
+                                x            : save.t.x,
+                                y            : save.t.y,
+                                width        : save.t.w,
+                                height       : save.t.h,
+                                left         : save.t.l,
+                                right        : save.t.r,
+                                top          : save.t.t,
+                                bottom       : save.t.b
+                            } : undefined,
+                            mouseTilerAuto   : save.o
+                        });
+                    }
+
+                    if (convertedWindows[key]) {
+                        for (let i = 0; i < convertedWindows[key].saved.length; i++) {
+                            if (convertedWindows[key].saved[i].rememberAlways) {
+                                let saveIndex = liveConverted.saved.findIndex((s) => convertedWindows[key].saved[i].caption === s.caption);
+                                if (saveIndex == -1) {
+                                    // logE('Found saved rememberAlways window that did not exist in live backup - adding back: ' + convertedWindows[key].saved[i].caption);
+                                    liveConverted.saved.push(convertedWindows[key].saved[i]);
+                                }
+                            }
+                        }
+                    }
+
+                    convertedWindows[key] = liveConverted;
+                    liveCount++;
                 }
-                convertedWindows[key] = {
-                    saved                  : [],
-                    lastAccessTime         : live.l || Date.now(),
-                    windowCountLastSession : live.w,
-                    windowCount            : 0,
-                    instantMatchRestored   : 0,
-                    restoredTotal          : 0,
-                    loading                : [],
-                    closed                 : []
-                };
-                for (let i = 0; i < live.s.length; i++) {
-                    let save = live.s[i];
-                    convertedWindows[key].saved.push({
-                        caption          : save.c,
-                        x                : save.x,
-                        y                : save.y,
-                        width            : save.w,
-                        height           : save.h,
-                        minimized        : save.m == 1,
-                        keepAbove        : save.k == 1,
-                        keepBelow        : save.b == 1,
-                        stackingOrder    : save.s,
-                        desktopNumber    : save.d,
-                        activities       : save.a,
-                        rememberAlways   : save.r == 1,
-                        singleWindow     : save.n == 1,
-                        position         : save.p ? {
-                            x            : save.p.x,
-                            y            : save.p.y,
-                            serialNumber : save.p.s,
-                            name         : save.p.n
-                        } : undefined,
-                        sessionRestore   : save.z == 1,
-                        alreadyMatched   : false,
-                        tile             : save.t ? {
-                            quick        : save.t.q == 1,
-                            x            : save.t.x,
-                            y            : save.t.y,
-                            width        : save.t.w,
-                            height       : save.t.h,
-                            left         : save.t.l,
-                            right        : save.t.r,
-                            top          : save.t.t,
-                            bottom       : save.t.b
-                        } : undefined,
-                        mouseTilerAuto   : save.o
-                    });
-                }
-                liveCount++;
             }
         }
         if (liveCount > 0) {
             logE('Loaded ' + liveCount + ' apps from live backup');
+        } else {
+            logE('No live backup saves to load... (Enabled: ' + config.liveBackup + ')');
         }
 
         //log('Load - converted windows: ' + JSON.stringify(convertedWindows));
@@ -1760,11 +1782,13 @@ Item {
             if (!liveData[name]) {
                 liveData[name] = {
                     s: [],
-                    l: Date.now(),
                     w: 0
                 };
             }
-            liveData[name].w++;
+
+            if (!currentConfig.rememberAlways) {
+                liveData[name].w++;
+            }
 
             let convertedPosition = client.output.mapFromGlobal(client.pos);
             let tileData = convertTileData(client);
@@ -1780,15 +1804,15 @@ Item {
                 s: i,
                 d: client.onAllDesktops ? -1 : client.desktops[0].x11DesktopNumber,
                 a: [...client.activities],
-                r: 0,
-                n: 0,
+                r: currentConfig.rememberAlways ? 1 : 0,
+                n: currentConfig.window ? 1 : 0,
                 p: {
                     x: convertedPosition.x,
                     y: convertedPosition.y,
                     s: client.output.serialNumber,
                     n: client.output.name
                 },
-                z: 0,
+                z: 0, // sessionRestore - it's probably ok to skip
                 t: tileData ? {
                     q: tileData.quick ? 1 : 0,
                     x: tileData.x,
@@ -1803,7 +1827,15 @@ Item {
                 o: client.mt_autoRestore ? client.mt_autoRestore : 0
             });
         }
-        settings.rememberwindowpositions_liveBackups = JSON.stringify(liveData);
+
+        let liveDataToSave = JSON.stringify(liveData);
+        if (settings.rememberwindowpositions_liveBackups === liveDataToSave) {
+            log('Live data NOT changed...');
+        } else {
+            log('Live data changed - saving...');
+            settings.rememberwindowpositions_liveBackupsExtras = JSON.stringify({lastAccessTime: Date.now()});
+            settings.rememberwindowpositions_liveBackups = liveDataToSave;
+        }
     }
 
     function addDefaultOverrides() {
@@ -1981,6 +2013,7 @@ Item {
         property string rememberwindowpositions_windows: "{}"
         property string rememberwindowpositions_configOverrides: "{}"
         property string rememberwindowpositions_liveBackups: "{}"
+        property string rememberwindowpositions_liveBackupsExtras: "{}"
         property int rememberwindowpositions_currentDefaultOverrideCount: 0
         // property bool rememberwindowpositions_autoShowMainMenu: true
     }
@@ -2023,7 +2056,7 @@ Item {
         // Clear expired apps to reduce used save-file space
         clearExpiredApps();
 
-        if (config.liveBackupInterval > 0) {
+        if (config.liveBackup) {
             liveBackupTimer.interval = config.liveBackupInterval * 1000;
             liveBackupTimer.start();
         }
@@ -2036,8 +2069,8 @@ Item {
     Component.onDestruction: {
         log('Closing...');
         updateSessionRestoreSaves();
-        saveWindowsToSettings(true);
         saveLiveBackup();
+        saveWindowsToSettings(true);
         saveOverridesToSettings();
     }
 
