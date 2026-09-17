@@ -175,6 +175,8 @@ Item {
             perfectMultiWindowRestoreList: stringListToNormalAndWildcard(KWin.readConfig("perfectMultiWindowRestoreList", browserList)),
             loginBoost: KWin.readConfig("loginBoost", true),
             loginBoostMultiplier: KWin.readConfig("loginBoostMultiplier", 2),
+            sessionStartBlock: KWin.readConfig("sessionStartBlock", false),
+            sessionStartBlockTime: KWin.readConfig("sessionStartBlockTime", 25),
             sessionRestore: KWin.readConfig("sessionRestore", false),
             sessionRestoreSize: KWin.readConfig("sessionRestoreSize", true),
             sessionRestoreVirtualDesktop: KWin.readConfig("sessionRestoreVirtualDesktop", true),
@@ -1383,6 +1385,18 @@ Item {
         onTriggered: saveLiveBackup()
     }
 
+    Timer {
+        id: disableRestorationTimer
+
+        repeat: false
+        running: false
+        onTriggered: () => {
+            logE('disableRestorationTimer expired - blocking restoration of ALL windows');
+            restoreMode = 2;
+            onScreenDisplay.show('Blocking restoration of ALL windows!', 'emblem-readonly');
+        }
+    }
+
     function clearSessionRestoreSaves() {
         while (sessionRestoreSaves.length > 0) {
             if (sessionRestoreSaves[0].closeTime < Date.now() - config.sessionRestoreTime * 1000) {
@@ -2084,6 +2098,11 @@ Item {
             liveBackupTimer.start();
         }
 
+        if (config.sessionStartBlock) {
+            disableRestorationTimer.interval = config.sessionStartBlockTime * 1000;
+            disableRestorationTimer.start();
+        }
+
         // if (settings.rememberwindowpositions_autoShowMainMenu) {
         //     showMainMenu();
         // }
@@ -2154,6 +2173,9 @@ Item {
         text: "Remember Window Positions: Block Restoration Toggle"
         sequence: "Meta+X"
         onActivated: {
+            if (disableRestorationTimer.running) {
+                disableRestorationTimer.stop();
+            }
             switch (restoreMode) {
                 case 0:
                     restoreMode++;

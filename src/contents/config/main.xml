@@ -101,6 +101,14 @@ waterfox-default</default>
             <min>2</min>
             <max>8</max>
         </entry>
+        <entry name="sessionStartBlock" type="Bool">
+            <default>false</default>
+        </entry>
+        <entry name="sessionStartBlockTime" type="Int">
+            <default>25</default>
+            <min>15</min>
+            <max>120</max>
+        </entry>
         <entry name="sessionRestore" type="Bool">
             <default>false</default>
         </entry>
