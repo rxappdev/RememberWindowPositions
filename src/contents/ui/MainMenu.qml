@@ -103,7 +103,8 @@ ApplicationWindow {
                     activity: defaultConfig.activity,
                     minimized: defaultConfig.minimized,
                     keepAbove: defaultConfig.keepAbove,
-                    keepBelow: defaultConfig.keepBelow
+                    keepBelow: defaultConfig.keepBelow,
+                    noBorder: defaultConfig.noBorder
                 },
                 windows: {}
             };
@@ -123,7 +124,8 @@ ApplicationWindow {
                 activity: defaultConfig.activity,
                 minimized: defaultConfig.minimized,
                 keepAbove: defaultConfig.keepAbove,
-                keepBelow: defaultConfig.keepBelow
+                keepBelow: defaultConfig.keepBelow,
+                noBorder: defaultConfig.noBorder
             };
         }
     }
@@ -189,6 +191,7 @@ ApplicationWindow {
                 aMinimized.checked = config.minimized;
                 aKeepAbove.checked = config.keepAbove;
                 aKeepBelow.checked = config.keepBelow;
+                aNoBorder.checked = config.noBorder;
                 applicationUpdated = true;
 
                 if (currentWindowIndex >= 0) {
@@ -207,6 +210,7 @@ ApplicationWindow {
                         wMinimized.checked = window.minimized;
                         wKeepAbove.checked = window.keepAbove;
                         wKeepBelow.checked = window.keepBelow;
+                        wNoBorder.checked = window.noBorder;
                         windowUpdated = true;
                     }
                 }
@@ -229,6 +233,7 @@ ApplicationWindow {
             aMinimized.checked = defaultConfig.minimized;
             aKeepAbove.checked = defaultConfig.keepAbove;
             aKeepBelow.checked = defaultConfig.keepBelow;
+            aNoBorder.checked = defaultConfig.noBorder;
         }
 
         if (!windowUpdated) {
@@ -244,6 +249,7 @@ ApplicationWindow {
             wMinimized.checked = defaultConfig.minimized;
             wKeepAbove.checked = defaultConfig.keepAbove;
             wKeepBelow.checked = defaultConfig.keepBelow;
+            wNoBorder.checked = defaultConfig.noBorder;
         }
     }
 
@@ -265,6 +271,7 @@ ApplicationWindow {
                         window.minimized = wMinimized.checked;
                         window.keepAbove = wKeepAbove.checked;
                         window.keepBelow = wKeepBelow.checked;
+                        window.noBorder = wNoBorder.checked;
                     }
                 }
 
@@ -279,6 +286,7 @@ ApplicationWindow {
                 application.config.minimized = aMinimized.checked;
                 application.config.keepAbove = aKeepAbove.checked;
                 application.config.keepBelow = aKeepBelow.checked;
+                application.config.noBorder = aNoBorder.checked;
             }
         }
     }
@@ -863,6 +871,11 @@ ApplicationWindow {
                                         text: "Keep Below"
                                         checked: defaultConfig.keepBelow
                                     }
+                                    CheckBox {
+                                        id: dNoBorder
+                                        text: "No Titlebar & Frame"
+                                        checked: defaultConfig.noBorder
+                                    }
                                 }
                             }
 
@@ -941,6 +954,11 @@ ApplicationWindow {
                                     CheckBox {
                                         id: aKeepBelow
                                         text: "Keep Below"
+                                        enabled: aOverride.checked
+                                    }
+                                    CheckBox {
+                                        id: aNoBorder
+                                        text: "No Titlebar & Frame"
                                         enabled: aOverride.checked
                                     }
                                 }
@@ -1022,6 +1040,11 @@ ApplicationWindow {
                                     CheckBox {
                                         id: wKeepBelow
                                         text: "Keep Below"
+                                        enabled: wOverride.checked
+                                    }
+                                    CheckBox {
+                                        id: wNoBorder
+                                        text: "No Titlebar & Frame"
                                         enabled: wOverride.checked
                                     }
                                 }

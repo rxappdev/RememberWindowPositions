@@ -157,6 +157,7 @@ Item {
             restoreMinimized: KWin.readConfig("restoreMinimized", true),
             restoreKeepAbove: KWin.readConfig("restoreKeepAbove", true),
             restoreKeepBelow: KWin.readConfig("restoreKeepBelow", true),
+            restoreNoBorder: KWin.readConfig("restoreNoBorder", true),
             restoreWindowsWithoutCaption: KWin.readConfig("restoreWindowsWithoutCaption", true),
             restoreTile: KWin.readConfig("restoreTile", true),
             restoreResizedQuickTile: KWin.readConfig("restoreResizedQuickTile", false),
@@ -181,6 +182,7 @@ Item {
             sessionRestoreMinimized: KWin.readConfig("sessionRestoreMinimized", true),
             sessionRestoreKeepAbove: KWin.readConfig("sessionRestoreKeepAbove", true),
             sessionRestoreKeepBelow: KWin.readConfig("sessionRestoreKeepBelow", true),
+            sessionRestoreNoBorder: KWin.readConfig("sessionRestoreNoBorder", true),
             sessionRestoreTime: KWin.readConfig("sessionRestoreTime", 25),
             blacklist: stringListToNormalAndWildcard(KWin.readConfig("blacklist", "org.kde.spectacle\norg.kde.polkit-kde-authentication-agent-1\nsteam*\norg.kde.plasmashell\nkwin\nksmserver\nsystemsettings\nkcm_kwinrules\norg.kde.kmenuedit\norg.kde.ark\norg.kde.plasma.emojier\norg.freedesktop.impl.portal.desktop.kde")),
             whitelist: stringListToNormalAndWildcard(KWin.readConfig("whitelist", browserList)),
@@ -234,7 +236,8 @@ Item {
             activity: config.restoreActivities,
             minimized: config.restoreMinimized,
             keepAbove: config.restoreKeepAbove,
-            keepBelow: config.restoreKeepBelow
+            keepBelow: config.restoreKeepBelow,
+            noBorder: config.restoreNoBorder
         };
     }
 
@@ -404,6 +407,7 @@ Item {
         let minimizedRestored = false;
         let keepAboveRestored = false;
         let keepBelowRestored = false;
+        let noBorderRestored = false;
         let zRestored = false;
 
         let restoreSession = saveData.sessionRestore ? config.loginOverride : false;
@@ -414,6 +418,7 @@ Item {
         let restoreMinimized = restoreSession ? config.sessionRestoreMinimized : windowConfig.minimized;
         let restoreKeepAbove = restoreSession ? config.sessionRestoreKeepAbove : windowConfig.keepAbove;
         let restoreKeepBelow = restoreSession ? config.sessionRestoreKeepBelow : windowConfig.keepBelow;
+        let restoreNoBorder = restoreSession ? config.sessionRestoreNoBorder : windowConfig.noBorder;
 
         let mouseTilerAutoTilePreventsRestore = false;
 
@@ -439,6 +444,13 @@ Item {
         setAutoTilerRestoredFlag(client);
 
         if (!mouseTilerAutoTilePreventsRestore) {
+            // Restore noBorder
+            if (saveData.noBorder && restoreNoBorder) {
+                log('Attempting to restore window noBorder');
+                client.noBorder = true;
+                noBorderRestored = true;
+            }
+
             // Restore frame geometry
             if (config.perScreenRestore && saveData.position) {
                 log('Restoring frame geometry based on screen position');
@@ -640,7 +652,7 @@ Item {
             }
         }
 
-        logE(client.resourceClass + ' restored - z: ' + zRestored + ' positon: ' + positionRestored + ' size: ' + sizeRestored + ' desktop: ' + virtualDesktopRestored + ' minimized: ' + minimizedRestored + ' keepAbove: ' + keepAboveRestored + ' keepBelow: ' + keepBelowRestored + ' caption score: ' + captionScore + ' internalId: ' + client.internalId);
+        logE(client.resourceClass + ' restored - z: ' + zRestored + ' positon: ' + positionRestored + ' size: ' + sizeRestored + ' desktop: ' + virtualDesktopRestored + ' minimized: ' + minimizedRestored + ' keepAbove: ' + keepAboveRestored + ' keepBelow: ' + keepBelowRestored + ' noBorder: ' + noBorderRestored + ' caption score: ' + captionScore + ' internalId: ' + client.internalId);
         log('- caption   save: ' + saveData.caption);
         log('- caption window: ' + client.caption);
     }
@@ -1229,6 +1241,7 @@ Item {
                 minimized      : client.minimized,
                 keepAbove      : client.keepAbove,
                 keepBelow      : client.keepBelow,
+                noBorder       : client.noBorder,
                 // outputName     : client.output.name,
                 stackingOrder  : currentWindowOrder == -1 ? client.stackingOrder : currentWindowOrder,
                 desktopNumber  : client.onAllDesktops ? -1 : client.desktops[0].x11DesktopNumber,
@@ -1567,6 +1580,7 @@ Item {
                     minimized        : save.m == 1,   // minimized
                     keepAbove        : save.k == 1,   // keepAbove
                     keepBelow        : save.b == 1,   // keepBelow
+                    noBorder         : save.f == 1,   // noBorder
                     stackingOrder    : save.s,        // stackingOrder
                     desktopNumber    : save.d,        // desktopNumber
                     activities       : save.a,        // activities
@@ -1642,6 +1656,7 @@ Item {
                             minimized        : save.m == 1,
                             keepAbove        : save.k == 1,
                             keepBelow        : save.b == 1,
+                            noBorder         : save.f == 1,
                             stackingOrder    : save.s,
                             desktopNumber    : save.d,
                             activities       : save.a,
@@ -1729,6 +1744,7 @@ Item {
                         m: save.minimized ? 1 : 0,         // minimized
                         k: save.keepAbove ? 1 : 0,         // keepAbove
                         b: save.keepBelow ? 1 : 0,         // keepBelow
+                        f: save.noBorder ? 1 : 0,          // noBorder
                         s: save.stackingOrder,             // stackingOrder
                         d: save.desktopNumber,             // desktopNumber
                         a: save.activities,                // activities
@@ -1801,6 +1817,7 @@ Item {
                 m: client.minimized ? 1 : 0,
                 k: client.keepAbove ? 1 : 0,
                 b: client.keepBelow ? 1 : 0,
+                f: client.noBorder ? 1 : 0,
                 s: i,
                 d: client.onAllDesktops ? -1 : client.desktops[0].x11DesktopNumber,
                 a: [...client.activities],
@@ -1868,7 +1885,8 @@ Item {
                             activity: defaultConfig.activity,
                             minimized: defaultConfig.minimized,
                             keepAbove: defaultConfig.keepAbove,
-                            keepBelow: defaultConfig.keepBelow
+                            keepBelow: defaultConfig.keepBelow,
+                            noBorder: defaultConfig.noBorder
                         },
                         windows: {}
                     };
@@ -1887,7 +1905,8 @@ Item {
                         activity: defaultConfig.activity,
                         minimized: defaultConfig.minimized,
                         keepAbove: defaultConfig.keepAbove,
-                        keepBelow: defaultConfig.keepBelow
+                        keepBelow: defaultConfig.keepBelow,
+                        noBorder: defaultConfig.noBorder
                     };
                     modified = true;
                 }
@@ -1933,7 +1952,8 @@ Item {
                     activity        : application.a == 1, // activity
                     minimized       : application.m == 1, // minimized
                     keepAbove       : application.k == 1, // keepAbove
-                    keepBelow       : application.b == 1  // keepBelow
+                    keepBelow       : application.b == 1, // keepBelow
+                    noBorder        : application.f == 1  // noBorder
                 },
                 windows             : {}                  // windows
             };
@@ -1950,7 +1970,8 @@ Item {
                     activity        : window.a == 1, // activity
                     minimized       : window.m == 1, // minimized
                     keepAbove       : window.k == 1, // keepAbove
-                    keepBelow       : window.b == 1  // keepBelow
+                    keepBelow       : window.b == 1, // keepBelow
+                    noBorder        : window.f == 1  // noBorder
                 };
             }
         }
@@ -1982,6 +2003,7 @@ Item {
                 m: appConfig.minimized       ? 1 : 0, // minimized
                 k: appConfig.keepAbove       ? 1 : 0, // keepAbove
                 b: appConfig.keepBelow       ? 1 : 0, // keepBelow
+                f: appConfig.noBorder        ? 1 : 0, // noBorder
                 w: {}                                 // windows
             };
             for (let windowKey in application.windows) {
@@ -1997,7 +2019,8 @@ Item {
                     a: window.activity        ? 1 : 0, // activity
                     m: window.minimized       ? 1 : 0, // minimized
                     k: window.keepAbove       ? 1 : 0, // keepAbove
-                    b: window.keepBelow       ? 1 : 0  // keepBelow
+                    b: window.keepBelow       ? 1 : 0, // keepBelow
+                    f: window.noBorder        ? 1 : 0  // noBorder
                 };
             }
         }

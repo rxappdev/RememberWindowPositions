@@ -29,6 +29,9 @@
         <entry name="restoreKeepBelow" type="Bool">
             <default>true</default>
         </entry>
+        <entry name="restoreNoBorder" type="Bool">
+            <default>true</default>
+        </entry>
         <entry name="restoreWindowsWithoutCaption" type="Bool">
             <default>true</default>
         </entry>
@@ -117,6 +120,9 @@ waterfox-default</default>
             <default>true</default>
         </entry>
         <entry name="sessionRestoreKeepBelow" type="Bool">
+            <default>true</default>
+        </entry>
+        <entry name="sessionRestoreNoBorder" type="Bool">
             <default>true</default>
         </entry>
         <entry name="sessionRestoreTime" type="Int">
