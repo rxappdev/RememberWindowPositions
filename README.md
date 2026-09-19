@@ -45,7 +45,7 @@ Remembers and restores the windows position, size, screen and virtual desktop.</
 <li><a href="#use">Use case examples</a>
     <ul>
         <li><a href="#single-window-blacklist">Block a splash screen/dialog</a></li>
-        <li><a href="#firefox">Remember Firefox/LibreWolf/Waterfox Picture-in-Picture position</a></li>
+        <li><a href="#firefox">Remember Firefox/LibreWolf/Waterfox PiP (Picture-in-Picture) position</a></li>
         <li><a href="#browser">Only restore my browser - let other application use system default behavior</a></li>
         <li><a href="#desktop">Do not restore virtual desktop for Konsole</a></li>
         <li><a href="#caption">Only remember windows that fully match caption (title)</a></li>
