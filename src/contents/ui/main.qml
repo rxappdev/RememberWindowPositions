@@ -2044,6 +2044,9 @@ Item {
     function saveWindowsToSettings(shutdown) {
         if (config.onlySaveOnShutdown && !shutdown) return;
         clearSessionRestoreSaves();
+        if (!shuttingDown && config.liveBackup && config.perDisplayConfigRestore) {
+            saveLiveBackup();
+        }
 
         // Convert save data to minimize size in storage - omit all data that is not relevant for the save
         let convertedWindows = {};
@@ -2108,9 +2111,9 @@ Item {
             }
         }
 
-        // On shutdown, include the currently open windows from the live
-        // backup so their layouts are stored durably before the script exits.
-        if (shutdown && config.perDisplayConfigRestore) {
+        // Include the currently open windows from the live backup, so their
+        // layouts are stored durably and cannot be eroded by a later save.
+        if (config.liveBackup && config.perDisplayConfigRestore) {
             let liveBackups = parseLiveBackups();
             let liveTimestamp = 0;
             try {
@@ -2119,6 +2122,8 @@ Item {
                 logE('Failed to parse live backup timestamp');
             }
             for (let app in liveBackups) {
+                let windowData = config.windows[app];
+                if (!windowData || windowData.windowCount <= 0) continue;
                 let liveApp = liveBackups[app];
                 if (!liveApp.s || liveApp.s.length == 0) continue;
                 convertedWindows[app] = {
