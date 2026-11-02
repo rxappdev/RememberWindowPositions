@@ -28,7 +28,7 @@ Item {
     // outputs with their resolution and arrangement, e.g. laptop-only vs docked)
     property string displayConfigKey: ""
     property string appliedConfigKey: ""
-    property int maxStoredPlacements: 8
+    property int maxStoredPlacements: 32
     property bool shuttingDown: false
 
     function log(string) {
