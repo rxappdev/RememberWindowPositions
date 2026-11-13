@@ -83,6 +83,8 @@ Can operate in one of four modes where it remembers:
 
 There are lots of other settings that let you control exactly how and when to restore windows to their previous state.
 
+In the "Multi-monitor behavior" setting you can also choose to remember a separate window layout for each display configuration (for example laptop-only vs docked), so windows return to where they were last used in the current setup.
+
 ### Future ideas
 
 The future features depend on you.

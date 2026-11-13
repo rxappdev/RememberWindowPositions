@@ -403,6 +403,11 @@
                 <string>Port the last monitor was connected to - restore window based on connection/cable such as HDMI. (Recommended for office workers with flexible work spaces).</string>
                </property>
               </item>
+              <item>
+               <property name="text">
+                <string>Last position per display configuration - remember a separate window layout for each combination of connected monitors, e.g. laptop-only vs docked. (Recommended for laptop users who frequently dock and undock).</string>
+               </property>
+              </item>
              </widget>
             </item>
            </layout>
