@@ -123,7 +123,27 @@ Item {
 
     function getPlacementForSave(saveData) {
         if (!saveData || !saveData.placements) return undefined;
-        return saveData.placements[displayConfigKey];
+        let placement = saveData.placements[displayConfigKey];
+        if (placement) return placement;
+        return findPlacementByOutput(saveData.placements);
+    }
+
+    function findPlacementByOutput(placements) {
+        if (!placements) return undefined;
+        let screens = Workspace.screens;
+        let best = undefined;
+        for (let key in placements) {
+            let candidate = placements[key];
+            if (!candidate || !candidate.width || !candidate.height) continue;
+            for (let i = 0; i < screens.length; i++) {
+                let screen = screens[i];
+                let matches = candidate.serialNumber ? candidate.serialNumber == screen.serialNumber : candidate.name == screen.name;
+                if (matches && (!best || (candidate.lastUsed || 0) > (best.lastUsed || 0))) {
+                    best = candidate;
+                }
+            }
+        }
+        return best;
     }
 
     function getSavedSize(saveData) {
@@ -217,10 +237,13 @@ Item {
         if (client.rwp_save && client.rwp_save.placements) {
             let placement = client.rwp_save.placements[displayConfigKey];
             if (placement) return placement;
+            placement = findPlacementByOutput(client.rwp_save.placements);
+            if (placement) return placement;
         }
         let liveWindow = findLiveBackupWindow(parseLiveBackups(), client.resourceClass, client.caption.toString());
         if (liveWindow && liveWindow.P) {
-            return convertPlacementsFromSettings(liveWindow.P)[displayConfigKey];
+            let placements = convertPlacementsFromSettings(liveWindow.P);
+            return placements[displayConfigKey] || findPlacementByOutput(placements);
         }
         return undefined;
     }
@@ -250,6 +273,10 @@ Item {
             if (!applied) {
                 log('No placement for ' + client.resourceClass + ' in configuration: ' + displayConfigKey);
             }
+            if (applied && !client.tile && isClientWithinScreens(client)) {
+                client.rwp_placement = placement;
+                client.rwp_enforceUntil = Date.now() + 8000;
+            }
             if (!isClientWithinScreens(client)) {
                 let screen = getTargetScreenForClient(client);
                 if (screen) {
@@ -259,6 +286,31 @@ Item {
             }
         }
         appliedConfigKey = displayConfigKey;
+    }
+
+    function enforceRestoredPlacements() {
+        if (!config.perDisplayConfigRestore) return;
+        let now = Date.now();
+        let clients = Workspace.stackingOrder;
+        for (let i = 0; i < clients.length; i++) {
+            let client = clients[i];
+            if (!client.rwp_enforceUntil) continue;
+            if (client.rwp_enforceUntil < now || !isValidWindow(client) || client.tile) {
+                delete client.rwp_enforceUntil;
+                delete client.rwp_placement;
+                continue;
+            }
+            let placement = client.rwp_placement;
+            if (!placement) continue;
+            let output = getOutputFromSave(placement.serialNumber, placement.name);
+            if (!output) continue;
+            let global = output.mapToGlobal(Qt.point(placement.x, placement.y));
+            let frame = client.frameGeometry;
+            if (Math.abs(frame.x - global.x) > 1 || Math.abs(frame.y - global.y) > 1 || Math.abs(frame.width - placement.width) > 1 || Math.abs(frame.height - placement.height) > 1) {
+                client.frameGeometry = Qt.rect(global.x, global.y, placement.width, placement.height);
+                log('Enforced placement for ' + client.resourceClass);
+            }
+        }
     }
 
     function convertPlacementsFromSettings(savedPlacements) {
@@ -900,6 +952,11 @@ Item {
                 }
             }
 
+            if (config.perDisplayConfigRestore && perConfigPlacement && perConfigPlacement.width && perConfigPlacement.height && (windowConfig.position || restoreSize) && !client.tile && isClientWithinScreens(client)) {
+                client.rwp_placement = perConfigPlacement;
+                client.rwp_enforceUntil = Date.now() + 8000;
+            }
+
             // Do not leave the window outside the current screens.
             if (config.perDisplayConfigRestore && !isClientWithinScreens(client)) {
                 log('Clamping window to the active screen');
@@ -1513,10 +1570,11 @@ Item {
             if (previousLiveWindow && previousLiveWindow.P) {
                 Object.assign(placements, convertPlacementsFromSettings(previousLiveWindow.P));
             }
-            if (isClientWithinScreens(client)) {
+            let enforcing = client.rwp_enforceUntil && client.rwp_enforceUntil > Date.now();
+            if (isClientWithinScreens(client) && !enforcing) {
                 placements[displayConfigKey] = placement;
             } else {
-                log('Skipping off-screen placement for ' + displayConfigKey);
+                log('Skipping placement during enforcement/off-screen for ' + displayConfigKey);
             }
             limitPlacements(placements);
             log('Saving placement for display configuration: ' + displayConfigKey);
@@ -1695,6 +1753,7 @@ Item {
             if (displayConfigKey != previousKey && config.perDisplayConfigRestore) {
                 displayConfigApplyTimer.restart();
             }
+            enforceRestoredPlacements();
         }
     }
 
@@ -2189,10 +2248,11 @@ Item {
             if (previousLiveWindow && previousLiveWindow.P) {
                 Object.assign(placements, convertPlacementsFromSettings(previousLiveWindow.P));
             }
-            if (shuttingDown || isClientWithinScreens(client)) {
+            let enforcing = client.rwp_enforceUntil && client.rwp_enforceUntil > Date.now();
+            if (shuttingDown || (isClientWithinScreens(client) && !enforcing)) {
                 placements[displayConfigKey] = placement;
             } else {
-                log('Skipping off-screen live placement for ' + displayConfigKey);
+                log('Skipping live placement during enforcement/off-screen for ' + displayConfigKey);
             }
             limitPlacements(placements);
             liveData[name].s.push({
