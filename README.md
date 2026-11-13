@@ -2,7 +2,7 @@
 
 <img align="left" style="margin-right: 20px" width="90" height="90" src="./assets/icon.png">
 
-<pre>KDE Plamsa KWin Script for remembering application window properties.
+<pre>KDE Plasma KWin Script for remembering application window properties.
 Especially useful for multi-window applications such as browsers.
 Remembers and restores the windows position, size, screen and virtual desktop.</pre>
 
