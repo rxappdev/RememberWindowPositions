@@ -275,7 +275,7 @@ Item {
             }
             if (applied && !client.tile && isClientWithinScreens(client)) {
                 client.rwp_placement = placement;
-                client.rwp_enforceUntil = Date.now() + 8000;
+                client.rwp_enforceUntil = Date.now() + 30000;
             }
             if (!isClientWithinScreens(client)) {
                 let screen = getTargetScreenForClient(client);
@@ -954,7 +954,7 @@ Item {
 
             if (config.perDisplayConfigRestore && perConfigPlacement && perConfigPlacement.width && perConfigPlacement.height && (windowConfig.position || restoreSize) && !client.tile && isClientWithinScreens(client)) {
                 client.rwp_placement = perConfigPlacement;
-                client.rwp_enforceUntil = Date.now() + 8000;
+                client.rwp_enforceUntil = Date.now() + 30000;
             }
 
             // Do not leave the window outside the current screens.
@@ -2240,19 +2240,24 @@ Item {
                 tile         : tileData,
                 lastUsed     : Date.now()
             };
-            let previousSave = client.rwp_save ? client.rwp_save : (config.windows[name] && config.windows[name].saved ? config.windows[name].saved.find((s) => s.caption == client.caption.toString()) : undefined);
-            let placements = previousSave && previousSave.placements ? Object.assign({}, previousSave.placements) : {};
-            // Retain configurations seen in earlier live backups, even if the
-            // window was never closed in them.
+            let placements = {};
+            // Retain configurations seen in earlier live backups, then overlay
+            // the window's saved placements, which are the trusted source.
             let previousLiveWindow = findLiveBackupWindow(previousLiveBackups, name, client.caption.toString());
             if (previousLiveWindow && previousLiveWindow.P) {
                 Object.assign(placements, convertPlacementsFromSettings(previousLiveWindow.P));
             }
+            let previousSave = client.rwp_save ? client.rwp_save : (config.windows[name] && config.windows[name].saved ? config.windows[name].saved.find((s) => s.caption == client.caption.toString()) : undefined);
+            if (previousSave && previousSave.placements) {
+                Object.assign(placements, previousSave.placements);
+            }
             let enforcing = client.rwp_enforceUntil && client.rwp_enforceUntil > Date.now();
-            if (shuttingDown || (isClientWithinScreens(client) && !enforcing)) {
-                placements[displayConfigKey] = placement;
-            } else {
-                log('Skipping live placement during enforcement/off-screen for ' + displayConfigKey);
+            if (!placements[displayConfigKey]) {
+                if (shuttingDown || (isClientWithinScreens(client) && !enforcing)) {
+                    placements[displayConfigKey] = placement;
+                } else {
+                    log('Skipping live placement during enforcement/off-screen for ' + displayConfigKey);
+                }
             }
             limitPlacements(placements);
             liveData[name].s.push({
