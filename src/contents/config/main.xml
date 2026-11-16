@@ -191,5 +191,8 @@ waterfox-default</default>
             <min>5</min>
             <max>600</max>
         </entry>
+        <entry name="blockLiveBackupOnFullscreen" type="Bool">
+            <default>true</default>
+        </entry>
     </group>
 </kcfg>

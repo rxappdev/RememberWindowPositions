@@ -1310,6 +1310,16 @@ When upgrading from an earlier version, a reboot might be required to enable the
               </widget>
              </item>
              <item>
+              <widget class="QCheckBox" name="kcfg_blockLiveBackupOnFullscreen">
+               <property name="text">
+                <string>Disable crash recovery while a full-screen application is running - this prevents crashes for World of Warcraft Forever, no other games are currently known to crash.</string>
+               </property>
+               <property name="checked">
+                <bool>true</bool>
+               </property>
+              </widget>
+             </item>
+             <item>
               <widget class="QSlider" name="kcfg_liveBackupInterval">
                <property name="minimum">
                 <number>5</number>

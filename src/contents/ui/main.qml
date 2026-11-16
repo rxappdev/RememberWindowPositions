@@ -23,6 +23,7 @@ Item {
     property var defaultConfig: ({})
 
     property int restoreMode: 0
+    property int liveBackupBlockers: 0
 
     function log(string) {
         if (!debugLogs) return;
@@ -193,6 +194,7 @@ Item {
             onlySaveOnShutdown: KWin.readConfig("onlySaveOnShutdown", false),
             liveBackup: KWin.readConfig("liveBackup", true),
             liveBackupInterval: KWin.readConfig("liveBackupInterval", 30),
+            blockLiveBackupOnFullscreen: KWin.readConfig("blockLiveBackupOnFullscreen", true),
             // confidence
             confidence: [
                 { caption: 100, matchingDimentions: 2, allowHeightShrinking: false }, // Caption and size match
@@ -313,7 +315,9 @@ Item {
             }
         }
 
-        log('getHighestCaptionScore highestScore: ' + highestScore + ' caption client: ' + client.caption + ' caption save: ' + windowData.saved[highestIndex].caption);
+        if (highestIndex >= 0) {
+            log('getHighestCaptionScore highestScore: ' + highestScore + ' caption client: ' + client.caption + ' caption save: ' + windowData.saved[highestIndex].caption);
+        }
 
         return returnIndex ? [highestScore, highestIndex] : highestScore;
     }
@@ -1003,6 +1007,18 @@ Item {
                 break;
         }
 
+        var liveBackupClosedBlocker = false;
+
+        if (config.liveBackup && config.blockLiveBackupOnFullscreen) {
+            if (client.fullScreen) {
+                liveBackupClosedBlocker = true;
+                liveBackupBlockers++;
+                // log('Live backup blocker started - ' + client.resourceClass + ' - blocker count: ' + liveBackupBlockers);
+            }
+            client.closed.connect(onLiveBackupBlockerClosed);
+            client.fullScreenChanged.connect(onLiveBackupFullScreenChanged);
+        }
+
         let currentConfig = getCurrentConfig(client);
         if (config.printApplicationNameToLog) logAppInfo(client.resourceClass, currentConfig.override);
         if (currentConfig.listenToCaptionChange) {
@@ -1028,6 +1044,28 @@ Item {
                 delete client.rwp_captionListenerAdded;
             }
             removeWindow(client);
+        }
+
+        function onLiveBackupFullScreenChanged() {
+            if (client.fullScreen) {
+                liveBackupClosedBlocker = true;
+                liveBackupBlockers++;
+                // log('Live backup blocker status changed - block - ' + client.resourceClass + ' - blocker count: ' + liveBackupBlockers);
+            } else {
+                // log('Live backup blocker status changed - unblock - ' + client.resourceClass);
+                liveBackupBlockers--;
+                liveBackupClosedBlocker = false;
+            }
+        }
+
+        function onLiveBackupBlockerClosed() {
+            if (liveBackupClosedBlocker) {
+                // log('Live backup blocker closed - ' + client.resourceClass);
+                liveBackupBlockers--;
+                liveBackupClosedBlocker = false;
+            }
+            client.closed.disconnect(onLiveBackupBlockerClosed);
+            client.fullScreenChanged.disconnect(onLiveBackupFullScreenChanged);
         }
 
         function onCaptionChanged() {
@@ -1800,6 +1838,12 @@ Item {
 
     function saveLiveBackup() {
         if (config.liveBackupInterval <= 0) return;
+        if (liveBackupBlockers > 0) {
+            log('Unable to live backup - ' + liveBackupBlockers + ' blockers found!');
+            return;
+        } else {
+            log('Performing live backup...');
+        }
         let liveData = {};
         const clients = Workspace.stackingOrder;
         for (let i = 0; i < clients.length; i++) {
